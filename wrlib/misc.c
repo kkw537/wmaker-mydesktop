@@ -30,13 +30,51 @@
 #include "wr_i18n.h"
 
 
+/*
+ * Apply the operation on a rectangular area of the image (the coordinates
+ * are inclusive), one line at a time
+ */
+static void operateBlock(RImage *image, int operation, int x0, int y0, int x1, int y1, const RColor *color)
+{
+	int y;
+
+	if (x1 < x0 || y1 < y0)
+		return;
+
+	for (y = y0; y <= y1; y++)
+		ROperateLine(image, operation, x0, y, x1, y, color);
+}
+
+static void drawBlock(RImage *image, int x0, int y0, int x1, int y1, const RColor *color)
+{
+	int y;
+
+	if (x1 < x0 || y1 < y0)
+		return;
+
+	for (y = y0; y <= y1; y++)
+		RDrawLine(image, x0, y, x1, y, color);
+}
+
 void RBevelImage(RImage * image, int bevel_type)
+{
+	RBevelImageScaled(image, bevel_type, 1);
+}
+
+/*
+ * Draws the bevel with lines that are "thickness" pixels thick, so that the
+ * result looks like the regular bevel drawn with bigger pixels (used to
+ * scale the user interface on high resolution screens)
+ */
+void RBevelImageScaled(RImage * image, int bevel_type, int thickness)
 {
 	RColor color;
 	RColor cdelta;
-	int w, h;
+	int w, h, t;
 
-	if (image->width < 3 || image->height < 3)
+	t = (thickness < 1) ? 1 : thickness;
+
+	if (image->width < 3 * t || image->height < 3 * t)
 		return;
 
 	w = image->width;
@@ -45,41 +83,41 @@ void RBevelImage(RImage * image, int bevel_type)
 		/* top */
 		cdelta.alpha = 0;
 		cdelta.red = cdelta.green = cdelta.blue = 80;
-		ROperateLine(image, RAddOperation, 0, 0, w - 1, 0, &cdelta);
-		if (bevel_type == RBEV_RAISED3 && w > 3)
-			ROperateLine(image, RAddOperation, 1, 1, w - 3, 1, &cdelta);
+		operateBlock(image, RAddOperation, 0, 0, w - 1, t - 1, &cdelta);
+		if (bevel_type == RBEV_RAISED3 && w > 3 * t)
+			operateBlock(image, RAddOperation, t, t, w - 1 - 2 * t, 2 * t - 1, &cdelta);
 
 		/* left */
-		ROperateLine(image, RAddOperation, 0, 1, 0, h - 1, &cdelta);
-		if (bevel_type == RBEV_RAISED3 && h > 3)
-			ROperateLine(image, RAddOperation, 1, 2, 1, h - 3, &cdelta);
+		operateBlock(image, RAddOperation, 0, t, t - 1, h - 1, &cdelta);
+		if (bevel_type == RBEV_RAISED3 && h > 3 * t)
+			operateBlock(image, RAddOperation, t, 2 * t, 2 * t - 1, h - 1 - 2 * t, &cdelta);
 
 		/* bottom */
 		color.alpha = 255;
 		color.red = color.green = color.blue = 0;
 		cdelta.red = cdelta.green = cdelta.blue = 40;
 		if (bevel_type == RBEV_RAISED2 || bevel_type == RBEV_RAISED3) {
-			ROperateLine(image, RSubtractOperation, 0, h - 2, w - 3, h - 2, &cdelta);
-			RDrawLine(image, 0, h - 1, w - 1, h - 1, &color);
+			operateBlock(image, RSubtractOperation, 0, h - 2 * t, w - 1 - 2 * t, h - 1 - t, &cdelta);
+			drawBlock(image, 0, h - t, w - 1, h - 1, &color);
 		} else {
-			ROperateLine(image, RSubtractOperation, 0, h - 1, w - 1, h - 1, &cdelta);
+			operateBlock(image, RSubtractOperation, 0, h - t, w - 1, h - 1, &cdelta);
 		}
 
 		/* right */
 		if (bevel_type == RBEV_RAISED2 || bevel_type == RBEV_RAISED3) {
-			ROperateLine(image, RSubtractOperation, w - 2, 0, w - 2, h - 2, &cdelta);
-			RDrawLine(image, w - 1, 0, w - 1, h - 2, &color);
+			operateBlock(image, RSubtractOperation, w - 2 * t, 0, w - 1 - t, h - 1 - t, &cdelta);
+			drawBlock(image, w - t, 0, w - 1, h - 1 - t, &color);
 		} else {
-			ROperateLine(image, RSubtractOperation, w - 1, 0, w - 1, h - 2, &cdelta);
+			operateBlock(image, RSubtractOperation, w - t, 0, w - 1, h - 1 - t, &cdelta);
 		}
 	} else {		/* sunken */
 		cdelta.alpha = 0;
 		cdelta.red = cdelta.green = cdelta.blue = 40;
-		ROperateLine(image, RSubtractOperation, 0, 0, w - 1, 0, &cdelta);	/* top */
-		ROperateLine(image, RSubtractOperation, 0, 1, 0, h - 1, &cdelta);	/* left */
+		operateBlock(image, RSubtractOperation, 0, 0, w - 1, t - 1, &cdelta);	/* top */
+		operateBlock(image, RSubtractOperation, 0, t, t - 1, h - 1, &cdelta);	/* left */
 		cdelta.red = cdelta.green = cdelta.blue = 80;
-		ROperateLine(image, RAddOperation, 0, h - 1, w - 1, h - 1, &cdelta);	/* bottom */
-		ROperateLine(image, RAddOperation, w - 1, 0, w - 1, h - 2, &cdelta);	/* right */
+		operateBlock(image, RAddOperation, 0, h - t, w - 1, h - 1, &cdelta);	/* bottom */
+		operateBlock(image, RAddOperation, w - t, 0, w - 1, h - 1 - t, &cdelta);	/* right */
 	}
 }
 

@@ -681,7 +681,7 @@ renderTexture(WScreen * scr, WTexture * texture, int width, int height,
 #endif
 
 		if (limg) {
-			RBevelImage(limg, RBEV_RAISED2);
+			RBevelImageScaled(limg, RBEV_RAISED2, WMScaled(1));
 			if (!RConvertImage(scr->rcontext, limg, lbutton))
 				wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));
 
@@ -691,7 +691,7 @@ renderTexture(WScreen * scr, WTexture * texture, int width, int height,
 		}
 #ifdef XKB_BUTTON_HINT
 		if (timg) {
-			RBevelImage(timg, RBEV_RAISED2);
+			RBevelImageScaled(timg, RBEV_RAISED2, WMScaled(1));
 			if (!RConvertImage(scr->rcontext, timg, languagebutton))
 				wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));
 
@@ -707,7 +707,7 @@ renderTexture(WScreen * scr, WTexture * texture, int width, int height,
 			rimg = NULL;
 
 		if (rimg) {
-			RBevelImage(rimg, RBEV_RAISED2);
+			RBevelImageScaled(rimg, RBEV_RAISED2, WMScaled(1));
 			if (!RConvertImage(scr->rcontext, rimg, rbutton))
 				wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));
 
@@ -717,20 +717,20 @@ renderTexture(WScreen * scr, WTexture * texture, int width, int height,
 
 		if (w != width) {
 			mimg = RGetSubImage(img, x, 0, w, img->height);
-			RBevelImage(mimg, RBEV_RAISED2);
+			RBevelImageScaled(mimg, RBEV_RAISED2, WMScaled(1));
 
 			if (!RConvertImage(scr->rcontext, mimg, title))
 				wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));
 
 			RReleaseImage(mimg);
 		} else {
-			RBevelImage(img, RBEV_RAISED2);
+			RBevelImageScaled(img, RBEV_RAISED2, WMScaled(1));
 
 			if (!RConvertImage(scr->rcontext, img, title))
 				wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));
 		}
 	} else {
-		RBevelImage(img, RBEV_RAISED2);
+		RBevelImageScaled(img, RBEV_RAISED2, WMScaled(1));
 
 		if (!RConvertImage(scr->rcontext, img, title))
 			wwarning(_("error rendering image:%s"), RMessageForError(RErrorCode));

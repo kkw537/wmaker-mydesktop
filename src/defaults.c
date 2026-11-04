@@ -89,6 +89,7 @@ typedef struct {
 /* type converters */
 static WDECallbackConvert getBool;
 static WDECallbackConvert getInt;
+static WDECallbackConvert getPixels;
 static WDECallbackConvert getString;
 static WDECallbackConvert getCoord;
 static WDECallbackConvert getPathList;
@@ -332,7 +333,7 @@ WDefaultEntry staticOptionList[] = {
 	{"DisableDithering", "NO", NULL,
 	    &wPreferences.no_dithering, getBool, NULL, NULL, NULL},
 	{"IconSize", "64", NULL,
-	    &wPreferences.icon_size, getInt, NULL, NULL, NULL},
+	    &wPreferences.icon_size, getPixels, NULL, NULL, NULL},
 	{"ModifierKey", "Mod1", NULL,
 	    &wPreferences.modifier_mask, getModMask, NULL, NULL, NULL},
 	{"FocusMode", "manual", seFocusModes,				/* have a problem when switching from */
@@ -352,7 +353,7 @@ WDefaultEntry staticOptionList[] = {
 	{"EnableWorkspacePager", "NO", NULL,
 	    &wPreferences.enable_workspace_pager, getBool, NULL, NULL, NULL},
 	{"SwitchPanelIconSize", "64", NULL,
-	    &wPreferences.switch_panel_icon_size, getInt, NULL, NULL, NULL},
+	    &wPreferences.switch_panel_icon_size, getPixels, NULL, NULL, NULL},
 };
 
 #define NUM2STRING_(x) #x
@@ -407,7 +408,7 @@ WDefaultEntry optionList[] = {
 	{"WorkspaceBorder", "None", seWorkspaceBorder,
 	    &wPreferences.workspace_border_position, getEnum, updateUsableArea, NULL, NULL},
 	{"WorkspaceBorderSize", "0", NULL,
-	    &wPreferences.workspace_border_size, getInt, updateUsableArea, NULL, NULL},
+	    &wPreferences.workspace_border_size, getPixels, updateUsableArea, NULL, NULL},
 	{"StickyIcons", "NO", NULL,
 	    &wPreferences.sticky_icons, getBool, setStickyIcons, NULL, NULL},
 	{"SaveSessionOnExit", "NO", NULL,
@@ -465,9 +466,9 @@ WDefaultEntry optionList[] = {
 	{"WindowSnapping", "NO", NULL,
 	    &wPreferences.window_snapping, getBool, NULL, NULL, NULL},
 	{"SnapEdgeDetect", "1", NULL,
-	    &wPreferences.snap_edge_detect, getInt, NULL, NULL, NULL},
+	    &wPreferences.snap_edge_detect, getPixels, NULL, NULL, NULL},
 	{"SnapCornerDetect", "10", NULL,
-	    &wPreferences.snap_corner_detect, getInt, NULL, NULL, NULL},
+	    &wPreferences.snap_corner_detect, getPixels, NULL, NULL, NULL},
 	{"SnapToTopMaximizesFullscreen", "NO", NULL,
 	    &wPreferences.snap_to_top_maximizes_fullscreen, getBool, NULL, NULL, NULL},
 	{"DragMaximizedWindow", "Move", seDragMaximizedWindow,
@@ -505,9 +506,9 @@ WDefaultEntry optionList[] = {
 	{"HelpBalloons", "NO", NULL,
 	    &wPreferences.help_balloon, getBool, NULL, NULL, NULL},
 	{"EdgeResistance", "30", NULL,
-	    &wPreferences.edge_resistance, getInt, NULL, NULL, NULL},
+	    &wPreferences.edge_resistance, getPixels, NULL, NULL, NULL},
 	{"ResizeIncrement", "0", NULL,
-	    &wPreferences.resize_increment, getInt, NULL, NULL, NULL},
+	    &wPreferences.resize_increment, getPixels, NULL, NULL, NULL},
 	{"Attraction", "NO", NULL,
 	    &wPreferences.attract, getBool, NULL, NULL, NULL},
 	{"DisableBlinking", "NO", NULL,
@@ -519,7 +520,7 @@ WDefaultEntry optionList[] = {
 	{"SwitchPanelOnlyOpen",	"NO",	NULL,
 	    &wPreferences.panel_only_open, getBool, NULL, NULL, NULL},
 	{"MiniPreviewSize", "128", NULL,
-	    &wPreferences.minipreview_size, getInt, NULL, NULL, NULL},
+	    &wPreferences.minipreview_size, getPixels, NULL, NULL, NULL},
 	{"IgnoreGtkHints", "NO", NULL,
 	    &wPreferences.ignore_gtk_decoration_hints, getBool, NULL, NULL, NULL},
 	{"KeepDockOnPrimaryHead", "NO", NULL,
@@ -534,7 +535,7 @@ WDefaultEntry optionList[] = {
 	{"HotCornerDelay", "250", (void *)&wPreferences.hot_corner_delay,
 	    &wPreferences.hot_corner_delay, getInt, NULL, NULL, NULL},
 	{"HotCornerEdge", "2", (void *)&wPreferences.hot_corner_edge,
-	    &wPreferences.hot_corner_edge, getInt, NULL, NULL, NULL},
+	    &wPreferences.hot_corner_edge, getPixels, NULL, NULL, NULL},
 	{"HotCornerActions", "(\"None\", \"None\", \"None\", \"None\")", &wPreferences,
 	    NULL, getPropList, setHotCornerActions, NULL, NULL},
 	{"WindowListAppIcons", "NO", NULL,
@@ -568,19 +569,19 @@ WDefaultEntry optionList[] = {
 	{"WindowTitleFont", DEF_TITLE_FONT, NULL,
 	    NULL, getFont, setWinTitleFont, NULL, NULL},
 	{"WindowTitleExtendSpace", DEF_WINDOW_TITLE_EXTEND_SPACE, NULL,
-	    &wPreferences.window_title_clearance, getInt, setClearance, NULL, NULL},
+	    &wPreferences.window_title_clearance, getPixels, setClearance, NULL, NULL},
 	{"WindowTitleMinHeight", "0", NULL,
-	    &wPreferences.window_title_min_height, getInt, setClearance, NULL, NULL},
+	    &wPreferences.window_title_min_height, getPixels, setClearance, NULL, NULL},
 	{"WindowTitleMaxHeight", NUM2STRING(INT_MAX), NULL,
-	    &wPreferences.window_title_max_height, getInt, setClearance, NULL, NULL},
+	    &wPreferences.window_title_max_height, getPixels, setClearance, NULL, NULL},
 	{"MenuTitleExtendSpace", DEF_MENU_TITLE_EXTEND_SPACE, NULL,
-	    &wPreferences.menu_title_clearance, getInt, setClearance, NULL, NULL},
+	    &wPreferences.menu_title_clearance, getPixels, setClearance, NULL, NULL},
 	{"MenuTitleMinHeight", "0", NULL,
-	    &wPreferences.menu_title_min_height, getInt, setClearance, NULL, NULL},
+	    &wPreferences.menu_title_min_height, getPixels, setClearance, NULL, NULL},
 	{"MenuTitleMaxHeight", NUM2STRING(INT_MAX), NULL,
-	    &wPreferences.menu_title_max_height, getInt, setClearance, NULL, NULL},
+	    &wPreferences.menu_title_max_height, getPixels, setClearance, NULL, NULL},
 	{"MenuTextExtendSpace", DEF_MENU_TEXT_EXTEND_SPACE, NULL,
-	    &wPreferences.menu_text_clearance, getInt, setClearance, NULL, NULL},
+	    &wPreferences.menu_text_clearance, getPixels, setClearance, NULL, NULL},
 	{"MenuTitleFont", DEF_MENU_TITLE_FONT, NULL,
 	    NULL, getFont, setMenuTitleFont, NULL, NULL},
 	{"MenuTextFont", DEF_MENU_ENTRY_FONT, NULL,
@@ -636,7 +637,7 @@ WDefaultEntry optionList[] = {
 	{"ModifierKeyShortLabels", "(\"Sh+\", \"^\", \"M1+\", \"M2+\", \"M3+\", \"M4+\", \"M5+\", \"M+\", \"A+\")", &wPreferences,
 	    NULL, getPropList, setModifierShortKeyLabels, NULL, NULL},
 	{"FrameBorderWidth", "1", NULL,
-	    NULL, getInt, setFrameBorderWidth, NULL, NULL},
+	    NULL, getPixels, setFrameBorderWidth, NULL, NULL},
 	{"FrameBorderColor", "black", NULL,
 	    NULL, getColor, setFrameBorderColor, NULL, NULL},
 	{"FrameFocusedBorderColor", "black", NULL,
@@ -1617,6 +1618,32 @@ static int getInt(WScreen * scr, WDefaultEntry * entry, WMPropList * value, void
 	return True;
 }
 
+/*
+ * Same as getInt, but for values that are a size or distance in pixels: they
+ * are expressed in logical pixels and get the GUI scale factor (GSScaleFactor)
+ * applied.
+ */
+static int getPixels(WScreen * scr, WDefaultEntry * entry, WMPropList * value, void *addr, void **ret)
+{
+	static int data;
+	int *value_ptr;
+
+	if (!getInt(scr, entry, value, NULL, (void **)&value_ptr))
+		return False;
+
+	data = *value_ptr;
+	/* do not overflow huge values used as "unlimited" (eg: INT_MAX) */
+	if (data > -INT_MAX / 16 && data < INT_MAX / 16)
+		data = WMScaled(data);
+
+	if (ret)
+		*ret = &data;
+	if (addr)
+		*(int *)addr = data;
+
+	return True;
+}
+
 static int getCoord(WScreen * scr, WDefaultEntry * entry, WMPropList * value, void *addr, void **ret)
 {
 	static WCoord data;
@@ -1675,6 +1702,10 @@ static int getCoord(WScreen * scr, WDefaultEntry * entry, WMPropList * value, vo
 		}
 		return False;
 	}
+
+	/* coordinates are given in logical pixels */
+	data.x = WMScaled(data.x);
+	data.y = WMScaled(data.y);
 
 	if (data.x < 0)
 		data.x = 0;
@@ -3582,6 +3613,18 @@ static int setSwPOptions(WScreen * scr, WDefaultEntry * entry, void *tdata, void
 
 				cwidth = atoi(WMGetFromPLString(WMGetFromPLArray(array, 2)));
 				cheight = atoi(WMGetFromPLString(WMGetFromPLArray(array, 3)));
+
+				/* draw the image with the GUI scale factor applied */
+				if (cwidth > 0 && cheight > 0) {
+					RImage *scaled = WMScaleImageByFactor(bgimage);
+
+					if (scaled) {
+						RReleaseImage(bgimage);
+						bgimage = scaled;
+						cwidth = WMScaled(cwidth);
+						cheight = WMScaled(cheight);
+					}
+				}
 
 				if (cwidth <= 0 || cheight <= 0 ||
 				    cwidth >= bgimage->width - 2 || cheight >= bgimage->height - 2)

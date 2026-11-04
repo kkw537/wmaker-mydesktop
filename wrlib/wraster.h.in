@@ -522,6 +522,10 @@ void RFillImage(RImage *image, const RColor *color)
 void RBevelImage(RImage *image, int bevel_type)
 	__wrlib_nonnull(1);
 
+/* same as RBevelImage, with lines "thickness" pixels thick */
+void RBevelImageScaled(RImage *image, int bevel_type, int thickness)
+	__wrlib_nonnull(1);
+
 RImage *RRenderGradient(unsigned width, unsigned height, const RColor *from,
                         const RColor *to, RGradientStyle style)
 	__wrlib_nonalias __wrlib_useresult __wrlib_nonnull(3, 4);

@@ -13,6 +13,17 @@ W_DrawRelief(W_Screen * scr, Drawable d, int x, int y, unsigned int width,
 			   WMColorGC(scr->gray), WMColorGC(scr->white));
 }
 
+static void fillLine(Display *dpy, Drawable d, GC gc, int x, int y, int width, int height)
+{
+	if (width > 0 && height > 0)
+		XFillRectangle(dpy, d, gc, x, y, width, height);
+}
+
+/*
+ * The relief lines are drawn as filled rectangles of GSScaleFactor pixels
+ * thickness, so that with a scale factor of 2 the relief looks exactly like
+ * the regular one drawn with 2x2 sized pixels.
+ */
 void
 W_DrawReliefWithGC(W_Screen * scr, Drawable d, int x, int y, unsigned int width,
 		   unsigned int height, WMReliefType relief, GC black, GC dark, GC light, GC white)
@@ -22,10 +33,16 @@ W_DrawReliefWithGC(W_Screen * scr, Drawable d, int x, int y, unsigned int width,
 	GC wgc;
 	GC lgc;
 	GC dgc;
+	int t = WMScaled(1);	/* thickness of a line */
+	int w = width;
+	int h = height;
 
 	switch (relief) {
 	case WRSimple:
-		XDrawRectangle(dpy, d, black, x, y, width - 1, height - 1);
+		fillLine(dpy, d, black, x, y, w, t);
+		fillLine(dpy, d, black, x, y + h - t, w, t);
+		fillLine(dpy, d, black, x, y, t, h);
+		fillLine(dpy, d, black, x + w - t, y, t, h);
 		return;
 
 	case WRRaised:
@@ -61,25 +78,25 @@ W_DrawReliefWithGC(W_Screen * scr, Drawable d, int x, int y, unsigned int width,
 		return;
 	}
 	/* top left */
-	XDrawLine(dpy, d, wgc, x, y, x + width - 1, y);
-	if (width > 2 && relief != WRRaised && relief != WRPushed) {
-		XDrawLine(dpy, d, lgc, x + 1, y + 1, x + width - 3, y + 1);
+	fillLine(dpy, d, wgc, x, y, w, t);
+	if (w > 2 * t && relief != WRRaised && relief != WRPushed) {
+		fillLine(dpy, d, lgc, x + t, y + t, w - 3 * t, t);
 	}
 
-	XDrawLine(dpy, d, wgc, x, y, x, y + height - 1);
-	if (height > 2 && relief != WRRaised && relief != WRPushed) {
-		XDrawLine(dpy, d, lgc, x + 1, y + 1, x + 1, y + height - 3);
+	fillLine(dpy, d, wgc, x, y, t, h);
+	if (h > 2 * t && relief != WRRaised && relief != WRPushed) {
+		fillLine(dpy, d, lgc, x + t, y + t, t, h - 3 * t);
 	}
 
 	/* bottom right */
-	XDrawLine(dpy, d, bgc, x, y + height - 1, x + width - 1, y + height - 1);
-	if (width > 2 && relief != WRPushed) {
-		XDrawLine(dpy, d, dgc, x + 1, y + height - 2, x + width - 2, y + height - 2);
+	fillLine(dpy, d, bgc, x, y + h - t, w, t);
+	if (w > 2 * t && relief != WRPushed) {
+		fillLine(dpy, d, dgc, x + t, y + h - 2 * t, w - 2 * t, t);
 	}
 
-	XDrawLine(dpy, d, bgc, x + width - 1, y, x + width - 1, y + height - 1);
-	if (height > 2 && relief != WRPushed) {
-		XDrawLine(dpy, d, dgc, x + width - 2, y + 1, x + width - 2, y + height - 2);
+	fillLine(dpy, d, bgc, x + w - t, y, t, h);
+	if (h > 2 * t && relief != WRPushed) {
+		fillLine(dpy, d, dgc, x + w - 2 * t, y + t, t, h - 2 * t);
 	}
 }
 
@@ -245,10 +262,10 @@ W_PaintTextAndImage(W_View * view, int wrap, WMColor * textColor, W_Font * font,
 		w = view->size.width;
 		h = view->size.height;
 	} else {
-		x = 1;
-		y = 1;
-		w = view->size.width - 3;
-		h = view->size.height - 3;
+		x = WMScaled(1);
+		y = WMScaled(1);
+		w = view->size.width - WMScaled(3);
+		h = view->size.height - WMScaled(3);
 	}
 
 	/* calc. image alignment */
@@ -267,15 +284,15 @@ W_PaintTextAndImage(W_View * view, int wrap, WMColor * textColor, W_Font * font,
 		case WIPLeft:
 			ix = x;
 			iy = y + (h - image->height) / 2;
-			x = x + image->width + 5;
+			x = x + image->width + WMScaled(5);
 			y = 0;
-			w -= image->width + 5;
+			w -= image->width + WMScaled(5);
 			break;
 
 		case WIPRight:
 			ix = view->size.width - image->width - x;
 			iy = y + (h - image->height) / 2;
-			w -= image->width + 5;
+			w -= image->width + WMScaled(5);
 			break;
 
 		case WIPBelow:
@@ -312,8 +329,8 @@ W_PaintTextAndImage(W_View * view, int wrap, WMColor * textColor, W_Font * font,
 	if (position != WIPImageOnly && text != NULL) {
 		int textHeight;
 
-		textHeight = W_GetTextHeight(font, text, w - 8, wrap);
-		W_PaintText(view, d, font, x + ofs + 4, y + ofs + (h - textHeight) / 2, w - 8,
+		textHeight = W_GetTextHeight(font, text, w - WMScaled(8), wrap);
+		W_PaintText(view, d, font, x + ofs + WMScaled(4), y + ofs + (h - textHeight) / 2, w - WMScaled(8),
 			    alignment, textColor, wrap, text, strlen(text));
 	}
 

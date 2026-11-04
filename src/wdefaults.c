@@ -433,7 +433,8 @@ RImage *get_rimage_from_file(WScreen *scr, const char *file_name, int max_size)
 		wwarning(_("error loading image file \"%s\": %s"), file_name,
 			 RMessageForError(RErrorCode));
 
-	image = wIconValidateIconSize(image, max_size);
+	/* draw the image with the GUI scale factor applied */
+	image = wIconScaleImage(image, max_size);
 
 	return image;
 }

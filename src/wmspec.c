@@ -544,6 +544,29 @@ RImage *get_window_image_from_x11(Window window)
 	if (!image)
 		return NULL;
 
+	/* Apply the GUI scale factor to small icons: they are enlarged up to
+	 * GSScaleFactor times, without getting bigger than the wanted size, so
+	 * that big enough icons keep their full resolution */
+	if (WMGetScaleFactor() > 1.0F) {
+		int wanted = wPreferences.icon_size;
+		int max_dim = WMAX(image->width, image->height);
+		int new_dim = WMScaled(max_dim);
+
+		if (wPreferences.enforce_icon_margin)
+			wanted = (int)((double)wPreferences.icon_size * 0.75 + 0.5);
+		if (new_dim > wanted)
+			new_dim = wanted;
+
+		if (new_dim > max_dim) {
+			RImage *scaled = RSmoothScaleImage(image, image->width * new_dim / max_dim,
+							   image->height * new_dim / max_dim);
+			if (scaled) {
+				RReleaseImage(image);
+				image = scaled;
+			}
+		}
+	}
+
 	/* Resize the image to the correct value */
 	image = wIconValidateIconSize(image, wPreferences.icon_size);
 

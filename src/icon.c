@@ -51,7 +51,7 @@
 
 #define MOD_MASK wPreferences.modifier_mask
 #define CACHE_ICON_PATH "/" PACKAGE_TARNAME "/CachedPixmaps"
-#define ICON_BORDER 3
+#define ICON_BORDER WMScaled(3)
 
 static void miniwindowExpose(WObjDescriptor *desc, XEvent *event);
 static void miniwindowMouseDown(WObjDescriptor *desc, XEvent *event);
@@ -375,6 +375,28 @@ RImage *wIconValidateIconSize(RImage *icon, int max_size)
 	}
 
 	return icon;
+}
+
+/*
+ * Applies the GUI scale factor (GSScaleFactor) to an icon image that comes
+ * from a source drawn for a regular (unscaled) display (an image file, the
+ * icon pixmap of a client...), and then makes sure it fits in max_size.
+ * The image passed is released, a new one is returned.
+ */
+RImage *wIconScaleImage(RImage *icon, int max_size)
+{
+	RImage *scaled;
+
+	if (!icon)
+		return NULL;
+
+	scaled = WMScaleImageByFactor(icon);
+	if (scaled) {
+		RReleaseImage(icon);
+		icon = scaled;
+	}
+
+	return wIconValidateIconSize(icon, max_size);
 }
 
 int wIconChangeImageFile(WIcon *icon, const char *file)
@@ -814,8 +836,8 @@ RImage *get_rimage_icon_from_wm_hints(WIcon *icon)
 	if (!image)
 		return NULL;
 
-	/* Resize the icon to the wPreferences.icon_size size */
-	image = wIconValidateIconSize(image, wPreferences.icon_size);
+	/* Scale the icon and resize it to the wPreferences.icon_size size */
+	image = wIconScaleImage(image, wPreferences.icon_size);
 
 	return image;
 }
