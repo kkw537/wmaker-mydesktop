@@ -569,8 +569,9 @@ int main(int argc, char **argv)
 	/* setup common stuff for the monitor and wmaker itself */
 	WMInitializeApplication("WindowMaker", &argc, argv);
 
-	/* HiDPI: scale everything by the user's GSScaleFactor */
-	WMSetScaleFactor(WMGetUserScaleFactor());
+	/* HiDPI: scale everything by the user's GSScaleFactor; when it is not
+	 * set, draw each logical pixel as DEF_SCALE_FACTOR device pixels */
+	WMSetScaleFactor(WMGetUserScaleFactorWithDefault(DEF_SCALE_FACTOR));
 
 	memset(&wPreferences, 0, sizeof(wPreferences));
 

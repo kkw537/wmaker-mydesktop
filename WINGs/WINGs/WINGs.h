@@ -802,7 +802,8 @@ void WMGetScaleBaseFromSystemFont(WMScreen *scrPtr, int *alphabetWidth, int *fon
  * The user sets it with the GSScaleFactor key, either in WMGLOBAL or in
  * GNUstep's NSGlobalDomain. WINGs only reads it; an application opts in by
  * calling WMSetScaleFactor(WMGetUserScaleFactor()) before creating its
- * screen. Once set, the sizes of all fonts created through WINGs are
+ * screen (or WMGetUserScaleFactorWithDefault() to use another default
+ * than 1.0 when the user did not set the key). Once set, the sizes of all fonts created through WINGs are
  * multiplied by the factor, and WMScale() can be used to convert a size or
  * position given in logical pixels into device pixels.
  */
@@ -812,6 +813,8 @@ extern double WMScaleFactor;
 #define WMUnscale(value) ((int)((double)(value) / WMScaleFactor + ((value) < 0 ? -0.5 : 0.5)))
 
 double WMGetUserScaleFactor(void);
+
+double WMGetUserScaleFactorWithDefault(double def_factor);
 
 double WMGetScaleFactor(void);
 

@@ -625,39 +625,25 @@ void wMenuDestroy(WMenu * menu, int recurse)
 
 static void drawFrame(WScreen * scr, Drawable win, int y, int w, int h, int type)
 {
-	XSegment segs[2];
-	int i;
+	GC light = scr->menu_item_auxtexture->light_gc;
+	GC dim = scr->menu_item_auxtexture->dim_gc;
+	GC dark = scr->menu_item_auxtexture->dark_gc;
+	/* 1 logical pixel wide lines, see wDrawBevel() */
+	int t = WMScale(1);
 
-	i = 0;
-	segs[i].x1 = segs[i].x2 = w - 1;
-	segs[i].y1 = y;
-	segs[i].y2 = y + h - 1;
-	i++;
-	if (type != F_TOP && type != F_NONE) {
-		segs[i].x1 = 1;
-		segs[i].y1 = segs[i].y2 = y + h - 2;
-		segs[i].x2 = w - 1;
-		i++;
-	}
-	XDrawSegments(dpy, win, scr->menu_item_auxtexture->dim_gc, segs, i);
+	if (t < 1)
+		t = 1;
 
-	i = 0;
-	segs[i].x1 = 0;
-	segs[i].y1 = y;
-	segs[i].x2 = 0;
-	segs[i].y2 = y + h - 1;
-	i++;
-	if (type != F_BOTTOM && type != F_NONE) {
-		segs[i].x1 = 0;
-		segs[i].y1 = y;
-		segs[i].x2 = w - 1;
-		segs[i].y2 = y;
-		i++;
-	}
-	XDrawSegments(dpy, win, scr->menu_item_auxtexture->light_gc, segs, i);
+	XFillRectangle(dpy, win, dim, w - t, y, t, h);
+	if (type != F_TOP && type != F_NONE)
+		XFillRectangle(dpy, win, dim, t, y + h - 2 * t, w - t, t);
+
+	XFillRectangle(dpy, win, light, 0, y, t, h);
+	if (type != F_BOTTOM && type != F_NONE)
+		XFillRectangle(dpy, win, light, 0, y, w, t);
 
 	if (type != F_TOP && type != F_NONE)
-		XDrawLine(dpy, win, scr->menu_item_auxtexture->dark_gc, 0, y + h - 1, w - 1, y + h - 1);
+		XFillRectangle(dpy, win, dark, 0, y + h - t, w, t);
 }
 
 static void paintEntry(WMenu * menu, int index, int selected)
@@ -698,7 +684,7 @@ static void paintEntry(WMenu * menu, int index, int selected)
 			drawFrame(scr, win, y, w, h, type);
 	} else {
 		if (scr->menu_item_texture->any.type == WTEX_SOLID) {
-			XClearArea(dpy, win, 0, y + 1, w - 1, h - 3, False);
+			XClearArea(dpy, win, 0, y + WMScale(1), w - WMScale(1), h - WMScale(3), False);
 			/* draw the frame */
 			drawFrame(scr, win, y, w, h, type);
 		} else {
@@ -746,9 +732,22 @@ static void paintEntry(WMenu * menu, int index, int selected)
 
 	if (entry->cascade >= 0) {
 		/* draw the cascade indicator */
-		XDrawLine(dpy, win, dim, w - 11, y + 6, w - 6, y + h / 2 - 1);
-		XDrawLine(dpy, win, light, w - 11, y + h - 8, w - 6, y + h / 2 - 1);
-		XDrawLine(dpy, win, dark, w - 12, y + 6, w - 12, y + h - 8);
+		int t = WMScale(1) > 1 ? WMScale(1) : 1;
+		int ax = w - WMScale(12), tx = w - WMScale(6);
+		int top = y + WMScale(6), bottom = y + h - WMScale(8), mid = y + h / 2 - t;
+
+		if (t > 1) {
+			XSetLineAttributes(dpy, dim, t, LineSolid, CapButt, JoinMiter);
+			XSetLineAttributes(dpy, light, t, LineSolid, CapButt, JoinMiter);
+		}
+		/* thick lines are centered on their coordinates */
+		XDrawLine(dpy, win, dim, ax + t + t / 2, top, tx, mid);
+		XDrawLine(dpy, win, light, ax + t + t / 2, bottom, tx, mid);
+		if (t > 1) {
+			XSetLineAttributes(dpy, dim, 0, LineSolid, CapButt, JoinMiter);
+			XSetLineAttributes(dpy, light, 0, LineSolid, CapButt, JoinMiter);
+		}
+		XFillRectangle(dpy, win, dark, ax, top, t, bottom - top + t);
 	}
 
 	/* draw indicator */

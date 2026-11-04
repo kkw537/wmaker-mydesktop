@@ -975,7 +975,7 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 	    && fwin->resizebar_texture[0]->any.type == WTEX_SOLID) {
 		Window win;
 		int w, h;
-		int cw;
+		int cw, t;
 		GC light_gc, dim_gc;
 		WTexSolid *texture = (WTexSolid *) fwin->resizebar_texture[0];
 
@@ -986,21 +986,26 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 		dim_gc = texture->dim_gc;
 		win = fwin->resizebar->window;
 
-		XDrawLine(dpy, win, dim_gc, 0, 0, w, 0);
-		XDrawLine(dpy, win, light_gc, 0, 1, w, 1);
+		/* 1 logical pixel wide lines, see wDrawBevel() */
+		t = WMScale(1);
+		if (t < 1)
+			t = 1;
 
-		XDrawLine(dpy, win, dim_gc, cw, 2, cw, h);
-		XDrawLine(dpy, win, light_gc, cw + 1, 2, cw + 1, h);
+		XFillRectangle(dpy, win, dim_gc, 0, 0, w, t);
+		XFillRectangle(dpy, win, light_gc, 0, t, w, t);
 
-		XDrawLine(dpy, win, dim_gc, w - cw - 2, 2, w - cw - 2, h);
-		XDrawLine(dpy, win, light_gc, w - cw - 1, 2, w - cw - 1, h);
+		XFillRectangle(dpy, win, dim_gc, cw, 2 * t, t, h);
+		XFillRectangle(dpy, win, light_gc, cw + t, 2 * t, t, h);
+
+		XFillRectangle(dpy, win, dim_gc, w - cw - 2 * t, 2 * t, t, h);
+		XFillRectangle(dpy, win, light_gc, w - cw - t, 2 * t, t, h);
 
 #ifdef SHADOW_RESIZEBAR
-		XDrawLine(dpy, win, light_gc, 0, 1, 0, h - 1);
-		XDrawLine(dpy, win, dim_gc, w - 1, 2, w - 1, h - 1);
-		XDrawLine(dpy, win, dim_gc, 1, h - 1, cw, h - 1);
-		XDrawLine(dpy, win, dim_gc, cw + 2, h - 1, w - cw - 2, h - 1);
-		XDrawLine(dpy, win, dim_gc, w - cw, h - 1, w - 1, h - 1);
+		XFillRectangle(dpy, win, light_gc, 0, t, t, h - 2 * t);
+		XFillRectangle(dpy, win, dim_gc, w - t, 2 * t, t, h - 2 * t);
+		XFillRectangle(dpy, win, dim_gc, t, h - t, cw, t);
+		XFillRectangle(dpy, win, dim_gc, cw + 2 * t, h - t, w - 2 * cw - 4 * t, t);
+		XFillRectangle(dpy, win, dim_gc, w - cw, h - t, cw, t);
 #endif				/* SHADOW_RESIZEBAR */
 	}
 

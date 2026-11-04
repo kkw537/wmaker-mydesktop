@@ -246,11 +246,15 @@ void wIconDestroy(WIcon *icon)
 
 static void drawIconTitleBackground(WScreen *scr, Pixmap pixmap, int height)
 {
+	int t = WMScale(1) > 1 ? WMScale(1) : 1;
+
 	XFillRectangle(dpy, pixmap, scr->icon_title_texture->normal_gc, 0, 0, wPreferences.icon_size, height + 1);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, wPreferences.icon_size, 0);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, 0, height + 1);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->dim_gc,
-		  wPreferences.icon_size - 1, 0, wPreferences.icon_size - 1, height + 1);
+
+	/* 1 logical pixel wide lines, see wDrawBevel() */
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, wPreferences.icon_size, t);
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, t, height + 2);
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->dim_gc,
+		       wPreferences.icon_size - t, 0, t, height + 2);
 }
 
 static void icon_update_pixmap(WIcon *icon, RImage *image)

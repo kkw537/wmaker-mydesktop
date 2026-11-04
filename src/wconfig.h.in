@@ -167,7 +167,15 @@
 /* default style */
 #define DEF_FRAME_COLOR   "white"
 
-/* default fonts */
+/*
+ * Default UI scale factor (HiDPI), used when GSScaleFactor is not set in
+ * WMGLOBAL nor in GNUstep's NSGlobalDomain: every logical pixel is drawn
+ * as this many device pixels, and font sizes are multiplied by it.
+ * Set GSScaleFactor to 1 to get the classic unscaled look.
+ */
+#define DEF_SCALE_FACTOR                 2.0
+
+/* default fonts (sizes in logical pixels, scaled by the factor above) */
 #define DEF_TITLE_FONT          "\"Sans:bold:pixelsize=12\""
 #define DEF_MENU_TITLE_FONT     "\"Sans:bold:pixelsize=12\""
 #define DEF_MENU_ENTRY_FONT     "\"Sans:pixelsize=12\""

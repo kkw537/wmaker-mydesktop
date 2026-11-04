@@ -81,30 +81,43 @@ static double readGNUstepScaleFactor(void)
 
 /*
  * Returns the GSScaleFactor set by the user (WMGLOBAL first, then GNUstep's
- * NSGlobalDomain), or 1.0. This can be called before any screen is created.
+ * NSGlobalDomain), or def_factor when the user did not set one. This can be
+ * called before any screen is created.
+ */
+double WMGetUserScaleFactorWithDefault(double def_factor)
+{
+	static double factor = 0.0;
+	static Bool looked_up = False;
+	WMUserDefaults *defaults;
+	double value;
+
+	if (!looked_up) {
+		looked_up = True;
+		defaults = WMGetStandardUserDefaults();
+		if (defaults)
+			factor = readScaleFactorFromPL(WMGetUDObjectForKey(defaults, "GSScaleFactor"));
+		if (factor <= 0.0)
+			factor = readGNUstepScaleFactor();
+	}
+
+	value = (factor > 0.0) ? factor : def_factor;
+
+	if (value <= 0.0)
+		value = 1.0;
+	else if (value < MIN_SCALE_FACTOR)
+		value = MIN_SCALE_FACTOR;
+	else if (value > MAX_SCALE_FACTOR)
+		value = MAX_SCALE_FACTOR;
+
+	return value;
+}
+
+/*
+ * Returns the GSScaleFactor set by the user, or 1.0.
  */
 double WMGetUserScaleFactor(void)
 {
-	static double factor = 0.0;
-	WMUserDefaults *defaults;
-
-	if (factor > 0.0)
-		return factor;
-
-	defaults = WMGetStandardUserDefaults();
-	if (defaults)
-		factor = readScaleFactorFromPL(WMGetUDObjectForKey(defaults, "GSScaleFactor"));
-	if (factor <= 0.0)
-		factor = readGNUstepScaleFactor();
-
-	if (factor <= 0.0)
-		factor = 1.0;
-	else if (factor < MIN_SCALE_FACTOR)
-		factor = MIN_SCALE_FACTOR;
-	else if (factor > MAX_SCALE_FACTOR)
-		factor = MAX_SCALE_FACTOR;
-
-	return factor;
+	return WMGetUserScaleFactorWithDefault(1.0);
 }
 
 double WMGetScaleFactor(void)

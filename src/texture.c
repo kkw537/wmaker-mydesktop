@@ -528,13 +528,34 @@ static void bevelImage(RImage * image, int relief)
 	}
 }
 
+/*
+ * Bevels are 1 logical pixel wide lines, drawn as filled rectangles of
+ * WMScale(1) device pixels so that they keep their proportions when the UI
+ * is scaled (GSScaleFactor).
+ */
+static void fillHLine(Drawable d, GC gc, int x1, int x2, int y, int t)
+{
+	if (x2 >= x1)
+		XFillRectangle(dpy, d, gc, x1, y, x2 - x1 + t, t);
+}
+
+static void fillVLine(Drawable d, GC gc, int x, int y1, int y2, int t)
+{
+	if (y2 >= y1)
+		XFillRectangle(dpy, d, gc, x, y1, t, y2 - y1 + t);
+}
+
 void wDrawBevel(Drawable d, unsigned width, unsigned height, WTexSolid * texture, int relief)
 {
 	GC light, dim, dark;
-	XSegment segs[4];
+	int w = width, h = height;
+	int t = WMScale(1);
 
 	if (relief == WREL_FLAT)
 		return;
+
+	if (t < 1)
+		t = 1;
 
 	light = texture->light_gc;
 	dim = texture->dim_gc;
@@ -543,46 +564,30 @@ void wDrawBevel(Drawable d, unsigned width, unsigned height, WTexSolid * texture
 	case WREL_MENUENTRY:
 	case WREL_RAISED:
 	case WREL_ICON:
-		segs[0].x1 = 1;
-		segs[0].x2 = width - 2;
-		segs[0].y2 = segs[0].y1 = height - 2;
-		segs[1].x1 = width - 2;
-		segs[1].y1 = 1;
-		segs[1].x2 = width - 2;
-		segs[1].y2 = height - 2;
-		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, dark, segs, 2);
-		} else {
-			XDrawSegments(dpy, d, dim, segs, 2);
+		/* inner shadow, bottom and right */
+		{
+			GC gc = (wPreferences.new_style == TS_NEXT) ? dark : dim;
+
+			fillHLine(d, gc, t, w - 2 * t, h - 2 * t, t);
+			fillVLine(d, gc, w - 2 * t, t, h - 2 * t, t);
 		}
-		segs[0].x1 = 0;
-		segs[0].x2 = width - 1;
-		segs[0].y2 = segs[0].y1 = height - 1;
-		segs[1].x1 = segs[1].x2 = width - 1;
-		segs[1].y1 = 0;
-		segs[1].y2 = height - 1;
-		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, light, segs, 2);
-		} else {
-			XDrawSegments(dpy, d, dark, segs, 2);
+		/* outer shadow, bottom and right */
+		{
+			GC gc = (wPreferences.new_style == TS_NEXT) ? light : dark;
+
+			fillHLine(d, gc, 0, w - t, h - t, t);
+			fillVLine(d, gc, w - t, 0, h - t, t);
 		}
-		segs[0].x1 = segs[0].y1 = segs[0].y2 = 0;
-		segs[0].x2 = width - 2;
-		segs[1].x1 = segs[1].y1 = 0;
-		segs[1].x2 = 0;
-		segs[1].y2 = height - 2;
-		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, dark, segs, 2);
-		} else {
-			XDrawSegments(dpy, d, light, segs, 2);
+		/* highlight, top and left */
+		{
+			GC gc = (wPreferences.new_style == TS_NEXT) ? dark : light;
+
+			fillHLine(d, gc, 0, w - 2 * t, 0, t);
+			fillVLine(d, gc, 0, 0, h - 2 * t, t);
 		}
 		if (relief == WREL_ICON) {
-			segs[0].x1 = segs[0].y1 = segs[0].y2 = 1;
-			segs[0].x2 = width - 2;
-			segs[1].x1 = segs[1].y1 = 1;
-			segs[1].x2 = 1;
-			segs[1].y2 = height - 2;
-			XDrawSegments(dpy, d, light, segs, 2);
+			fillHLine(d, light, t, w - 2 * t, t, t);
+			fillVLine(d, light, t, t, h - 2 * t, t);
 		}
 		break;
 	}
