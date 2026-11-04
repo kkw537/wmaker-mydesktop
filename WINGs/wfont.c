@@ -70,6 +70,40 @@ static Bool hasProperty(FcPattern * pattern, const char *property)
 	return False;
 }
 
+/*
+ * Returns a newly allocated copy of the fontconfig name with its size
+ * multiplied by the global scale factor (see WMSetScaleFactor()).
+ */
+static char *scaleFontName(const char *fname)
+{
+	FcPattern *pattern;
+	double size;
+	char *result;
+
+	if (WMScaleFactor == 1.0)
+		return wstrdup(fname);
+
+	pattern = FcNameParse((const FcChar8 *) fname);
+	if (!pattern)
+		return wstrdup(fname);
+
+	if (FcPatternGetDouble(pattern, FC_PIXEL_SIZE, 0, &size) == FcResultMatch) {
+		FcPatternDel(pattern, FC_PIXEL_SIZE);
+		FcPatternAddDouble(pattern, FC_PIXEL_SIZE, size * WMScaleFactor);
+	} else if (FcPatternGetDouble(pattern, FC_SIZE, 0, &size) == FcResultMatch) {
+		FcPatternDel(pattern, FC_SIZE);
+		FcPatternAddDouble(pattern, FC_SIZE, size * WMScaleFactor);
+	} else {
+		/* fontconfig would pick 12 points by default */
+		FcPatternAddDouble(pattern, FC_SIZE, 12.0 * WMScaleFactor);
+	}
+
+	result = (char *)FcNameUnparse(pattern);
+	FcPatternDestroy(pattern);
+
+	return result ? result : wstrdup(fname);
+}
+
 static char *makeFontOfSize(const char *font, int size, const char *fallback)
 {
 	FcPattern *pattern = NULL;
@@ -112,7 +146,7 @@ WMFont *WMCreateFont(WMScreen * scrPtr, const char *fontName)
 {
 	Display *display = scrPtr->display;
 	WMFont *font;
-	char *fname;
+	char *fname, *scaled_name;
 #ifdef USE_PANGO
 	PangoFontMap *fontmap;
 	PangoContext *context;
@@ -143,8 +177,12 @@ WMFont *WMCreateFont(WMScreen * scrPtr, const char *fontName)
 
 	font->screen = scrPtr;
 
-	font->font = XftFontOpenName(display, scrPtr->screen, fname);
+	/* font->name (and the cache key) keeps the unscaled size, so that
+	 * fonts derived from its name are not scaled twice */
+	scaled_name = scaleFontName(fname);
+	font->font = XftFontOpenName(display, scrPtr->screen, scaled_name);
 	if (!font->font) {
+		wfree(scaled_name);
 		wfree(font);
 		wfree(fname);
 		return NULL;
@@ -162,7 +200,7 @@ WMFont *WMCreateFont(WMScreen * scrPtr, const char *fontName)
 	context = pango_font_map_create_context(fontmap);
 	layout = pango_layout_new(context);
 
-	pattern = FcNameParse((FcChar8 *) font->name);
+	pattern = FcNameParse((FcChar8 *) scaled_name);
 	description = pango_fc_font_description_from_pattern(pattern, FALSE);
 
 	/* Pango examines FC_SIZE but not FC_PIXEL_SIZE of the patten, but
@@ -179,6 +217,8 @@ WMFont *WMCreateFont(WMScreen * scrPtr, const char *fontName)
 	g_object_unref(context);
 	FcPatternDestroy(pattern);
 #endif
+
+	wfree(scaled_name);
 
 	assert(WMHashInsert(scrPtr->fontCache, font->name, font) == NULL);
 

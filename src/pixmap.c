@@ -30,6 +30,58 @@
 #include "pixmap.h"
 
 /*
+ * Resizes an image of the built-in artwork (titlebar buttons, indicators...)
+ * by the global scale factor. Takes ownership of the image and returns the
+ * one to use. Integer factors keep the pixel art sharp.
+ */
+RImage *wPixmapScaleImage(RImage *image)
+{
+	RImage *scaled;
+	int width, height;
+
+	if (!image || WMScaleFactor == 1.0)
+		return image;
+
+	width = WMScale(image->width);
+	height = WMScale(image->height);
+	if (width < 1 || height < 1)
+		return image;
+
+	if (WMScaleFactor == (double)(int)WMScaleFactor)
+		scaled = RScaleImage(image, width, height);
+	else
+		scaled = RSmoothScaleImage(image, width, height);
+
+	if (!scaled)
+		return image;
+
+	RReleaseImage(image);
+	return scaled;
+}
+
+/* Nearest neighbour resize of XBM bitmap data (LSB first, padded rows) */
+static char *scaleXBMData(const char *data, int width, int height, int swidth, int sheight)
+{
+	int bpl = (width + 7) / 8, sbpl = (swidth + 7) / 8;
+	unsigned char *out;
+	int x, y;
+
+	out = wmalloc(sbpl * sheight);
+	for (y = 0; y < sheight; y++) {
+		int sy = y * height / sheight;
+
+		for (x = 0; x < swidth; x++) {
+			int sx = x * width / swidth;
+
+			if (((unsigned char)data[sy * bpl + sx / 8]) & (1 << (sx % 8)))
+				out[y * sbpl + x / 8] |= 1 << (x % 8);
+		}
+	}
+
+	return (char *)out;
+}
+
+/*
  *----------------------------------------------------------------------
  * wPixmapCreateFromXPMData--
  * 	Creates a WPixmap structure and initializes it with the supplied
@@ -50,6 +102,8 @@ WPixmap *wPixmapCreateFromXPMData(WScreen * scr, char **data)
 	image = RGetImageFromXPMData(scr->rcontext, data);
 	if (!image)
 		return NULL;
+
+	image = wPixmapScaleImage(image);
 
 	pix = wmalloc(sizeof(WPixmap));
 
@@ -79,11 +133,28 @@ WPixmap *wPixmapCreateFromXBMData(WScreen * scr, char *data, char *mask,
 				  int width, int height, unsigned long fg, unsigned long bg)
 {
 	WPixmap *pix;
+	char *sdata = NULL, *smask = NULL;
+
+	if (WMScaleFactor != 1.0) {
+		int swidth = WMScale(width), sheight = WMScale(height);
+
+		sdata = scaleXBMData(data, width, height, swidth, sheight);
+		if (mask)
+			smask = (mask == data) ? sdata : scaleXBMData(mask, width, height, swidth, sheight);
+		data = sdata;
+		mask = smask;
+		width = swidth;
+		height = sheight;
+	}
 
 	pix = wmalloc(sizeof(WPixmap));
 	pix->image = XCreatePixmapFromBitmapData(dpy, scr->w_win, data, width, height, fg, bg, scr->w_depth);
 	if (pix->image == None) {
 		wfree(pix);
+		if (smask && smask != sdata)
+			wfree(smask);
+		if (sdata)
+			wfree(sdata);
 		return NULL;
 	}
 	if (mask) {
@@ -94,6 +165,12 @@ WPixmap *wPixmapCreateFromXBMData(WScreen * scr, char *data, char *mask,
 	pix->width = width;
 	pix->height = height;
 	pix->depth = scr->w_depth;
+
+	if (smask && smask != sdata)
+		wfree(smask);
+	if (sdata)
+		wfree(sdata);
+
 	return pix;
 }
 

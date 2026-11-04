@@ -12,6 +12,115 @@ _WINGsConfiguration WINGsConfiguration;
 
 #define FLOPPY_PATH "/floppy"
 
+#define MIN_SCALE_FACTOR 0.5
+#define MAX_SCALE_FACTOR 8.0
+
+/* Scale factor currently in use by WMScale() and the font code */
+double WMScaleFactor = 1.0;
+
+static double readScaleFactorFromPL(WMPropList *val)
+{
+	char *str, *end;
+	double value;
+
+	if (!val || !WMIsPLString(val))
+		return 0.0;
+
+	str = WMGetFromPLString(val);
+	if (!str)
+		return 0.0;
+
+	value = strtod(str, &end);
+	/* accept a decimal comma too, whatever the current locale is */
+	if (*end == ',' || *end == '.') {
+		char *frac = end + 1, *fend;
+		double f = strtod(frac, &fend);
+
+		if (fend > frac) {
+			int digits = fend - frac;
+
+			while (digits-- > 0)
+				f /= 10.0;
+			value += f;
+		}
+	}
+
+	return value;
+}
+
+/*
+ * GNUstep keeps its global settings in the NSGlobalDomain domain, which is
+ * not one of the domains WINGs reads, so look at it directly as a fallback.
+ */
+static double readGNUstepScaleFactor(void)
+{
+	static const char *const names[] = { "NSGlobalDomain.plist", "NSGlobalDomain" };
+	double value = 0.0;
+	int i;
+
+	for (i = 0; i < wlengthof(names) && value <= 0.0; i++) {
+		char *path = wdefaultspathfordomain(names[i]);
+		WMPropList *dict, *key;
+
+		if (!path)
+			continue;
+		dict = WMReadPropListFromFile(path);
+		wfree(path);
+		if (!dict)
+			continue;
+		if (WMIsPLDictionary(dict)) {
+			key = WMCreatePLString("GSScaleFactor");
+			value = readScaleFactorFromPL(WMGetFromPLDictionary(dict, key));
+			WMReleasePropList(key);
+		}
+		WMReleasePropList(dict);
+	}
+
+	return value;
+}
+
+/*
+ * Returns the GSScaleFactor set by the user (WMGLOBAL first, then GNUstep's
+ * NSGlobalDomain), or 1.0. This can be called before any screen is created.
+ */
+double WMGetUserScaleFactor(void)
+{
+	static double factor = 0.0;
+	WMUserDefaults *defaults;
+
+	if (factor > 0.0)
+		return factor;
+
+	defaults = WMGetStandardUserDefaults();
+	if (defaults)
+		factor = readScaleFactorFromPL(WMGetUDObjectForKey(defaults, "GSScaleFactor"));
+	if (factor <= 0.0)
+		factor = readGNUstepScaleFactor();
+
+	if (factor <= 0.0)
+		factor = 1.0;
+	else if (factor < MIN_SCALE_FACTOR)
+		factor = MIN_SCALE_FACTOR;
+	else if (factor > MAX_SCALE_FACTOR)
+		factor = MAX_SCALE_FACTOR;
+
+	return factor;
+}
+
+double WMGetScaleFactor(void)
+{
+	return WMScaleFactor;
+}
+
+void WMSetScaleFactor(double factor)
+{
+	if (factor < MIN_SCALE_FACTOR)
+		factor = MIN_SCALE_FACTOR;
+	if (factor > MAX_SCALE_FACTOR)
+		factor = MAX_SCALE_FACTOR;
+	WMScaleFactor = factor;
+}
+
 static unsigned getButtonWithName(const char *name, unsigned defaultButton)
 {
 	if (strncmp(name, "Button", 6) == 0 && strlen(name) == 7) {

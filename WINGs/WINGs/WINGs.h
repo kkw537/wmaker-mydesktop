@@ -796,6 +796,27 @@ unsigned int WMFontHeight(WMFont *font);
 
 void WMGetScaleBaseFromSystemFont(WMScreen *scrPtr, int *alphabetWidth, int *fontHeight);
 
+/*
+ * Global UI scale factor (HiDPI support).
+ *
+ * The user sets it with the GSScaleFactor key, either in WMGLOBAL or in
+ * GNUstep's NSGlobalDomain. WINGs only reads it; an application opts in by
+ * calling WMSetScaleFactor(WMGetUserScaleFactor()) before creating its
+ * screen. Once set, the sizes of all fonts created through WINGs are
+ * multiplied by the factor, and WMScale() can be used to convert a size or
+ * position given in logical pixels into device pixels.
+ */
+extern double WMScaleFactor;
+
+#define WMScale(value) ((int)((double)(value) * WMScaleFactor + ((value) < 0 ? -0.5 : 0.5)))
+#define WMUnscale(value) ((int)((double)(value) / WMScaleFactor + ((value) < 0 ? -0.5 : 0.5)))
+
+double WMGetUserScaleFactor(void);
+
+double WMGetScaleFactor(void);
+
+void WMSetScaleFactor(double factor);
+
 void WMSetWidgetDefaultFont(WMScreen *scr, WMFont *font);
 
 void WMSetWidgetDefaultBoldFont(WMScreen *scr, WMFont *font);

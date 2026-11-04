@@ -181,7 +181,7 @@
 #define DEF_WINDOW_TITLE_EXTEND_SPACE	"0"
 #define DEF_MENU_TITLE_EXTEND_SPACE	"0"
 #define DEF_MENU_TEXT_EXTEND_SPACE	"0"
-#define TITLEBAR_EXTEND_SPACE            4
+#define TITLEBAR_EXTEND_SPACE            WMScale(4)
 
 #define DEF_XPM_CLOSENESS	         40000
 
@@ -316,12 +316,12 @@
 #define CURSOR_BLINK_RATE	300
 
 /* how many pixels to move before dragging windows and other objects */
-#define MOVE_THRESHOLD	        5
-#define HRESIZE_THRESHOLD	3
+#define MOVE_THRESHOLD	        WMScale(5)
+#define HRESIZE_THRESHOLD	WMScale(3)
 
 #define MAX_WORKSPACENAME_WIDTH	64
 /* max width of window title in window list */
-#define MAX_WINDOWLIST_WIDTH	400
+#define MAX_WINDOWLIST_WIDTH	WMScale(400)
 
 #ifndef HAVE_INOTIFY
 /* Check defaults database for changes every this many milliseconds */
@@ -339,20 +339,23 @@
 /*
  * You should not modify the following values, unless you know
  * what you're doing.
+ *
+ * Sizes wrapped in WMScale() are given in logical pixels and get
+ * multiplied by the user's GSScaleFactor at run time.
  */
 
 /* number of window shortcuts */
 #define MAX_WINDOW_SHORTCUTS      10
-#define MIN_TITLEFONT_HEIGHT(h)   ((h)>14 ? (h) : 14)
-#define TITLEBAR_HEIGHT           18  /* window's titlebar height */
-#define RESIZEBAR_HEIGHT          8   /* height of the resizebar */
-#define RESIZEBAR_MIN_WIDTH       20  /* min width of handles-corner_width */
-#define RESIZEBAR_CORNER_WIDTH    28  /* width of the corner of resizebars */
-#define MENU_INDICATOR_SPACE      12
+#define MIN_TITLEFONT_HEIGHT(h)   ((h)>WMScale(14) ? (h) : WMScale(14))
+#define TITLEBAR_HEIGHT           WMScale(18)  /* window's titlebar height */
+#define RESIZEBAR_HEIGHT          WMScale(8)   /* height of the resizebar */
+#define RESIZEBAR_MIN_WIDTH       WMScale(20)  /* min width of handles-corner_width */
+#define RESIZEBAR_CORNER_WIDTH    WMScale(28)  /* width of the corner of resizebars */
+#define MENU_INDICATOR_SPACE      WMScale(12)
 #define MIN_WINDOW_SIZE	          5   /* minimum size for windows */
 #define ICON_WIDTH                64  /* size of the icon window */
 #define ICON_HEIGHT               64
-#define ICON_BORDER_WIDTH         2
+#define ICON_BORDER_WIDTH         WMScale(2)
 #define MAX_ICON_WIDTH	          60  /* size of the icon pixmap */
 #define MAX_ICON_HEIGHT           48
 #define MAX_WORKSPACES            100

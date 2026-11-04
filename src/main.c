@@ -569,6 +569,9 @@ int main(int argc, char **argv)
 	/* setup common stuff for the monitor and wmaker itself */
 	WMInitializeApplication("WindowMaker", &argc, argv);
 
+	/* HiDPI: scale everything by the user's GSScaleFactor */
+	WMSetScaleFactor(WMGetUserScaleFactor());
+
 	memset(&wPreferences, 0, sizeof(wPreferences));
 
 	wPreferences.fallbackWMs = WMCreateArray(8);
