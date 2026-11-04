@@ -108,22 +108,22 @@ static void createPanel(Panel * p)
 	}
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /***************** Workspace Navigation *****************/
 	panel->navF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->navF, 490, 210);
-	WMMoveWidget(panel->navF, 15, 8);
+	WMResizeWidget(panel->navF, WMScaled(490), WMScaled(210));
+	WMMoveWidget(panel->navF, WMScaled(15), WMScaled(8));
 	WMSetFrameTitle(panel->navF, _("Workspace Navigation"));
 
 	panel->cyclB = WMCreateSwitchButton(panel->navF);
-	WMResizeWidget(panel->cyclB, 410, 34);
-	WMMoveWidget(panel->cyclB, 75, 26);
+	WMResizeWidget(panel->cyclB, WMScaled(410), WMScaled(34));
+	WMMoveWidget(panel->cyclB, WMScaled(75), WMScaled(26));
 	WMSetButtonText(panel->cyclB, _("Wrap to the first workspace from the last workspace"));
 
 	panel->cyclL = WMCreateLabel(panel->navF);
-	WMResizeWidget(panel->cyclL, 60, 60);
-	WMMoveWidget(panel->cyclL, 10, 12);
+	WMResizeWidget(panel->cyclL, WMScaled(60), WMScaled(60));
+	WMMoveWidget(panel->cyclL, WMScaled(10), WMScaled(12));
 	WMSetLabelImagePosition(panel->cyclL, WIPImageOnly);
 	CreateImages(scr, rc, xis, CYCLE_FILE, &icon1, NULL);
 	if (icon1)
@@ -133,13 +133,13 @@ static void createPanel(Panel * p)
 	}
 
 	/**/ panel->linkB = WMCreateSwitchButton(panel->navF);
-	WMResizeWidget(panel->linkB, 410, 34);
-	WMMoveWidget(panel->linkB, 75, 73);
+	WMResizeWidget(panel->linkB, WMScaled(410), WMScaled(34));
+	WMMoveWidget(panel->linkB, WMScaled(75), WMScaled(73));
 	WMSetButtonText(panel->linkB, _("Switch workspaces while dragging windows"));
 
 	panel->linkL = WMCreateLabel(panel->navF);
-	WMResizeWidget(panel->linkL, 60, 40);
-	WMMoveWidget(panel->linkL, 10, 77);
+	WMResizeWidget(panel->linkL, WMScaled(60), WMScaled(40));
+	WMMoveWidget(panel->linkL, WMScaled(10), WMScaled(77));
 	WMSetLabelImagePosition(panel->linkL, WIPImageOnly);
 	CreateImages(scr, rc, xis, DONT_LINK_FILE, &icon1, NULL);
 	if (icon1)
@@ -149,13 +149,13 @@ static void createPanel(Panel * p)
 	}
 
 	/**/ panel->newB = WMCreateSwitchButton(panel->navF);
-	WMResizeWidget(panel->newB, 410, 34);
-	WMMoveWidget(panel->newB, 75, 115);
+	WMResizeWidget(panel->newB, WMScaled(410), WMScaled(34));
+	WMMoveWidget(panel->newB, WMScaled(75), WMScaled(115));
 	WMSetButtonText(panel->newB, _("Automatically create new workspaces"));
 
 	panel->newL = WMCreateLabel(panel->navF);
-	WMResizeWidget(panel->newL, 60, 20);
-	WMMoveWidget(panel->newL, 10, 123);
+	WMResizeWidget(panel->newL, WMScaled(60), WMScaled(20));
+	WMMoveWidget(panel->newL, WMScaled(10), WMScaled(123));
 	WMSetLabelImagePosition(panel->newL, WIPImageOnly);
 	CreateImages(scr, rc, xis, ADVANCE_FILE, &icon1, NULL);
 	if (icon1)
@@ -165,14 +165,14 @@ static void createPanel(Panel * p)
 	}
 
 	/**/ panel->posL = WMCreateLabel(panel->navF);
-	WMResizeWidget(panel->posL, 275, 30);
-	WMMoveWidget(panel->posL, 75, 161);
+	WMResizeWidget(panel->posL, WMScaled(275), WMScaled(30));
+	WMMoveWidget(panel->posL, WMScaled(75), WMScaled(161));
 	// WMSetLabelTextAlignment(panel->posL, WARight);
 	WMSetLabelText(panel->posL, _("Position of workspace name display"));
 
 	panel->posiL = WMCreateLabel(panel->navF);
-	WMResizeWidget(panel->posiL, 60, 40);
-	WMMoveWidget(panel->posiL, 10, 156);
+	WMResizeWidget(panel->posiL, WMScaled(60), WMScaled(40));
+	WMMoveWidget(panel->posiL, WMScaled(10), WMScaled(156));
 	WMSetLabelImagePosition(panel->posiL, WIPImageOnly);
 	CreateImages(scr, rc, xis, WSNAME_FILE, &icon1, NULL);
 	if (icon1)
@@ -182,8 +182,8 @@ static void createPanel(Panel * p)
 	}
 
 	panel->posP = WMCreatePopUpButton(panel->navF);
-	WMResizeWidget(panel->posP, 125, 20);
-	WMMoveWidget(panel->posP, 350, 166);
+	WMResizeWidget(panel->posP, WMScaled(125), WMScaled(20));
+	WMMoveWidget(panel->posP, WMScaled(350), WMScaled(166));
 	WMAddPopUpButtonItem(panel->posP, _("Disable"));
 	WMAddPopUpButtonItem(panel->posP, _("Center"));
 	WMAddPopUpButtonItem(panel->posP, _("Top"));

@@ -172,7 +172,7 @@ static void createPanel(Panel *p)
 	}
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 	/***************** Auto-delays *****************/
 	buf1 = wmalloc(strlen(DELAY_ICON) + 1);
@@ -181,22 +181,22 @@ static void createPanel(Panel *p)
 	for (k = 0; k < wlengthof(clip_delay_frame_titles); k++)
 	{
 		panel->autoDelayF[k] = WMCreateFrame(panel->box);
-		WMResizeWidget(panel->autoDelayF[k], 372, 100);
-		WMMoveWidget(panel->autoDelayF[k], 11, 10 + k * 110);
+		WMResizeWidget(panel->autoDelayF[k], WMScaled(372), WMScaled(100));
+		WMMoveWidget(panel->autoDelayF[k], WMScaled(11), WMScaled(10) + k * WMScaled(110));
 		WMSetFrameTitle(panel->autoDelayF[k], _(clip_delay_frame_titles[k]));
 
 		for (i = 0; i < 2; i++)
 		{
 			panel->autoDelayL[i + k * 2] = WMCreateLabel(panel->autoDelayF[k]);
-			WMResizeWidget(panel->autoDelayL[i + k * 2], 152, 20);
-			WMMoveWidget(panel->autoDelayL[i + k * 2], 8, 27 + 40 * i);
+			WMResizeWidget(panel->autoDelayL[i + k * 2], WMScaled(152), WMScaled(20));
+			WMMoveWidget(panel->autoDelayL[i + k * 2], WMScaled(8), WMScaled(27) + WMScaled(40) * i);
 			WMSetLabelText(panel->autoDelayL[i + k * 2], _(auto_delay[i + k * 2].string));
 
 			for (j = 0; j < wlengthof(autoDelayPresetValues); j++)
 			{
 				panel->autoDelayB[i + k * 2][j] = WMCreateCustomButton(panel->autoDelayF[k], WBBStateChangeMask);
-				WMResizeWidget(panel->autoDelayB[i + k * 2][j], 25, 25);
-				WMMoveWidget(panel->autoDelayB[i + k * 2][j], 160 + (26 * j), 25 + 40 * i);
+				WMResizeWidget(panel->autoDelayB[i + k * 2][j], WMScaled(25), WMScaled(25));
+				WMMoveWidget(panel->autoDelayB[i + k * 2][j], WMScaled(160) + (WMScaled(26) * j), WMScaled(25) + WMScaled(40) * i);
 				WMSetButtonBordered(panel->autoDelayB[i + k * 2][j], False);
 				WMSetButtonImagePosition(panel->autoDelayB[i + k * 2][j], WIPImageOnly);
 				WMSetButtonAction(panel->autoDelayB[i + k * 2][j], pushAutoDelayButton, panel);
@@ -221,15 +221,15 @@ static void createPanel(Panel *p)
 			}
 
 			panel->autoDelayT[i + k * 2] = WMCreateTextField(panel->autoDelayF[k]);
-			WMResizeWidget(panel->autoDelayT[i + k * 2], 41, 20);
-			WMMoveWidget(panel->autoDelayT[i + k * 2], 293, 27 + 40 * i);
+			WMResizeWidget(panel->autoDelayT[i + k * 2], WMScaled(41), WMScaled(20));
+			WMMoveWidget(panel->autoDelayT[i + k * 2], WMScaled(293), WMScaled(27) + WMScaled(40) * i);
 			WMAddNotificationObserver(autoDelayChanged, panel, WMTextDidChangeNotification, panel->autoDelayT[i + k * 2]);
 
 			color = WMDarkGrayColor(scr);
 			font = WMSystemFontOfSize(scr, 10);
 			panel->autoDelayMsL[i + k * 2] = WMCreateLabel(panel->autoDelayF[k]);
-			WMResizeWidget(panel->autoDelayMsL[i + k * 2], 26, 16);
-			WMMoveWidget(panel->autoDelayMsL[i + k * 2], 337, 30 + 40 * i);
+			WMResizeWidget(panel->autoDelayMsL[i + k * 2], WMScaled(26), WMScaled(16));
+			WMMoveWidget(panel->autoDelayMsL[i + k * 2], WMScaled(337), WMScaled(30) + WMScaled(40) * i);
 			WMSetLabelText(panel->autoDelayMsL[i + k * 2], _("ms"));
 			WMSetLabelTextColor(panel->autoDelayMsL[i + k * 2], color);
 			WMSetLabelFont(panel->autoDelayMsL[i + k * 2], font);
@@ -244,15 +244,15 @@ static void createPanel(Panel *p)
 
 	/***************** Enable/disable clip/dock/drawers *****************/
 	panel->dockF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->dockF, 115, 210);
-	WMMoveWidget(panel->dockF, 394, 10);
+	WMResizeWidget(panel->dockF, WMScaled(115), WMScaled(210));
+	WMMoveWidget(panel->dockF, WMScaled(394), WMScaled(10));
 	WMSetFrameTitle(panel->dockF, _("Dock/Clip/Drawer"));
 
 	for (i = 0; i < wlengthof(dock_config); i++)
 	{
 		panel->docksB[i] = WMCreateButton(panel->dockF, WBTToggle);
-		WMResizeWidget(panel->docksB[i], 56, 56);
-		WMMoveWidget(panel->docksB[i], 30, 20 + 62 * i);
+		WMResizeWidget(panel->docksB[i], WMScaled(56), WMScaled(56));
+		WMMoveWidget(panel->docksB[i], WMScaled(30), WMScaled(20) + WMScaled(62) * i);
 		WMSetButtonImagePosition(panel->docksB[i], WIPImageOnly);
 		CreateImages(scr, rc, xis, dock_config[i].icon_file, &icon1, &icon2);
 		if (icon2) {

@@ -95,20 +95,20 @@ static void createPanel(Panel * p)
 	char *path;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /***************** Menu Scroll Speed ****************/
 	panel->scrF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->scrF, 235, 90);
-	WMMoveWidget(panel->scrF, 25, 20);
+	WMResizeWidget(panel->scrF, WMScaled(235), WMScaled(90));
+	WMMoveWidget(panel->scrF, WMScaled(25), WMScaled(20));
 	WMSetFrameTitle(panel->scrF, _("Menu Scrolling Speed"));
 
 	buf1 = wmalloc(strlen(SPEED_IMAGE) + 1);
 	buf2 = wmalloc(strlen(SPEED_IMAGE_S) + 1);
 	for (i = 0; i < wlengthof(panel->scrB); i++) {
 		panel->scrB[i] = WMCreateCustomButton(panel->scrF, WBBStateChangeMask);
-		WMResizeWidget(panel->scrB[i], 40, 40);
-		WMMoveWidget(panel->scrB[i], 15 + (40 * i), 30);
+		WMResizeWidget(panel->scrB[i], WMScaled(40), WMScaled(40));
+		WMMoveWidget(panel->scrB[i], WMScaled(15) + (WMScaled(40) * i), WMScaled(30));
 		WMSetButtonBordered(panel->scrB[i], False);
 		WMSetButtonImagePosition(panel->scrB[i], WIPImageOnly);
 		if (i > 0) {
@@ -147,13 +147,13 @@ static void createPanel(Panel * p)
     /***************** Submenu Alignment ****************/
 
 	panel->aliF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->aliF, 220, 90);
-	WMMoveWidget(panel->aliF, 280, 20);
+	WMResizeWidget(panel->aliF, WMScaled(220), WMScaled(90));
+	WMMoveWidget(panel->aliF, WMScaled(280), WMScaled(20));
 	WMSetFrameTitle(panel->aliF, _("Submenu Alignment"));
 
 	panel->alinB = WMCreateButton(panel->aliF, WBTOnOff);
-	WMResizeWidget(panel->alinB, 48, 48);
-	WMMoveWidget(panel->alinB, 56, 25);
+	WMResizeWidget(panel->alinB, WMScaled(48), WMScaled(48));
+	WMMoveWidget(panel->alinB, WMScaled(56), WMScaled(25));
 	WMSetButtonImagePosition(panel->alinB, WIPImageOnly);
 	path = LocateImage(MENU_ALIGN1);
 	if (path) {
@@ -167,8 +167,8 @@ static void createPanel(Panel * p)
 		wfree(path);
 	}
 	panel->aliyB = WMCreateButton(panel->aliF, WBTOnOff);
-	WMResizeWidget(panel->aliyB, 48, 48);
-	WMMoveWidget(panel->aliyB, 120, 25);
+	WMResizeWidget(panel->aliyB, WMScaled(48), WMScaled(48));
+	WMMoveWidget(panel->aliyB, WMScaled(120), WMScaled(25));
 	WMSetButtonImagePosition(panel->aliyB, WIPImageOnly);
 	path = LocateImage(MENU_ALIGN2);
 	if (path) {
@@ -187,21 +187,21 @@ static void createPanel(Panel * p)
 
     /***************** Options ****************/
 	panel->optF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->optF, 475, 96);
-	WMMoveWidget(panel->optF, 25, 120);
+	WMResizeWidget(panel->optF, WMScaled(475), WMScaled(96));
+	WMMoveWidget(panel->optF, WMScaled(25), WMScaled(120));
 
 	panel->wrapB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->wrapB, 440, 32);
-	WMMoveWidget(panel->wrapB, 25, 8);
+	WMResizeWidget(panel->wrapB, WMScaled(440), WMScaled(32));
+	WMMoveWidget(panel->wrapB, WMScaled(25), WMScaled(8));
 	WMSetButtonText(panel->wrapB, _("Always open submenus inside the screen, instead of scrolling."));
 
 	panel->autoB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->autoB, 440, 32);
-	WMMoveWidget(panel->autoB, 25, 34);
+	WMResizeWidget(panel->autoB, WMScaled(440), WMScaled(32));
+	WMMoveWidget(panel->autoB, WMScaled(25), WMScaled(34));
 	WMSetButtonText(panel->autoB, _("Scroll off-screen menus when pointer is moved over them."));
 	panel->autoC = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->autoC, 440, 32);
-	WMMoveWidget(panel->autoC, 25, 58);
+	WMResizeWidget(panel->autoC, WMScaled(440), WMScaled(32));
+	WMMoveWidget(panel->autoC, WMScaled(25), WMScaled(58));
 	WMSetButtonText(panel->autoC, _("Use h/j/k/l keys to select menu options."));
 
 	WMMapSubwidgets(panel->optF);

@@ -58,18 +58,18 @@ static void createPanel(Panel * p)
 	font = WMSystemFontOfSize(scr, 10);
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /**************** Initial Key Repeat ***************/
 	panel->delaF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->delaF, 495, 60);
-	WMMoveWidget(panel->delaF, 15, 10);
+	WMResizeWidget(panel->delaF, WMScaled(495), WMScaled(60));
+	WMMoveWidget(panel->delaF, WMScaled(15), WMScaled(10));
 	WMSetFrameTitle(panel->delaF, _("Initial Key Repeat"));
 
 	for (i = 0; i < 4; i++) {
 		panel->delaB[i] = WMCreateButton(panel->delaF, WBTOnOff);
-		WMResizeWidget(panel->delaB[i], 60, 20);
-		WMMoveWidget(panel->delaB[i], 70 + i * 60, 25);
+		WMResizeWidget(panel->delaB[i], WMScaled(60), WMScaled(20));
+		WMMoveWidget(panel->delaB[i], WMScaled(70) + i * WMScaled(60), WMScaled(25));
 		if (i > 0)
 			WMGroupButtons(panel->delaB[0], panel->delaB[i]);
 		switch (i) {
@@ -88,13 +88,13 @@ static void createPanel(Panel * p)
 		}
 	}
 	panel->dmsT = WMCreateTextField(panel->delaF);
-	WMResizeWidget(panel->dmsT, 50, 20);
-	WMMoveWidget(panel->dmsT, 345, 25);
+	WMResizeWidget(panel->dmsT, WMScaled(50), WMScaled(20));
+	WMMoveWidget(panel->dmsT, WMScaled(345), WMScaled(25));
 	/*    WMSetTextFieldAlignment(panel->dmsT, WARight); */
 
 	panel->dmsL = WMCreateLabel(panel->delaF);
-	WMResizeWidget(panel->dmsL, 30, 16);
-	WMMoveWidget(panel->dmsL, 400, 30);
+	WMResizeWidget(panel->dmsL, WMScaled(30), WMScaled(16));
+	WMMoveWidget(panel->dmsL, WMScaled(400), WMScaled(30));
 	WMSetLabelTextColor(panel->dmsL, color);
 	WMSetLabelFont(panel->dmsL, font);
 	WMSetLabelText(panel->dmsL, "msec");
@@ -103,14 +103,14 @@ static void createPanel(Panel * p)
 
     /**************** Key Repeat Rate ***************/
 	panel->rateF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->rateF, 495, 60);
-	WMMoveWidget(panel->rateF, 15, 95);
+	WMResizeWidget(panel->rateF, WMScaled(495), WMScaled(60));
+	WMMoveWidget(panel->rateF, WMScaled(15), WMScaled(95));
 	WMSetFrameTitle(panel->rateF, _("Key Repeat Rate"));
 
 	for (i = 0; i < 4; i++) {
 		panel->rateB[i] = WMCreateButton(panel->rateF, WBTOnOff);
-		WMResizeWidget(panel->rateB[i], 60, 20);
-		WMMoveWidget(panel->rateB[i], 70 + i * 60, 25);
+		WMResizeWidget(panel->rateB[i], WMScaled(60), WMScaled(20));
+		WMMoveWidget(panel->rateB[i], WMScaled(70) + i * WMScaled(60), WMScaled(25));
 		if (i > 0)
 			WMGroupButtons(panel->rateB[0], panel->rateB[i]);
 		switch (i) {
@@ -129,13 +129,13 @@ static void createPanel(Panel * p)
 		}
 	}
 	panel->rmsT = WMCreateTextField(panel->rateF);
-	WMResizeWidget(panel->rmsT, 50, 20);
-	WMMoveWidget(panel->rmsT, 345, 25);
+	WMResizeWidget(panel->rmsT, WMScaled(50), WMScaled(20));
+	WMMoveWidget(panel->rmsT, WMScaled(345), WMScaled(25));
 	/*    WMSetTextFieldAlignment(panel->rmsT, WARight); */
 
 	panel->rmsL = WMCreateLabel(panel->rateF);
-	WMResizeWidget(panel->rmsL, 30, 16);
-	WMMoveWidget(panel->rmsL, 400, 30);
+	WMResizeWidget(panel->rmsL, WMScaled(30), WMScaled(16));
+	WMMoveWidget(panel->rmsL, WMScaled(400), WMScaled(30));
 	WMSetLabelTextColor(panel->rmsL, color);
 	WMSetLabelFont(panel->rmsL, font);
 	WMSetLabelText(panel->rmsL, "msec");
@@ -143,8 +143,8 @@ static void createPanel(Panel * p)
 	WMMapSubwidgets(panel->rateF);
 
 	panel->testT = WMCreateTextField(panel->box);
-	WMResizeWidget(panel->testT, 480, 20);
-	WMMoveWidget(panel->testT, 20, 180);
+	WMResizeWidget(panel->testT, WMScaled(480), WMScaled(20));
+	WMMoveWidget(panel->testT, WMScaled(20), WMScaled(180));
 	WMSetTextFieldText(panel->testT, _("Type here to test"));
 
 	WMReleaseColor(color);

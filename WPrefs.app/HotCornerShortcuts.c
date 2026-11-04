@@ -218,46 +218,46 @@ static void createPanel(Panel * p)
 	}
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 
     /***************** Hot Corner lelf side frames *****************/
 	panel->hcF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->hcF, 240, 53);
-	WMMoveWidget(panel->hcF, 15, 17);
+	WMResizeWidget(panel->hcF, WMScaled(240), WMScaled(53));
+	WMMoveWidget(panel->hcF, WMScaled(15), WMScaled(17));
 
 	panel->hcB = WMCreateSwitchButton(panel->hcF);
-	WMResizeWidget(panel->hcB, 150, 30);
-	WMMoveWidget(panel->hcB, 15, 12);
+	WMResizeWidget(panel->hcB, WMScaled(150), WMScaled(30));
+	WMMoveWidget(panel->hcB, WMScaled(15), WMScaled(12));
 	WMSetButtonText(panel->hcB, _("Enable Hot Corners"));
 
 	WMMapSubwidgets(panel->hcF);
 
 	panel->hceF = WMCreateFrame(panel->box);
 	WMSetFrameTitle(panel->hceF, _("Hot Corner Edge"));
-	WMResizeWidget(panel->hceF, 240, 40);
-	WMMoveWidget(panel->hceF, 15, 77);
+	WMResizeWidget(panel->hceF, WMScaled(240), WMScaled(40));
+	WMMoveWidget(panel->hceF, WMScaled(15), WMScaled(77));
 
 	panel->hceS = WMCreateSlider(panel->hceF);
-	WMResizeWidget(panel->hceS, 80, 15);
-	WMMoveWidget(panel->hceS, 15, 18);
+	WMResizeWidget(panel->hceS, WMScaled(80), WMScaled(15));
+	WMMoveWidget(panel->hceS, WMScaled(15), WMScaled(18));
 	WMSetSliderMinValue(panel->hceS, 2);
 	WMSetSliderMaxValue(panel->hceS, 10);
 	WMSetSliderAction(panel->hceS, edgeCallback, panel);
 
 	panel->hceL = WMCreateLabel(panel->hceF);
-	WMResizeWidget(panel->hceL, 100, 15);
-	WMMoveWidget(panel->hceL, 105, 18);
+	WMResizeWidget(panel->hceL, WMScaled(100), WMScaled(15));
+	WMMoveWidget(panel->hceL, WMScaled(105), WMScaled(18));
 
 	WMMapSubwidgets(panel->hceF);
 
 	panel->hcdescF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->hcdescF, 240, 95);
-	WMMoveWidget(panel->hcdescF, 15, 130);
+	WMResizeWidget(panel->hcdescF, WMScaled(240), WMScaled(95));
+	WMMoveWidget(panel->hcdescF, WMScaled(15), WMScaled(130));
 
 	panel->hcdescL = WMCreateLabel(panel->hcdescF);
-	WMResizeWidget(panel->hcdescL, 200, 70);
-	WMMoveWidget(panel->hcdescL, 15, 10);
+	WMResizeWidget(panel->hcdescL, WMScaled(200), WMScaled(70));
+	WMMoveWidget(panel->hcdescL, WMScaled(15), WMScaled(10));
 	WMSetLabelText(panel->hcdescL,
 		       _("Instructions:\n\n"
 			 " - assign command to corner\n"
@@ -267,8 +267,8 @@ static void createPanel(Panel * p)
 
     /***************** Hot Corner Action Delay *****************/
 	panel->hcdelayF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->hcdelayF, 245, 60);
-	WMMoveWidget(panel->hcdelayF, 265, 10);
+	WMResizeWidget(panel->hcdelayF, WMScaled(245), WMScaled(60));
+	WMMoveWidget(panel->hcdelayF, WMScaled(265), WMScaled(10));
 
 	WMSetFrameTitle(panel->hcdelayF, _("Hot Corner Delay"));
 
@@ -279,8 +279,8 @@ static void createPanel(Panel * p)
 		char *path;
 
 		panel->hcdelayB[i] = WMCreateCustomButton(panel->hcdelayF, WBBStateChangeMask);
-		WMResizeWidget(panel->hcdelayB[i], 25, 25);
-		WMMoveWidget(panel->hcdelayB[i], 12 + (30 * i), 25);
+		WMResizeWidget(panel->hcdelayB[i], WMScaled(25), WMScaled(25));
+		WMMoveWidget(panel->hcdelayB[i], WMScaled(12) + (WMScaled(30) * i), WMScaled(25));
 		WMSetButtonBordered(panel->hcdelayB[i], False);
 		WMSetButtonImagePosition(panel->hcdelayB[i], WIPImageOnly);
 		WMSetButtonAction(panel->hcdelayB[i], pushDelayButton, panel);
@@ -316,13 +316,13 @@ static void createPanel(Panel * p)
 
 	panel->hcdelayT = WMCreateTextField(panel->hcdelayF);
 
-	WMResizeWidget(panel->hcdelayT, 36, 20);
-	WMMoveWidget(panel->hcdelayT, 165, 28);
+	WMResizeWidget(panel->hcdelayT, WMScaled(36), WMScaled(20));
+	WMMoveWidget(panel->hcdelayT, WMScaled(165), WMScaled(28));
 	WMAddNotificationObserver(delayTextChanged, panel, WMTextDidChangeNotification, panel->hcdelayT);
 
 	panel->hcdelayL = WMCreateLabel(panel->hcdelayF);
-	WMResizeWidget(panel->hcdelayL, 36, 16);
-	WMMoveWidget(panel->hcdelayL, 205, 32);
+	WMResizeWidget(panel->hcdelayL, WMScaled(36), WMScaled(16));
+	WMMoveWidget(panel->hcdelayL, WMScaled(205), WMScaled(32));
 	WMSetLabelText(panel->hcdelayL, _("ms"));
 
 	color = WMDarkGrayColor(scr);
@@ -339,12 +339,12 @@ static void createPanel(Panel * p)
     /***************** Set Hot Corner Actions ****************/
 	panel->hcactionsF = WMCreateFrame(panel->box);
 	WMSetFrameTitle(panel->hcactionsF, _("Hot Corner Actions"));
-	WMResizeWidget(panel->hcactionsF, 245, 148);
-	WMMoveWidget(panel->hcactionsF, 265, 77);
+	WMResizeWidget(panel->hcactionsF, WMScaled(245), WMScaled(148));
+	WMMoveWidget(panel->hcactionsF, WMScaled(265), WMScaled(77));
 
 	panel->icornerL = WMCreateLabel(panel->hcactionsF);
-	WMResizeWidget(panel->icornerL, 24, 24);
-	WMMoveWidget(panel->icornerL, 10, 18);
+	WMResizeWidget(panel->icornerL, WMScaled(24), WMScaled(24));
+	WMMoveWidget(panel->icornerL, WMScaled(10), WMScaled(18));
 	WMSetLabelImagePosition(panel->icornerL, WIPImageOnly);
 	CreateImages(scr, rc, xis, ICON_FILE, &panel->icon, NULL);
 	if (panel->icon)
@@ -360,12 +360,12 @@ static void createPanel(Panel * p)
 	}
 
 	panel->hcactionsT[0] = WMCreateTextField(panel->hcactionsF);
-	WMResizeWidget(panel->hcactionsT[0], 180, 20);
-	WMMoveWidget(panel->hcactionsT[0], 50, 20);
+	WMResizeWidget(panel->hcactionsT[0], WMScaled(180), WMScaled(20));
+	WMMoveWidget(panel->hcactionsT[0], WMScaled(50), WMScaled(20));
 
 	panel->icornerL = WMCreateLabel(panel->hcactionsF);
-	WMResizeWidget(panel->icornerL, 24, 24);
-	WMMoveWidget(panel->icornerL, 10, 48);
+	WMResizeWidget(panel->icornerL, WMScaled(24), WMScaled(24));
+	WMMoveWidget(panel->icornerL, WMScaled(10), WMScaled(48));
 	WMSetLabelImagePosition(panel->icornerL, WIPImageOnly);
 	if (panel->icon)
 	{
@@ -380,12 +380,12 @@ static void createPanel(Panel * p)
 	}
 
 	panel->hcactionsT[1] = WMCreateTextField(panel->hcactionsF);
-	WMResizeWidget(panel->hcactionsT[1], 180, 20);
-	WMMoveWidget(panel->hcactionsT[1], 50, 50);
+	WMResizeWidget(panel->hcactionsT[1], WMScaled(180), WMScaled(20));
+	WMMoveWidget(panel->hcactionsT[1], WMScaled(50), WMScaled(50));
 
 	panel->icornerL = WMCreateLabel(panel->hcactionsF);
-	WMResizeWidget(panel->icornerL, 24, 24);
-	WMMoveWidget(panel->icornerL, 10, 78);
+	WMResizeWidget(panel->icornerL, WMScaled(24), WMScaled(24));
+	WMMoveWidget(panel->icornerL, WMScaled(10), WMScaled(78));
 	WMSetLabelImagePosition(panel->icornerL, WIPImageOnly);
 	if (panel->icon)
 	{
@@ -399,12 +399,12 @@ static void createPanel(Panel * p)
 		WMReleasePixmap(nicon);
 	}
 	panel->hcactionsT[2] = WMCreateTextField(panel->hcactionsF);
-	WMResizeWidget(panel->hcactionsT[2], 180, 20);
-	WMMoveWidget(panel->hcactionsT[2], 50, 80);
+	WMResizeWidget(panel->hcactionsT[2], WMScaled(180), WMScaled(20));
+	WMMoveWidget(panel->hcactionsT[2], WMScaled(50), WMScaled(80));
 
 	panel->icornerL = WMCreateLabel(panel->hcactionsF);
-	WMResizeWidget(panel->icornerL, 24, 24);
-	WMMoveWidget(panel->icornerL, 10, 108);
+	WMResizeWidget(panel->icornerL, WMScaled(24), WMScaled(24));
+	WMMoveWidget(panel->icornerL, WMScaled(10), WMScaled(108));
 	WMSetLabelImagePosition(panel->icornerL, WIPImageOnly);
 	if (panel->icon)
 	{
@@ -419,8 +419,8 @@ static void createPanel(Panel * p)
 	}
 
 	panel->hcactionsT[3] = WMCreateTextField(panel->hcactionsF);
-	WMResizeWidget(panel->hcactionsT[3], 180, 20);
-	WMMoveWidget(panel->hcactionsT[3], 50, 107);
+	WMResizeWidget(panel->hcactionsT[3], WMScaled(180), WMScaled(20));
+	WMMoveWidget(panel->hcactionsT[3], WMScaled(50), WMScaled(107));
 
 	WMMapSubwidgets(panel->hcactionsF);
 

@@ -230,20 +230,20 @@ static void createPanel(Panel * p)
 	int i;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /***************** Size Display ****************/
 	panel->sizeF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->sizeF, 255, 52);
-	WMMoveWidget(panel->sizeF, 15, 7);
+	WMResizeWidget(panel->sizeF, WMScaled(255), WMScaled(52));
+	WMMoveWidget(panel->sizeF, WMScaled(15), WMScaled(7));
 	WMSetFrameTitle(panel->sizeF, _("Size Display"));
 
 	WMSetBalloonTextForView(_("The position or style of the window size\n"
 				  "display that's shown when a window is resized."), WMWidgetView(panel->sizeF));
 
 	panel->sizeP = WMCreatePopUpButton(panel->sizeF);
-	WMResizeWidget(panel->sizeP, 227, 20);
-	WMMoveWidget(panel->sizeP, 14, 20);
+	WMResizeWidget(panel->sizeP, WMScaled(227), WMScaled(20));
+	WMMoveWidget(panel->sizeP, WMScaled(14), WMScaled(20));
 	for (i = 0; i < wlengthof(resize_display); i++)
 		WMAddPopUpButtonItem(panel->sizeP, _(resize_display[i].label));
 
@@ -251,16 +251,16 @@ static void createPanel(Panel * p)
 
     /***************** Position Display ****************/
 	panel->posiF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->posiF, 255, 52);
-	WMMoveWidget(panel->posiF, 15, 66);
+	WMResizeWidget(panel->posiF, WMScaled(255), WMScaled(52));
+	WMMoveWidget(panel->posiF, WMScaled(15), WMScaled(66));
 	WMSetFrameTitle(panel->posiF, _("Position Display"));
 
 	WMSetBalloonTextForView(_("The position or style of the window position\n"
 				  "display that's shown when a window is moved."), WMWidgetView(panel->posiF));
 
 	panel->posiP = WMCreatePopUpButton(panel->posiF);
-	WMResizeWidget(panel->posiP, 227, 20);
-	WMMoveWidget(panel->posiP, 14, 20);
+	WMResizeWidget(panel->posiP, WMScaled(227), WMScaled(20));
+	WMMoveWidget(panel->posiP, WMScaled(14), WMScaled(20));
 	for (i = 0; i < wlengthof(move_display); i++)
 		WMAddPopUpButtonItem(panel->posiP, _(move_display[i].label));
 
@@ -268,14 +268,14 @@ static void createPanel(Panel * p)
 
     /***************** Balloon Text ****************/
 	panel->ballF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->ballF, 220, 130);
-	WMMoveWidget(panel->ballF, 285, 7);
+	WMResizeWidget(panel->ballF, WMScaled(220), WMScaled(130));
+	WMMoveWidget(panel->ballF, WMScaled(285), WMScaled(7));
 	WMSetFrameTitle(panel->ballF, _("Show balloon for..."));
 
 	for (i = 0; i < wlengthof(balloon_choices); i++) {
 		panel->ballB[i] = WMCreateSwitchButton(panel->ballF);
-		WMResizeWidget(panel->ballB[i], 198, 20);
-		WMMoveWidget(panel->ballB[i], 11, 20 + i * 26);
+		WMResizeWidget(panel->ballB[i], WMScaled(198), WMScaled(20));
+		WMMoveWidget(panel->ballB[i], WMScaled(11), WMScaled(20) + i * WMScaled(26));
 		WMSetButtonText(panel->ballB[i], _(balloon_choices[i].label));
 	}
 
@@ -283,14 +283,14 @@ static void createPanel(Panel * p)
 
     /***************** Options ****************/
 	panel->optF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->optF, 255, 96);
-	WMMoveWidget(panel->optF, 15, 125);
+	WMResizeWidget(panel->optF, WMScaled(255), WMScaled(96));
+	WMMoveWidget(panel->optF, WMScaled(15), WMScaled(125));
 	WMSetFrameTitle(panel->optF, _("AppIcon bouncing"));
 
 	for (i = 0; i < wlengthof(appicon_bouncing); i++) {
 		panel->bounceB[i] = WMCreateSwitchButton(panel->optF);
-		WMResizeWidget(panel->bounceB[i], 237, 26);
-		WMMoveWidget(panel->bounceB[i], 9, 16 + i * 26);
+		WMResizeWidget(panel->bounceB[i], WMScaled(237), WMScaled(26));
+		WMMoveWidget(panel->bounceB[i], WMScaled(9), WMScaled(16) + i * WMScaled(26));
 		WMSetButtonText(panel->bounceB[i], _(appicon_bouncing[i].label));
 
 		if (appicon_bouncing[i].default_value)
@@ -305,29 +305,29 @@ static void createPanel(Panel * p)
 
     /***************** Workspace border ****************/
 	panel->borderF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->borderF, 220, 77);
-	WMMoveWidget(panel->borderF, 285, 144);
+	WMResizeWidget(panel->borderF, WMScaled(220), WMScaled(77));
+	WMMoveWidget(panel->borderF, WMScaled(285), WMScaled(144));
 	WMSetFrameTitle(panel->borderF, _("Workspace border"));
 
 	panel->borderS = WMCreateSlider(panel->borderF);
-	WMResizeWidget(panel->borderS, 80, 15);
-	WMMoveWidget(panel->borderS, 11, 22);
+	WMResizeWidget(panel->borderS, WMScaled(80), WMScaled(15));
+	WMMoveWidget(panel->borderS, WMScaled(11), WMScaled(22));
 	WMSetSliderMinValue(panel->borderS, 0);
 	WMSetSliderMaxValue(panel->borderS, 5);
 	WMSetSliderAction(panel->borderS, borderCallback, panel);
 
 	panel->borderL = WMCreateLabel(panel->borderF);
-	WMResizeWidget(panel->borderL, 100, 15);
-	WMMoveWidget(panel->borderL, 105, 22);
+	WMResizeWidget(panel->borderL, WMScaled(100), WMScaled(15));
+	WMMoveWidget(panel->borderL, WMScaled(105), WMScaled(22));
 
 	panel->lrB = WMCreateSwitchButton(panel->borderF);
-	WMMoveWidget(panel->lrB, 11, 40);
-	WMResizeWidget(panel->lrB, 95, 30);
+	WMMoveWidget(panel->lrB, WMScaled(11), WMScaled(40));
+	WMResizeWidget(panel->lrB, WMScaled(95), WMScaled(30));
 	WMSetButtonText(panel->lrB, _("Left/Right"));
 
 	panel->tbB = WMCreateSwitchButton(panel->borderF);
-	WMMoveWidget(panel->tbB, 110, 40);
-	WMResizeWidget(panel->tbB, 105, 30);
+	WMMoveWidget(panel->tbB, WMScaled(110), WMScaled(40));
+	WMResizeWidget(panel->tbB, WMScaled(105), WMScaled(30));
 	WMSetButtonText(panel->tbB, _("Top/Bottom"));
 
 	WMMapSubwidgets(panel->borderF);

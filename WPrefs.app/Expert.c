@@ -199,7 +199,7 @@ static void scrollViewWheelHandler(XEvent *event, void *data)
 	if (event->xbutton.state & ControlMask) {
 		amount = viewH; /* page */
 	} else if (event->xbutton.state & ShiftMask) {
-		amount = 1; /* line */
+		amount = WMScaled(1); /* line */
 	} else {
 		amount = viewH / 3; /* default */
 		if (amount == 0)
@@ -327,17 +327,17 @@ static void createPanel(Panel *p)
 	int i, state;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 	sv = WMCreateScrollView(panel->box);
-	WMResizeWidget(sv, 500, 215);
-	WMMoveWidget(sv, 12, 10);
+	WMResizeWidget(sv, WMScaled(500), WMScaled(215));
+	WMMoveWidget(sv, WMScaled(12), WMScaled(10));
 	WMSetScrollViewRelief(sv, WRSunken);
 	WMSetScrollViewHasVerticalScroller(sv, True);
 	WMSetScrollViewHasHorizontalScroller(sv, False);
 
 	f = WMCreateFrame(panel->box);
-	WMResizeWidget(f, 495, wlengthof(expert_options) * 25 + 8);
+	WMResizeWidget(f, WMScaled(495), wlengthof(expert_options) * WMScaled(25) + WMScaled(8));
 	WMSetFrameRelief(f, WRFlat);
 
 	udb = WMGetStandardUserDefaults();
@@ -345,8 +345,8 @@ static void createPanel(Panel *p)
 	for (i = 0; i < wlengthof(expert_options); i++) {
 		if (expert_options[i].class != OPTION_WMAKER_INT) {
 			panel->swi[i] = WMCreateSwitchButton(f);
-			WMResizeWidget(panel->swi[i], FRAME_WIDTH - 40, 25);
-			WMMoveWidget(panel->swi[i], 5, 5 + i * 25);
+			WMResizeWidget(panel->swi[i], FRAME_WIDTH - WMScaled(40), WMScaled(25));
+			WMMoveWidget(panel->swi[i], WMScaled(5), WMScaled(5) + i * WMScaled(25));
 
 			WMSetButtonText(panel->swi[i], _(expert_options[i].label));
 		}
@@ -378,8 +378,8 @@ static void createPanel(Panel *p)
 			WMLabel *label;
 
 			panel->textfield[i] = WMCreateTextField(f);
-			WMResizeWidget(panel->textfield[i], 41, 20);
-			WMMoveWidget(panel->textfield[i], 22, 7 + i * 25);
+			WMResizeWidget(panel->textfield[i], WMScaled(41), WMScaled(20));
+			WMMoveWidget(panel->textfield[i], WMScaled(22), WMScaled(7) + i * WMScaled(25));
 
 			down = WMCreateCommandButton(f);
 			WMSetButtonImage(down, WMGetSystemPixmap(WMWidgetScreen(down), WSIArrowDown));
@@ -387,21 +387,21 @@ static void createPanel(Panel *p)
 					    WMGetSystemPixmap(WMWidgetScreen(down), WSIHighlightedArrowDown));
 			WMSetButtonImagePosition(down, WIPImageOnly);
 			WMSetButtonAction(down, downButtonCallback, panel->textfield[i]);
-			WMResizeWidget(down, 16, 16);
-			WMMoveWidget(down, 5, 9 + i * 25);
+			WMResizeWidget(down, WMScaled(16), WMScaled(16));
+			WMMoveWidget(down, WMScaled(5), WMScaled(9) + i * WMScaled(25));
 
 			up = WMCreateCommandButton(f);
 			WMSetButtonImage(up, WMGetSystemPixmap(WMWidgetScreen(up), WSIArrowUp));
 			WMSetButtonAltImage(up, WMGetSystemPixmap(WMWidgetScreen(up), WSIHighlightedArrowUp));
 			WMSetButtonImagePosition(up, WIPImageOnly);
 			WMSetButtonAction(up, upButtonCallback, panel->textfield[i]);
-			WMResizeWidget(up, 16, 16);
-			WMMoveWidget(up, 64, 9 + i * 25);
+			WMResizeWidget(up, WMScaled(16), WMScaled(16));
+			WMMoveWidget(up, WMScaled(64), WMScaled(9) + i * WMScaled(25));
 
 			label = WMCreateLabel(f);
 			WMSetLabelText(label, _(expert_options[i].label));
-			WMResizeWidget(label, FRAME_WIDTH - 99, 25);
-			WMMoveWidget(label, 85, 5 + i * 25);
+			WMResizeWidget(label, FRAME_WIDTH - WMScaled(99), WMScaled(25));
+			WMMoveWidget(label, WMScaled(85), WMScaled(5) + i * WMScaled(25));
 
 			if (GetStringForKey(expert_options[i].op_name))
 				state = GetIntegerForKey(expert_options[i].op_name);
