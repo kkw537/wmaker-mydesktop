@@ -3,6 +3,30 @@ NEWS for veteran Window Maker users
 
 -- 0.97.0
 
+GUI scale factor (GSScaleFactor)
+--------------------------------
+
+Like with the GNUstep "GSScaleFactor" default, the whole user interface
+(window decorations, menus, icons, dock, dialogs, WINGs widgets and
+WPrefs) can now be scaled by a given factor, for use on high resolution
+screens. With a factor of 2 everything is drawn as if each pixel was 2x2
+pixels wide: 1 pixel lines become 2 pixels thick, 64x64 icons are shown
+as 128x128, a 12 pixel font is rendered at 24 pixels, and so on.
+
+The factor is read from the "GSScaleFactor" key of the global domain:
+
+  defaults write WMGLOBAL GSScaleFactor 2
+
+and can be overridden with the GS_SCALE_FACTOR environment variable (for
+example "GS_SCALE_FACTOR=2 wmaker"). It defaults to 1, integer values give
+the best looking results. Window Maker must be restarted for a change to
+take effect.
+
+All the sizes and distances in the configuration (IconSize, FrameBorderWidth,
+font sizes, title clearances, EdgeResistance, ...) keep being expressed in
+logical pixels and are scaled automatically.
+
+
 Directional window focus
 ------------------------
 

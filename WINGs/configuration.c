@@ -130,3 +130,118 @@ void W_setconf_doubleClickDelay(int value)
 {
 	WINGsConfiguration.doubleClickDelay = value;
 }
+
+/* ---[ GUI scale factor (GSScaleFactor) ]--------------------------------- */
+
+#define MIN_SCALE_FACTOR 0.5F
+#define MAX_SCALE_FACTOR 8.0F
+
+static float scaleFactor = 1.0F;
+static Bool scaleFactorLoaded = False;
+
+static float sanitizeScaleFactor(float factor)
+{
+	if (!(factor > 0.0F))	/* also catches NaN */
+		return 1.0F;
+	if (factor < MIN_SCALE_FACTOR)
+		return MIN_SCALE_FACTOR;
+	if (factor > MAX_SCALE_FACTOR)
+		return MAX_SCALE_FACTOR;
+	return factor;
+}
+
+static void loadScaleFactor(void)
+{
+	WMUserDefaults *defaults;
+	const char *env;
+	float factor = 0.0F;
+
+	scaleFactorLoaded = True;
+
+	env = getenv("GS_SCALE_FACTOR");
+	if (env && *env) {
+		char *end;
+
+		factor = strtof(env, &end);
+		if (end == env)
+			factor = 0.0F;
+	}
+
+	if (!(factor > 0.0F)) {
+		defaults = WMGetStandardUserDefaults();
+		if (defaults && WMGetUDObjectForKey(defaults, "GSScaleFactor"))
+			factor = WMGetUDFloatForKey(defaults, "GSScaleFactor");
+	}
+
+	scaleFactor = sanitizeScaleFactor(factor);
+}
+
+float WMGetScaleFactor(void)
+{
+	if (!scaleFactorLoaded)
+		loadScaleFactor();
+
+	return scaleFactor;
+}
+
+void WMSetScaleFactor(float factor)
+{
+	scaleFactorLoaded = True;
+	scaleFactor = sanitizeScaleFactor(factor);
+}
+
+static int roundScaled(double value)
+{
+	if (value >= 0)
+		return (int)(value + 0.5);
+	return -(int)(-value + 0.5);
+}
+
+int WMScaleValue(int value)
+{
+	float factor = WMGetScaleFactor();
+	int result;
+
+	if (factor == 1.0F || value == 0)
+		return value;
+
+	result = roundScaled((double)value * factor);
+
+	/* never make a non-zero value (eg: a 1 pixel line) disappear */
+	if (result == 0)
+		result = (value > 0) ? 1 : -1;
+
+	return result;
+}
+
+int WMUnscaleValue(int value)
+{
+	float factor = WMGetScaleFactor();
+
+	if (factor == 1.0F || value == 0)
+		return value;
+
+	return roundScaled((double)value / factor);
+}
+
+RImage *WMScaleImageByFactor(RImage *image)
+{
+	unsigned int width, height;
+
+	if (!image)
+		return NULL;
+
+	width = WMScaleValue(image->width);
+	height = WMScaleValue(image->height);
+
+	if (width == image->width && height == image->height)
+		return RRetainImage(image);
+
+	/* Integer factors are done by plain pixel replication, so that the
+	 * result looks exactly like the image drawn with "bigger pixels".
+	 * Fractional factors need some smoothing to look acceptable. */
+	if (width % image->width == 0 && height % image->height == 0)
+		return RScaleImage(image, width, height);
+
+	return RSmoothScaleImage(image, width, height);
+}

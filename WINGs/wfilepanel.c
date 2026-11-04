@@ -59,8 +59,8 @@ typedef struct W_FilePanel {
 #define WP_OPEN         0
 #define WP_SAVE         1
 
-#define PWIDTH		330
-#define PHEIGHT 	360
+#define PWIDTH		WMScaled(330)
+#define PHEIGHT 	WMScaled(360)
 
 static void listDirectoryOnColumn(WMFilePanel * panel, int column, const char *path);
 static void browserClick(WMWidget *widget, void *p_panel);
@@ -177,7 +177,7 @@ static WMFilePanel *makeFilePanel(WMScreen * scrPtr, const char *name, const cha
 	WMSetWindowMinSize(fPtr->win, PWIDTH, PHEIGHT);
 
 	fPtr->iconLabel = WMCreateLabel(fPtr->win);
-	WMResizeWidget(fPtr->iconLabel, 64, 64);
+	WMResizeWidget(fPtr->iconLabel, WMScaled(64), WMScaled(64));
 	WMMoveWidget(fPtr->iconLabel, 0, 0);
 	WMSetLabelImagePosition(fPtr->iconLabel, WIPImageOnly);
 	icon = WMCreateApplicationIconBlendedPixmap(scrPtr, (RColor *) NULL);
@@ -189,16 +189,16 @@ static WMFilePanel *makeFilePanel(WMScreen * scrPtr, const char *name, const cha
 	}
 
 	fPtr->titleLabel = WMCreateLabel(fPtr->win);
-	WMResizeWidget(fPtr->titleLabel, PWIDTH - 64, 64);
-	WMMoveWidget(fPtr->titleLabel, 64, 0);
+	WMResizeWidget(fPtr->titleLabel, PWIDTH - WMScaled(64), WMScaled(64));
+	WMMoveWidget(fPtr->titleLabel, WMScaled(64), 0);
 	largeFont = WMBoldSystemFontOfSize(scrPtr, 24);
 	WMSetLabelFont(fPtr->titleLabel, largeFont);
 	WMReleaseFont(largeFont);
 	WMSetLabelText(fPtr->titleLabel, title);
 
 	fPtr->line = WMCreateFrame(fPtr->win);
-	WMMoveWidget(fPtr->line, 0, 64);
-	WMResizeWidget(fPtr->line, PWIDTH, 2);
+	WMMoveWidget(fPtr->line, 0, WMScaled(64));
+	WMResizeWidget(fPtr->line, PWIDTH, WMScaled(2));
 	WMSetFrameRelief(fPtr->line, WRGroove);
 
 	fPtr->browser = WMCreateBrowser(fPtr->win);
@@ -206,24 +206,24 @@ static WMFilePanel *makeFilePanel(WMScreen * scrPtr, const char *name, const cha
 	WMSetBrowserDelegate(fPtr->browser, &browserDelegate);
 	WMSetBrowserAction(fPtr->browser, browserClick, fPtr);
 	WMSetBrowserDoubleAction(fPtr->browser, browserDClick, fPtr);
-	WMMoveWidget(fPtr->browser, 7, 72);
-	WMResizeWidget(fPtr->browser, PWIDTH - 14, 200);
+	WMMoveWidget(fPtr->browser, WMScaled(7), WMScaled(72));
+	WMResizeWidget(fPtr->browser, PWIDTH - WMScaled(14), WMScaled(200));
 	WMHangData(fPtr->browser, fPtr);
 
 	fPtr->nameLabel = WMCreateLabel(fPtr->win);
-	WMMoveWidget(fPtr->nameLabel, 7, 282);
-	WMResizeWidget(fPtr->nameLabel, 55, 14);
+	WMMoveWidget(fPtr->nameLabel, WMScaled(7), WMScaled(282));
+	WMResizeWidget(fPtr->nameLabel, WMScaled(55), WMScaled(14));
 	WMSetLabelText(fPtr->nameLabel, _("Name:"));
 
 	fPtr->fileField = WMCreateTextField(fPtr->win);
-	WMMoveWidget(fPtr->fileField, 60, 278);
-	WMResizeWidget(fPtr->fileField, PWIDTH - 60 - 10, 24);
+	WMMoveWidget(fPtr->fileField, WMScaled(60), WMScaled(278));
+	WMResizeWidget(fPtr->fileField, PWIDTH - WMScaled(60) - WMScaled(10), WMScaled(24));
 	WMAddNotificationObserver(textEditedObserver, fPtr, WMTextDidEndEditingNotification, fPtr->fileField);
 	WMAddNotificationObserver(textChangedObserver, fPtr, WMTextDidChangeNotification, fPtr->fileField);
 
 	fPtr->okButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->okButton, 245, 325);
-	WMResizeWidget(fPtr->okButton, 75, 28);
+	WMMoveWidget(fPtr->okButton, WMScaled(245), WMScaled(325));
+	WMResizeWidget(fPtr->okButton, WMScaled(75), WMScaled(28));
 	WMSetButtonText(fPtr->okButton, _("OK"));
 	WMSetButtonImage(fPtr->okButton, scrPtr->buttonArrow);
 	WMSetButtonAltImage(fPtr->okButton, scrPtr->pushedButtonArrow);
@@ -231,46 +231,46 @@ static WMFilePanel *makeFilePanel(WMScreen * scrPtr, const char *name, const cha
 	WMSetButtonAction(fPtr->okButton, buttonClick, fPtr);
 
 	fPtr->cancelButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->cancelButton, 165, 325);
-	WMResizeWidget(fPtr->cancelButton, 75, 28);
+	WMMoveWidget(fPtr->cancelButton, WMScaled(165), WMScaled(325));
+	WMResizeWidget(fPtr->cancelButton, WMScaled(75), WMScaled(28));
 	WMSetButtonText(fPtr->cancelButton, _("Cancel"));
 	WMSetButtonAction(fPtr->cancelButton, buttonClick, fPtr);
 
 	fPtr->trashcanButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->trashcanButton, 7, 325);
-	WMResizeWidget(fPtr->trashcanButton, 28, 28);
+	WMMoveWidget(fPtr->trashcanButton, WMScaled(7), WMScaled(325));
+	WMResizeWidget(fPtr->trashcanButton, WMScaled(28), WMScaled(28));
 	WMSetButtonImagePosition(fPtr->trashcanButton, WIPImageOnly);
 	WMSetButtonImage(fPtr->trashcanButton, scrPtr->trashcanIcon);
 	WMSetButtonAltImage(fPtr->trashcanButton, scrPtr->altTrashcanIcon);
 	WMSetButtonAction(fPtr->trashcanButton, deleteFile, fPtr);
 
 	fPtr->createDirButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->createDirButton, 37, 325);
-	WMResizeWidget(fPtr->createDirButton, 28, 28);
+	WMMoveWidget(fPtr->createDirButton, WMScaled(37), WMScaled(325));
+	WMResizeWidget(fPtr->createDirButton, WMScaled(28), WMScaled(28));
 	WMSetButtonImagePosition(fPtr->createDirButton, WIPImageOnly);
 	WMSetButtonImage(fPtr->createDirButton, scrPtr->createDirIcon);
 	WMSetButtonAltImage(fPtr->createDirButton, scrPtr->altCreateDirIcon);
 	WMSetButtonAction(fPtr->createDirButton, createDir, fPtr);
 
 	fPtr->homeButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->homeButton, 67, 325);
-	WMResizeWidget(fPtr->homeButton, 28, 28);
+	WMMoveWidget(fPtr->homeButton, WMScaled(67), WMScaled(325));
+	WMResizeWidget(fPtr->homeButton, WMScaled(28), WMScaled(28));
 	WMSetButtonImagePosition(fPtr->homeButton, WIPImageOnly);
 	WMSetButtonImage(fPtr->homeButton, scrPtr->homeIcon);
 	WMSetButtonAltImage(fPtr->homeButton, scrPtr->altHomeIcon);
 	WMSetButtonAction(fPtr->homeButton, goHome, fPtr);
 
 	fPtr->disketteButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->disketteButton, 97, 325);
-	WMResizeWidget(fPtr->disketteButton, 28, 28);
+	WMMoveWidget(fPtr->disketteButton, WMScaled(97), WMScaled(325));
+	WMResizeWidget(fPtr->disketteButton, WMScaled(28), WMScaled(28));
 	WMSetButtonImagePosition(fPtr->disketteButton, WIPImageOnly);
 	WMSetButtonImage(fPtr->disketteButton, scrPtr->disketteIcon);
 	WMSetButtonAltImage(fPtr->disketteButton, scrPtr->altDisketteIcon);
 	WMSetButtonAction(fPtr->disketteButton, goFloppy, fPtr);
 
 	fPtr->unmountButton = WMCreateCommandButton(fPtr->win);
-	WMMoveWidget(fPtr->unmountButton, 127, 325);
-	WMResizeWidget(fPtr->unmountButton, 28, 28);
+	WMMoveWidget(fPtr->unmountButton, WMScaled(127), WMScaled(325));
+	WMResizeWidget(fPtr->unmountButton, WMScaled(28), WMScaled(28));
 	WMSetButtonImagePosition(fPtr->unmountButton, WIPImageOnly);
 	WMSetButtonImage(fPtr->unmountButton, scrPtr->unmountIcon);
 	WMSetButtonAltImage(fPtr->unmountButton, scrPtr->altUnmountIcon);
@@ -441,7 +441,7 @@ void WMSetFilePanelAccessoryView(WMFilePanel * panel, WMView * view)
 
 	W_ReparentView(view, v, 0, 0);
 
-	W_MoveView(view, (v->size.width - v->size.width) / 2, 300);
+	W_MoveView(view, (v->size.width - v->size.width) / 2, WMScaled(300));
 }
 
 WMView *WMGetFilePanelAccessoryView(WMFilePanel * panel)
@@ -786,21 +786,21 @@ static void handleEvents(XEvent * event, void *data)
 			int newColumnCount;
 
 			W_ResizeView(view, newWidth, newHeight);
-			WMResizeWidget(pPtr->line, newWidth, 2);
-			WMResizeWidget(pPtr->browser, newWidth - 14, newHeight - (PHEIGHT - 200));
-			WMResizeWidget(pPtr->fileField, newWidth - 60 - 10, 24);
-			WMMoveWidget(pPtr->nameLabel, 7, newHeight - (PHEIGHT - 282));
-			WMMoveWidget(pPtr->fileField, 60, newHeight - (PHEIGHT - 278));
-			WMMoveWidget(pPtr->okButton, newWidth - (PWIDTH - 245), newHeight - (PHEIGHT - 325));
-			WMMoveWidget(pPtr->cancelButton, newWidth - (PWIDTH - 165), newHeight - (PHEIGHT - 325));
+			WMResizeWidget(pPtr->line, newWidth, WMScaled(2));
+			WMResizeWidget(pPtr->browser, newWidth - WMScaled(14), newHeight - (PHEIGHT - WMScaled(200)));
+			WMResizeWidget(pPtr->fileField, newWidth - WMScaled(60) - WMScaled(10), WMScaled(24));
+			WMMoveWidget(pPtr->nameLabel, WMScaled(7), newHeight - (PHEIGHT - WMScaled(282)));
+			WMMoveWidget(pPtr->fileField, WMScaled(60), newHeight - (PHEIGHT - WMScaled(278)));
+			WMMoveWidget(pPtr->okButton, newWidth - (PWIDTH - WMScaled(245)), newHeight - (PHEIGHT - WMScaled(325)));
+			WMMoveWidget(pPtr->cancelButton, newWidth - (PWIDTH - WMScaled(165)), newHeight - (PHEIGHT - WMScaled(325)));
 
-			WMMoveWidget(pPtr->trashcanButton, 7, newHeight - (PHEIGHT - 325));
-			WMMoveWidget(pPtr->createDirButton, 37, newHeight - (PHEIGHT - 325));
-			WMMoveWidget(pPtr->homeButton, 67, newHeight - (PHEIGHT - 325));
-			WMMoveWidget(pPtr->disketteButton, 97, newHeight - (PHEIGHT - 325));
-			WMMoveWidget(pPtr->unmountButton, 127, newHeight - (PHEIGHT - 325));
+			WMMoveWidget(pPtr->trashcanButton, WMScaled(7), newHeight - (PHEIGHT - WMScaled(325)));
+			WMMoveWidget(pPtr->createDirButton, WMScaled(37), newHeight - (PHEIGHT - WMScaled(325)));
+			WMMoveWidget(pPtr->homeButton, WMScaled(67), newHeight - (PHEIGHT - WMScaled(325)));
+			WMMoveWidget(pPtr->disketteButton, WMScaled(97), newHeight - (PHEIGHT - WMScaled(325)));
+			WMMoveWidget(pPtr->unmountButton, WMScaled(127), newHeight - (PHEIGHT - WMScaled(325)));
 
-			newColumnCount = (newWidth - 14) / 140;
+			newColumnCount = (newWidth - WMScaled(14)) / WMScaled(140);
 			WMSetBrowserMaxVisibleColumns(pPtr->browser, newColumnCount);
 		}
 	}

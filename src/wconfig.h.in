@@ -24,6 +24,13 @@
 
 #include "config.h"
 
+/*
+ * Pixel values below that are wrapped in WMScaled() are expressed in
+ * logical pixels and are scaled by the GUI scale factor (the GSScaleFactor
+ * default, see WMGetScaleFactor() in WINGs).
+ */
+#include <WINGs/WINGs.h>
+
 /*** Change this file (wconfig.h) *after* you ran configure ***/
 
 /*
@@ -176,12 +183,12 @@
 #define DEF_WORKSPACE_NAME_FONT "\"Sans:pixelsize=24\""
 
 /* line width of the move/resize frame */
-#define DEF_FRAME_THICKNESS              1
+#define DEF_FRAME_THICKNESS              WMScaled(1)
 
 #define DEF_WINDOW_TITLE_EXTEND_SPACE	"0"
 #define DEF_MENU_TITLE_EXTEND_SPACE	"0"
 #define DEF_MENU_TEXT_EXTEND_SPACE	"0"
-#define TITLEBAR_EXTEND_SPACE            4
+#define TITLEBAR_EXTEND_SPACE            WMScaled(4)
 
 #define DEF_XPM_CLOSENESS	         40000
 
@@ -294,10 +301,10 @@
  * Position increment for smart placement: >= 1
  * Raise these values if it's too slow for you
  */
-#define PLACETEST_HSTEP	        8
-#define PLACETEST_VSTEP	        8
+#define PLACETEST_HSTEP	        WMScaled(8)
+#define PLACETEST_VSTEP	        WMScaled(8)
 
-#define DOCK_EXTRA_SPACE	0
+#define DOCK_EXTRA_SPACE	WMScaled(0)
 
 /* Vicinity in which an icon can be attached to the clip */
 #define CLIP_ATTACH_VICINITY	1
@@ -316,12 +323,12 @@
 #define CURSOR_BLINK_RATE	300
 
 /* how many pixels to move before dragging windows and other objects */
-#define MOVE_THRESHOLD	        5
-#define HRESIZE_THRESHOLD	3
+#define MOVE_THRESHOLD	        WMScaled(5)
+#define HRESIZE_THRESHOLD	WMScaled(3)
 
 #define MAX_WORKSPACENAME_WIDTH	64
 /* max width of window title in window list */
-#define MAX_WINDOWLIST_WIDTH	400
+#define MAX_WINDOWLIST_WIDTH	WMScaled(400)
 
 #ifndef HAVE_INOTIFY
 /* Check defaults database for changes every this many milliseconds */
@@ -344,12 +351,12 @@
 /* number of window shortcuts */
 #define MAX_WINDOW_SHORTCUTS      10
 #define MIN_TITLEFONT_HEIGHT(h)   ((h)>14 ? (h) : 14)
-#define TITLEBAR_HEIGHT           18  /* window's titlebar height */
-#define RESIZEBAR_HEIGHT          8   /* height of the resizebar */
-#define RESIZEBAR_MIN_WIDTH       20  /* min width of handles-corner_width */
-#define RESIZEBAR_CORNER_WIDTH    28  /* width of the corner of resizebars */
-#define MENU_INDICATOR_SPACE      12
-#define MIN_WINDOW_SIZE	          5   /* minimum size for windows */
+#define TITLEBAR_HEIGHT           WMScaled(18)  /* window's titlebar height */
+#define RESIZEBAR_HEIGHT          WMScaled(8)   /* height of the resizebar */
+#define RESIZEBAR_MIN_WIDTH       WMScaled(20)  /* min width of handles-corner_width */
+#define RESIZEBAR_CORNER_WIDTH    WMScaled(28)  /* width of the corner of resizebars */
+#define MENU_INDICATOR_SPACE      WMScaled(12)
+#define MIN_WINDOW_SIZE	          WMScaled(5)   /* minimum size for windows */
 #define ICON_WIDTH                64  /* size of the icon window */
 #define ICON_HEIGHT               64
 #define ICON_BORDER_WIDTH         2

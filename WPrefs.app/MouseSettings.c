@@ -445,17 +445,17 @@ static void createPanel(Panel * p)
 	color.blue = 0xae;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /**************** Mouse Speed ****************/
 	panel->speedF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->speedF, 219, 85);
-	WMMoveWidget(panel->speedF, 9, 54);
+	WMResizeWidget(panel->speedF, WMScaled(219), WMScaled(85));
+	WMMoveWidget(panel->speedF, WMScaled(9), WMScaled(54));
 	WMSetFrameTitle(panel->speedF, _("Mouse Speed"));
 
 	panel->speedL = WMCreateLabel(panel->speedF);
-	WMResizeWidget(panel->speedL, 40, 46);
-	WMMoveWidget(panel->speedL, 8, 10);
+	WMResizeWidget(panel->speedL, WMScaled(40), WMScaled(46));
+	WMMoveWidget(panel->speedL, WMScaled(8), WMScaled(10));
 	WMSetLabelImagePosition(panel->speedL, WIPImageOnly);
 	path = LocateImage(SPEED_ICON_FILE);
 	if (path) {
@@ -470,41 +470,41 @@ static void createPanel(Panel * p)
 	}
 
 	panel->speedS = WMCreateSlider(panel->speedF);
-	WMResizeWidget(panel->speedS, 150, 15);
-	WMMoveWidget(panel->speedS, 58, 30);
+	WMResizeWidget(panel->speedS, WMScaled(150), WMScaled(15));
+	WMMoveWidget(panel->speedS, WMScaled(58), WMScaled(30));
 	WMSetSliderMinValue(panel->speedS, 0);
 	WMSetSliderMaxValue(panel->speedS, 40);
 	WMSetSliderContinuous(panel->speedS, False);
 	WMSetSliderAction(panel->speedS, speedChange, panel);
 
 	panel->acceL = WMCreateLabel(panel->speedF);
-	WMResizeWidget(panel->acceL, 50, 16);
-	WMMoveWidget(panel->acceL, 8, 58);
+	WMResizeWidget(panel->acceL, WMScaled(50), WMScaled(16));
+	WMMoveWidget(panel->acceL, WMScaled(8), WMScaled(58));
 	WMSetLabelTextAlignment(panel->acceL, WARight);
 	WMSetLabelText(panel->acceL, _("Accel.:"));
 
 	panel->acceT = WMCreateTextField(panel->speedF);
-	WMResizeWidget(panel->acceT, 40, 20);
-	WMMoveWidget(panel->acceT, 58, 56);
+	WMResizeWidget(panel->acceT, WMScaled(40), WMScaled(20));
+	WMMoveWidget(panel->acceT, WMScaled(58), WMScaled(56));
 	WMAddNotificationObserver(returnPressed, panel, WMTextDidEndEditingNotification, panel->acceT);
 
 	panel->threL = WMCreateLabel(panel->speedF);
-	WMResizeWidget(panel->threL, 80, 16);
-	WMMoveWidget(panel->threL, 98, 58);
+	WMResizeWidget(panel->threL, WMScaled(80), WMScaled(16));
+	WMMoveWidget(panel->threL, WMScaled(98), WMScaled(58));
 	WMSetLabelTextAlignment(panel->threL, WARight);
 	WMSetLabelText(panel->threL, _("Threshold:"));
 
 	panel->threT = WMCreateTextField(panel->speedF);
-	WMResizeWidget(panel->threT, 30, 20);
-	WMMoveWidget(panel->threT, 178, 56);
+	WMResizeWidget(panel->threT, WMScaled(30), WMScaled(20));
+	WMMoveWidget(panel->threT, WMScaled(178), WMScaled(56));
 	WMAddNotificationObserver(returnPressed, panel, WMTextDidEndEditingNotification, panel->threT);
 
 	WMMapSubwidgets(panel->speedF);
 
 	/* ************** Grab Modifier **************** */
 	panel->grabF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->grabF, 219, 46);
-	WMMoveWidget(panel->grabF, 9, 5);
+	WMResizeWidget(panel->grabF, WMScaled(219), WMScaled(46));
+	WMMoveWidget(panel->grabF, WMScaled(9), WMScaled(5));
 	WMSetFrameTitle(panel->grabF, _("Mouse Grab Modifier"));
 
 	WMSetBalloonTextForView(_("Keyboard modifier to use for actions that\n"
@@ -512,8 +512,8 @@ static void createPanel(Panel * p)
 				  "clicking inside the window."), WMWidgetView(panel->grabF));
 
 	panel->grabP = WMCreatePopUpButton(panel->grabF);
-	WMResizeWidget(panel->grabP, 178, 20);
-	WMMoveWidget(panel->grabP, 20, 17);
+	WMResizeWidget(panel->grabP, WMScaled(178), WMScaled(20));
+	WMMoveWidget(panel->grabP, WMScaled(20), WMScaled(17));
 
 	fillModifierPopUp(panel->grabP);
 	WMMapSubwidgets(panel->grabF);
@@ -521,8 +521,8 @@ static void createPanel(Panel * p)
 	/***************** Doubleclick Delay ****************/
 
 	panel->ddelaF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->ddelaF, 219, 80);
-	WMMoveWidget(panel->ddelaF, 9, 142);
+	WMResizeWidget(panel->ddelaF, WMScaled(219), WMScaled(80));
+	WMMoveWidget(panel->ddelaF, WMScaled(9), WMScaled(142));
 	WMSetFrameTitle(panel->ddelaF, _("Double-Click Delay"));
 
 	buf1 = wmalloc(strlen(DELAY_ICON) + 2);
@@ -530,8 +530,8 @@ static void createPanel(Panel * p)
 
 	for (i = 0; i < wlengthof(panel->ddelaB); i++) {
 		panel->ddelaB[i] = WMCreateCustomButton(panel->ddelaF, WBBStateChangeMask);
-		WMResizeWidget(panel->ddelaB[i], 25, 25);
-		WMMoveWidget(panel->ddelaB[i], 18 + (40 * i), 18);
+		WMResizeWidget(panel->ddelaB[i], WMScaled(25), WMScaled(25));
+		WMMoveWidget(panel->ddelaB[i], WMScaled(18) + (WMScaled(40) * i), WMScaled(18));
 		WMSetButtonBordered(panel->ddelaB[i], False);
 		WMSetButtonImagePosition(panel->ddelaB[i], WIPImageOnly);
 		WMSetButtonAction(panel->ddelaB[i], doubleClick, panel);
@@ -567,16 +567,16 @@ static void createPanel(Panel * p)
 	wfree(buf2);
 
 	panel->tester = CreateDoubleTest(panel->ddelaF, _("Test"));
-	WMResizeWidget(panel->tester, 84, 24);
-	WMMoveWidget(panel->tester, 20, 48);
+	WMResizeWidget(panel->tester, WMScaled(84), WMScaled(24));
+	WMMoveWidget(panel->tester, WMScaled(20), WMScaled(48));
 
 	panel->ddelaT = WMCreateTextField(panel->ddelaF);
-	WMResizeWidget(panel->ddelaT, 40, 20);
-	WMMoveWidget(panel->ddelaT, 130, 50);
+	WMResizeWidget(panel->ddelaT, WMScaled(40), WMScaled(20));
+	WMMoveWidget(panel->ddelaT, WMScaled(130), WMScaled(50));
 
 	panel->ddelaL = WMCreateLabel(panel->ddelaF);
-	WMResizeWidget(panel->ddelaL, 40, 16);
-	WMMoveWidget(panel->ddelaL, 173, 54);
+	WMResizeWidget(panel->ddelaL, WMScaled(40), WMScaled(16));
+	WMMoveWidget(panel->ddelaL, WMScaled(173), WMScaled(54));
 	{
 		WMFont *font;
 		WMColor *color;
@@ -595,13 +595,13 @@ static void createPanel(Panel * p)
 	/* ************** Workspace Action Buttons **************** */
 
 	panel->menuF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->menuF, 276, 217);
-	WMMoveWidget(panel->menuF, 236, 5);
+	WMResizeWidget(panel->menuF, WMScaled(276), WMScaled(217));
+	WMMoveWidget(panel->menuF, WMScaled(236), WMScaled(5));
 	WMSetFrameTitle(panel->menuF, _("Workspace Mouse Actions"));
 
 	panel->disaB = WMCreateSwitchButton(panel->menuF);
-	WMResizeWidget(panel->disaB, 254, 18);
-	WMMoveWidget(panel->disaB, 10, 15);
+	WMResizeWidget(panel->disaB, WMScaled(254), WMScaled(18));
+	WMMoveWidget(panel->disaB, WMScaled(10), WMScaled(15));
 	WMSetButtonText(panel->disaB, _("Disable mouse actions"));
 	WMSetButtonAction(panel->disaB, toggle_disabling_of_mouse_actions, panel);
 
@@ -609,14 +609,14 @@ static void createPanel(Panel * p)
 		int j;
 
 		panel->mouse_action[i].label = WMCreateLabel(panel->menuF);
-		WMResizeWidget(panel->mouse_action[i].label, 115, 20);
-		WMMoveWidget(panel->mouse_action[i].label, 4, 37 + 25 * i);
+		WMResizeWidget(panel->mouse_action[i].label, WMScaled(115), WMScaled(20));
+		WMMoveWidget(panel->mouse_action[i].label, WMScaled(4), WMScaled(37) + WMScaled(25) * i);
 		WMSetLabelTextAlignment(panel->mouse_action[i].label, WARight);
 		WMSetLabelText(panel->mouse_action[i].label, _(button_list[i].display_label));
 
 		panel->mouse_action[i].popup = WMCreatePopUpButton(panel->menuF);
-		WMResizeWidget(panel->mouse_action[i].popup, 145, 20);
-		WMMoveWidget(panel->mouse_action[i].popup, 121, 37 + 25 * i);
+		WMResizeWidget(panel->mouse_action[i].popup, WMScaled(145), WMScaled(20));
+		WMMoveWidget(panel->mouse_action[i].popup, WMScaled(121), WMScaled(37) + WMScaled(25) * i);
 
 		if (button_list[i].type == T_BUTTON) {
 			for (j = 0; j < wlengthof(button_actions); j++)

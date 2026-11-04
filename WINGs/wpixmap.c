@@ -64,6 +64,24 @@ WMPixmap *WMCreatePixmapFromXPixmaps(WMScreen * scrPtr, Pixmap pixmap, Pixmap ma
 	return pixPtr;
 }
 
+/* Images loaded from files or XPM data are drawn with the GUI scale factor
+ * (GSScaleFactor) applied. Images given as RImage are used as is, as their
+ * size was decided by the caller. */
+static WMPixmap *createScaledPixmapFromRImage(WMScreen *scrPtr, RImage *image, int threshold)
+{
+	WMPixmap *pixPtr;
+	RImage *scaled;
+
+	scaled = WMScaleImageByFactor(image);
+	if (!scaled)
+		return NULL;
+
+	pixPtr = WMCreatePixmapFromRImage(scrPtr, scaled, threshold);
+	RReleaseImage(scaled);
+
+	return pixPtr;
+}
+
 WMPixmap *WMCreatePixmapFromFile(WMScreen * scrPtr, const char *fileName)
 {
 	WMPixmap *pixPtr;
@@ -73,7 +91,7 @@ WMPixmap *WMCreatePixmapFromFile(WMScreen * scrPtr, const char *fileName)
 	if (!image)
 		return NULL;
 
-	pixPtr = WMCreatePixmapFromRImage(scrPtr, image, 127);
+	pixPtr = createScaledPixmapFromRImage(scrPtr, image, 127);
 
 	RReleaseImage(image);
 
@@ -135,6 +153,16 @@ WMPixmap *WMCreateScaledBlendedPixmapFromFile(WMScreen *scrPtr, const char *file
 	if (!image)
 		return NULL;
 
+	/* apply the GUI scale factor (the box is already in device pixels) */
+	{
+		RImage *scaled = WMScaleImageByFactor(image);
+
+		RReleaseImage(image);
+		image = scaled;
+		if (!image)
+			return NULL;
+	}
+
 	/* scale it if needed to fit in the specified box */
 	if ((width > 0) && (height > 0) && ((image->width > width) || (image->height > height))) {
 		int new_width, new_height;
@@ -172,7 +200,7 @@ WMPixmap *WMCreatePixmapFromXPMData(WMScreen * scrPtr, char **data)
 	if (!image)
 		return NULL;
 
-	pixPtr = WMCreatePixmapFromRImage(scrPtr, image, 127);
+	pixPtr = createScaledPixmapFromRImage(scrPtr, image, 127);
 
 	RReleaseImage(image);
 

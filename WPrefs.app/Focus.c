@@ -189,29 +189,29 @@ static void createPanel(Panel * p)
 	WMFont *font;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /***************** Input Focus Mode *****************/
 	panel->kfocF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->kfocF, 240, 125);
-	WMMoveWidget(panel->kfocF, 15, 10);
+	WMResizeWidget(panel->kfocF, WMScaled(240), WMScaled(125));
+	WMMoveWidget(panel->kfocF, WMScaled(15), WMScaled(10));
 	WMSetFrameTitle(panel->kfocF, _("Input Focus Mode"));
 
 	{
 		WMBox *box = WMCreateBox(panel->kfocF);
-		WMSetViewExpandsToParent(WMWidgetView(box), 10, 15, 10, 10);
+		WMSetViewExpandsToParent(WMWidgetView(box), WMScaled(10), WMScaled(15), WMScaled(10), WMScaled(10));
 		WMSetBoxHorizontal(box, False);
 
 		panel->kfocB[0] = WMCreateRadioButton(box);
 		WMSetButtonText(panel->kfocB[0], _("Manual:  Click on the window to set "
 		                                   "keyboard input focus"));
-		WMAddBoxSubview(box, WMWidgetView(panel->kfocB[0]), True, True, 20, 0, 0);
+		WMAddBoxSubview(box, WMWidgetView(panel->kfocB[0]), True, True, WMScaled(20), 0, 0);
 
 		panel->kfocB[1] = WMCreateRadioButton(box);
 		WMGroupButtons(panel->kfocB[0], panel->kfocB[1]);
 		WMSetButtonText(panel->kfocB[1], _("Auto:  Set keyboard input focus to "
 		                                   "the window under the mouse pointer"));
-		WMAddBoxSubview(box, WMWidgetView(panel->kfocB[1]), True, True, 20, 0, 0);
+		WMAddBoxSubview(box, WMWidgetView(panel->kfocB[1]), True, True, WMScaled(20), 0, 0);
 
 		WMMapSubwidgets(box);
 		WMMapWidget(box);
@@ -220,8 +220,8 @@ static void createPanel(Panel * p)
     /***************** Colormap Installation Mode ****************/
 
 	panel->cfocF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->cfocF, 240, 77);
-	WMMoveWidget(panel->cfocF, 15, 143);
+	WMResizeWidget(panel->cfocF, WMScaled(240), WMScaled(77));
+	WMMoveWidget(panel->cfocF, WMScaled(15), WMScaled(143));
 	WMSetFrameTitle(panel->cfocF, _("Install colormap from the window..."));
 
 	WMSetBalloonTextForView(_("This option is for screens that can display only a limited number\n"
@@ -234,13 +234,13 @@ static void createPanel(Panel * p)
 	                        WMWidgetView(panel->cfocF));
 
 	panel->manB = WMCreateRadioButton(panel->cfocF);
-	WMResizeWidget(panel->manB, 226, 24);
-	WMMoveWidget(panel->manB, 9, 18);
+	WMResizeWidget(panel->manB, WMScaled(226), WMScaled(24));
+	WMMoveWidget(panel->manB, WMScaled(9), WMScaled(18));
 	WMSetButtonText(panel->manB, _("...that has the input focus"));
 
 	panel->autB = WMCreateRadioButton(panel->cfocF);
-	WMResizeWidget(panel->autB, 226, 24);
-	WMMoveWidget(panel->autB, 9, 43);
+	WMResizeWidget(panel->autB, WMScaled(226), WMScaled(24));
+	WMMoveWidget(panel->autB, WMScaled(9), WMScaled(43));
 	WMSetButtonText(panel->autB, _("...that's under the mouse pointer"));
 	WMGroupButtons(panel->manB, panel->autB);
 
@@ -248,8 +248,8 @@ static void createPanel(Panel * p)
 
     /***************** Automatic window raise delay *****************/
 	panel->raisF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->raisF, 245, 68);
-	WMMoveWidget(panel->raisF, 265, 10);
+	WMResizeWidget(panel->raisF, WMScaled(245), WMScaled(68));
+	WMMoveWidget(panel->raisF, WMScaled(265), WMScaled(10));
 	WMSetFrameTitle(panel->raisF, _("Automatic Window Raise Delay"));
 
 	buf1 = wmalloc(strlen(DELAY_ICON) + 1);
@@ -259,8 +259,8 @@ static void createPanel(Panel * p)
 		char *path;
 
 		panel->raisB[i] = WMCreateCustomButton(panel->raisF, WBBStateChangeMask);
-		WMResizeWidget(panel->raisB[i], 25, 25);
-		WMMoveWidget(panel->raisB[i], 12 + (30 * i), 25);
+		WMResizeWidget(panel->raisB[i], WMScaled(25), WMScaled(25));
+		WMMoveWidget(panel->raisB[i], WMScaled(12) + (WMScaled(30) * i), WMScaled(25));
 		WMSetButtonBordered(panel->raisB[i], False);
 		WMSetButtonImagePosition(panel->raisB[i], WIPImageOnly);
 		WMSetButtonAction(panel->raisB[i], pushDelayButton, panel);
@@ -295,16 +295,16 @@ static void createPanel(Panel * p)
 	wfree(buf2);
 
 	panel->raisT = WMCreateTextField(panel->raisF);
-	WMResizeWidget(panel->raisT, 36, 20);
-	WMMoveWidget(panel->raisT, 165, 28);
+	WMResizeWidget(panel->raisT, WMScaled(36), WMScaled(20));
+	WMMoveWidget(panel->raisT, WMScaled(165), WMScaled(28));
 	WMAddNotificationObserver(raiseTextChanged, panel, WMTextDidChangeNotification, panel->raisT);
 
 	color = WMDarkGrayColor(scr);
 	font = WMSystemFontOfSize(scr, 10);
 
 	panel->raisL = WMCreateLabel(panel->raisF);
-	WMResizeWidget(panel->raisL, 36, 16);
-	WMMoveWidget(panel->raisL, 205, 32);
+	WMResizeWidget(panel->raisL, WMScaled(36), WMScaled(16));
+	WMMoveWidget(panel->raisL, WMScaled(205), WMScaled(32));
 	WMSetLabelText(panel->raisL, _("ms"));
 	WMSetLabelTextColor(panel->raisL, color);
 	WMSetLabelFont(panel->raisL, font);
@@ -316,22 +316,22 @@ static void createPanel(Panel * p)
 
     /***************** Options ****************/
 	panel->optF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->optF, 245, 132);
-	WMMoveWidget(panel->optF, 265, 88);
+	WMResizeWidget(panel->optF, WMScaled(245), WMScaled(132));
+	WMMoveWidget(panel->optF, WMScaled(265), WMScaled(88));
 
 	panel->ignB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->ignB, 228, 50-2);
-	WMMoveWidget(panel->ignB, 10, 4);
+	WMResizeWidget(panel->ignB, WMScaled(228), WMScaled(50 - 2));
+	WMMoveWidget(panel->ignB, WMScaled(10), WMScaled(4));
 	WMSetButtonText(panel->ignB, _("Do not let applications receive the click used to focus windows"));
 
 	panel->newB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->newB, 228, 35);
-	WMMoveWidget(panel->newB, 10, 52);
+	WMResizeWidget(panel->newB, WMScaled(228), WMScaled(35));
+	WMMoveWidget(panel->newB, WMScaled(10), WMScaled(52));
 	WMSetButtonText(panel->newB, _("Automatically focus new windows"));
 
 	panel->craisB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->craisB, 228, 36);
-	WMMoveWidget(panel->craisB, 10, 87);
+	WMResizeWidget(panel->craisB, WMScaled(228), WMScaled(36));
+	WMMoveWidget(panel->craisB, WMScaled(10), WMScaled(87));
 	WMSetButtonText(panel->craisB, _("Raise window when switching focus with keyboard"));
 
 	WMMapSubwidgets(panel->optF);

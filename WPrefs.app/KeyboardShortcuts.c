@@ -614,11 +614,11 @@ static void paintItem(WMList * lPtr, int index, Drawable d, char *text, int stat
 		WMPixmap *pix = WMGetSystemPixmap(scr, WSICheckMark);
 		WMSize size = WMGetPixmapSize(pix);
 
-		WMDrawPixmap(pix, d, x + (20 - size.width) / 2, (height - size.height) / 2 + y);
+		WMDrawPixmap(pix, d, x + (WMScaled(20) - size.width) / 2, (height - size.height) / 2 + y);
 		WMReleasePixmap(pix);
 	}
 
-	WMDrawString(scr, d, panel->black, panel->font, x + 20, y, text, strlen(text));
+	WMDrawString(scr, d, panel->black, panel->font, x + WMScaled(20), y, text, strlen(text));
 }
 
 static int cmpKeyOptions(const void *v1, const void *v2)
@@ -651,14 +651,14 @@ static void createPanel(Panel * p)
 	panel->font = WMSystemFontOfSize(scr, 12);
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 	boldFont = WMBoldSystemFontOfSize(scr, 12);
 
 	/* **************** Actions **************** */
 	panel->actL = WMCreateLabel(panel->box);
-	WMResizeWidget(panel->actL, 314, 20);
-	WMMoveWidget(panel->actL, 9, 9);
+	WMResizeWidget(panel->actL, WMScaled(314), WMScaled(20));
+	WMMoveWidget(panel->actL, WMScaled(9), WMScaled(9));
 	WMSetLabelFont(panel->actL, boldFont);
 	WMSetLabelText(panel->actL, _("Actions"));
 	WMSetLabelRelief(panel->actL, WRSunken);
@@ -669,8 +669,8 @@ static void createPanel(Panel * p)
 	WMSetLabelTextColor(panel->actL, panel->white);
 
 	panel->actLs = WMCreateList(panel->box);
-	WMResizeWidget(panel->actLs, 314, 191);
-	WMMoveWidget(panel->actLs, 9, 31);
+	WMResizeWidget(panel->actLs, WMScaled(314), WMScaled(191));
+	WMMoveWidget(panel->actLs, WMScaled(9), WMScaled(31));
 	WMSetListUserDrawProc(panel->actLs, paintItem);
 	WMHangData(panel->actLs, panel);
 
@@ -686,30 +686,30 @@ static void createPanel(Panel * p)
     /***************** Shortcut ****************/
 
 	panel->shoF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->shoF, 178, 214);
-	WMMoveWidget(panel->shoF, 333, 8);
+	WMResizeWidget(panel->shoF, WMScaled(178), WMScaled(214));
+	WMMoveWidget(panel->shoF, WMScaled(333), WMScaled(8));
 	WMSetFrameTitle(panel->shoF, _("Shortcut"));
 
 	panel->shoT = WMCreateTextField(panel->shoF);
-	WMResizeWidget(panel->shoT, 160, 20);
-	WMMoveWidget(panel->shoT, 9, 65);
+	WMResizeWidget(panel->shoT, WMScaled(160), WMScaled(20));
+	WMMoveWidget(panel->shoT, WMScaled(9), WMScaled(65));
 	WMAddNotificationObserver(typedKeys, panel, WMTextDidChangeNotification, panel->shoT);
 
 	panel->cleB = WMCreateCommandButton(panel->shoF);
-	WMResizeWidget(panel->cleB, 75, 24);
-	WMMoveWidget(panel->cleB, 9, 95);
+	WMResizeWidget(panel->cleB, WMScaled(75), WMScaled(24));
+	WMMoveWidget(panel->cleB, WMScaled(9), WMScaled(95));
 	WMSetButtonText(panel->cleB, _("Clear"));
 	WMSetButtonAction(panel->cleB, clearShortcut, panel);
 
 	panel->defB = WMCreateCommandButton(panel->shoF);
-	WMResizeWidget(panel->defB, 75, 24);
-	WMMoveWidget(panel->defB, 94, 95);
+	WMResizeWidget(panel->defB, WMScaled(75), WMScaled(24));
+	WMMoveWidget(panel->defB, WMScaled(94), WMScaled(95));
 	WMSetButtonText(panel->defB, _("Capture"));
 	WMSetButtonAction(panel->defB, captureClick, panel);
 
 	panel->instructionsL = WMCreateLabel(panel->shoF);
-	WMResizeWidget(panel->instructionsL, 160, 55);
-	WMMoveWidget(panel->instructionsL, 9, 140);
+	WMResizeWidget(panel->instructionsL, WMScaled(160), WMScaled(55));
+	WMMoveWidget(panel->instructionsL, WMScaled(9), WMScaled(140));
 	WMSetLabelTextAlignment(panel->instructionsL, WACenter);
 	WMSetLabelWraps(panel->instructionsL, True);
 	WMSetLabelText(panel->instructionsL, _("Click on Capture to interactively define the shortcut key."));

@@ -338,6 +338,16 @@ static RImage * get_texture_image(WScreen *scr, const char *pixmap_file)
 	}
 	wfree(file);
 
+	/* draw the image with the GUI scale factor applied */
+	{
+		RImage *scaled = WMScaleImageByFactor(image);
+
+		if (scaled) {
+			RReleaseImage(image);
+			image = scaled;
+		}
+	}
+
 	return image;
 }
 
@@ -493,7 +503,7 @@ RImage *wTextureRenderImage(WTexture * texture, int width, int height, int relie
 	}
 
 	if (d > 0) {
-		RBevelImage(image, d);
+		RBevelImageScaled(image, d, WMScaled(1));
 	} else if (d < 0) {
 		bevelImage(image, -d);
 	}
@@ -505,24 +515,29 @@ static void bevelImage(RImage * image, int relief)
 {
 	int width = image->width;
 	int height = image->height;
+	int t = WMScaled(1);	/* line thickness, with the GUI scale factor */
 	RColor color;
+	int i;
 
 	switch (relief) {
 	case WREL_MENUENTRY:
-		color.red = color.green = color.blue = 80;
-		color.alpha = 0;
-		 /**/ ROperateLine(image, RAddOperation, 1, 0, width - 2, 0, &color);
-		 /**/ ROperateLine(image, RAddOperation, 0, 0, 0, height - 1, &color);
+		for (i = 0; i < t; i++) {
+			color.red = color.green = color.blue = 80;
+			color.alpha = 0;
+			 /**/ ROperateLine(image, RAddOperation, t, i, width - 1 - t, i, &color);
+			 /**/ ROperateLine(image, RAddOperation, i, 0, i, height - 1, &color);
 
-		color.red = color.green = color.blue = 40;
-		color.alpha = 0;
-		ROperateLine(image, RSubtractOperation, width - 1, 0, width - 1, height - 1, &color);
+			color.red = color.green = color.blue = 40;
+			color.alpha = 0;
+			ROperateLine(image, RSubtractOperation, width - 1 - i, 0, width - 1 - i, height - 1, &color);
 
-		 /**/ ROperateLine(image, RSubtractOperation, 1, height - 2, width - 2, height - 2, &color);
+			 /**/ ROperateLine(image, RSubtractOperation, t, height - 1 - t - i, width - 1 - t,
+					   height - 1 - t - i, &color);
 
-		color.red = color.green = color.blue = 0;
-		color.alpha = 255;
-		RDrawLine(image, 0, height - 1, width - 1, height - 1, &color);
+			color.red = color.green = color.blue = 0;
+			color.alpha = 255;
+			RDrawLine(image, 0, height - 1 - i, width - 1, height - 1 - i, &color);
+		}
 		 /**/ break;
 
 	}

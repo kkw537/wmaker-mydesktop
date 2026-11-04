@@ -743,10 +743,10 @@ static Pixmap renderTexture(WMScreen * scr, WMPropList * texture, int width, int
 			drawResizebarBevel(image);
 		} else if (border == MENU_BEVEL) {
 			drawMenuBevel(image);
-			RBevelImage(image, RBEV_RAISED2);
+			RBevelImageScaled(image, RBEV_RAISED2, WMScaled(1));
 		}
 	} else if (border) {
-		RBevelImage(image, border);
+		RBevelImageScaled(image, border, WMScaled(1));
 	}
 
 	RConvertImage(rc, image, &pixmap);

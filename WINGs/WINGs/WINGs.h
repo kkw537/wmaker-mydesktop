@@ -1918,6 +1918,44 @@ unsigned W_getconf_mouseWheelUp(void);
 unsigned W_getconf_mouseWheelDown(void);
 void W_setconf_doubleClickDelay(int value);
 
+/*
+ * GUI scale factor (GSScaleFactor)
+ *
+ * Works like the GNUstep "GSScaleFactor" default: the whole user interface
+ * is drawn as if every logical pixel was scale-factor device pixels wide,
+ * so that with a factor of 2 a 1 pixel line is drawn 2 pixels thick, a
+ * 64x64 icon is shown as 128x128, a 12 pixel font is rendered at 24 pixels,
+ * and so on.
+ *
+ * The factor is read from the "GSScaleFactor" key of the global (WMGLOBAL)
+ * domain, and can be overriden with the GS_SCALE_FACTOR environment
+ * variable. It defaults to 1.0 (no scaling). Integer values give the best
+ * looking results.
+ *
+ * Every hard coded pixel value (positions, sizes, line widths...) used for
+ * drawing must be passed through WMScaled(); values that are already
+ * expressed in device pixels (window geometry from the X server, event
+ * coordinates, font metrics, image sizes...) must not.
+ * Fonts and images loaded through WINGs are scaled automatically.
+ */
+float WMGetScaleFactor(void);
+
+void WMSetScaleFactor(float factor);
+
+/* convert a value in logical pixels to device pixels */
+int WMScaleValue(int value);
+
+/* convert a value in device pixels back to logical pixels */
+int WMUnscaleValue(int value);
+
+#define WMScaled(value)   WMScaleValue(value)
+#define WMUnscaled(value) WMUnscaleValue(value)
+
+/* Returns a new reference to the image scaled by the scale factor (or the
+ * same image, retained, if no scaling is needed). The caller must release
+ * both the original image and the returned one. */
+RImage *WMScaleImageByFactor(RImage *image);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

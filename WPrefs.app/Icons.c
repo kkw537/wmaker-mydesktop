@@ -118,26 +118,26 @@ static void showIconLayout(WMWidget * widget, void *data)
 	}
 
 	if (panel->iconPos & 1) {
-		w = 32;
-		h = 8;
+		w = WMScaled(32);
+		h = WMScaled(8);
 	} else {
-		w = 8;
-		h = 32;
+		w = WMScaled(8);
+		h = WMScaled(32);
 	}
 	WMResizeWidget(panel->posV, w, h);
 
 	switch (panel->iconPos & ~1) {
 	case 0:
-		WMMoveWidget(panel->posV, 2, 2);
+		WMMoveWidget(panel->posV, WMScaled(2), WMScaled(2));
 		break;
 	case 2:
-		WMMoveWidget(panel->posV, panel->icon_position.width - 2 - w, 2);
+		WMMoveWidget(panel->posV, panel->icon_position.width - WMScaled(2) - w, WMScaled(2));
 		break;
 	case 4:
-		WMMoveWidget(panel->posV, 2, panel->icon_position.height - 2 - h);
+		WMMoveWidget(panel->posV, WMScaled(2), panel->icon_position.height - WMScaled(2) - h);
 		break;
 	default:
-		WMMoveWidget(panel->posV, panel->icon_position.width - 2 - w, panel->icon_position.height - 2 - h);
+		WMMoveWidget(panel->posV, panel->icon_position.width - WMScaled(2) - w, panel->icon_position.height - WMScaled(2) - h);
 		break;
 	}
 }
@@ -245,12 +245,12 @@ static void createPanel(Panel * p)
 	int startx, starty;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
     /***************** Positioning of Icons *****************/
 	panel->posF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->posF, 268, 155);
-	WMMoveWidget(panel->posF, 12, 6);
+	WMResizeWidget(panel->posF, WMScaled(268), WMScaled(155));
+	WMMoveWidget(panel->posF, WMScaled(12), WMScaled(6));
 	WMSetFrameTitle(panel->posF, _("Icon Positioning"));
 
 	/*
@@ -266,22 +266,23 @@ static void createPanel(Panel * p)
 	swidth = WidthOfScreen(DefaultScreenOfDisplay(WMScreenDisplay(scr)));
 	sheight = HeightOfScreen(DefaultScreenOfDisplay(WMScreenDisplay(scr)));
 
-	width = swidth * (122 - 15 * 2) / sheight;
-	if (width <= (240 - 15 * 2)) {
-		height = 122 - 15 * 2;
+	width = swidth * WMScaled(122 - 15 * 2) / sheight;
+	if (width <= WMScaled(240 - 15 * 2)) {
+		height = WMScaled(122 - 15 * 2);
 	} else {
-		width = 240 - 15 * 2;
-		height = sheight * (240 - 15 * 2) / swidth;
+		width = WMScaled(240 - 15 * 2);
+		height = sheight * WMScaled(240 - 15 * 2) / swidth;
 	}
 
 	panel->icon_position.width  = width;
 	panel->icon_position.height = height;
 
-	startx = 14 + (240 - 15 * 2 - width) / 2;
-	starty = 20 + (122 - 15 * 2 - height) / 2;
+	startx = WMScaled(14) + (WMScaled(240 - 15 * 2) - width) / 2;
+	starty = WMScaled(20) + (WMScaled(122 - 15 * 2) - height) / 2;
 
 	for (i = 0; i < wlengthof(icon_position_dbvalue); i++) {
 		int x, y, w, h;
+		int sp = WMScaled(15);
 
 		panel->posB[i] = WMCreateButton(panel->posF, WBTOnOff);
 		WMSetButtonAction(panel->posB[i], showIconLayout, panel);
@@ -291,9 +292,9 @@ static void createPanel(Panel * p)
 
 		if (i & 1) { /* 0=Vertical, 1=Horizontal */
 			w = width / 2;
-			h = 14;
+			h = WMScaled(14);
 		} else {
-			w = 14;
+			w = WMScaled(14);
 			h = height / 2;
 		}
 		WMResizeWidget(panel->posB[i], w, h);
@@ -301,14 +302,14 @@ static void createPanel(Panel * p)
 		x = startx;
 		y = starty;
 		switch (i) {
-		case 0: x +=  0;         y += 15;          break;
-		case 1: x += 15;         y +=  0;          break;
-		case 2: x += 15 + width; y += 15;          break;
-		case 3: x += 15 + w;     y +=  0;          break;
-		case 4: x +=  0;         y += 15 + h;      break;
-		case 5: x += 15;         y += 15 + height; break;
-		case 6: x += 15 + width; y += 15 + h;      break;
-		case 7: x += 15 + w;     y += 15 + height; break;
+		case 0: x +=  0;          y += sp;          break;
+		case 1: x += sp;          y +=  0;          break;
+		case 2: x += sp + width;  y += sp;          break;
+		case 3: x += sp + w;      y +=  0;          break;
+		case 4: x +=  0;          y += sp + h;      break;
+		case 5: x += sp;          y += sp + height; break;
+		case 6: x += sp + width;  y += sp + h;      break;
+		case 7: x += sp + w;      y += sp + height; break;
 		}
 		WMMoveWidget(panel->posB[i], x, y);
 	}
@@ -316,7 +317,7 @@ static void createPanel(Panel * p)
 	color = WMCreateRGBColor(WMWidgetScreen(panel->parent), 0x5100, 0x5100, 0x7100, True);
 	panel->posVF = WMCreateFrame(panel->posF);
 	WMResizeWidget(panel->posVF, width, height);
-	WMMoveWidget(panel->posVF, startx + 15, starty + 15);
+	WMMoveWidget(panel->posVF, startx + WMScaled(15), starty + WMScaled(15));
 	WMSetFrameRelief(panel->posVF, WRSunken);
 	WMSetWidgetBackgroundColor(panel->posVF, color);
 	WMReleaseColor(color);
@@ -328,16 +329,16 @@ static void createPanel(Panel * p)
 
     /***************** Icon Size ****************/
 	panel->sizeF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->sizeF, 100, 52);
-	WMMoveWidget(panel->sizeF, 12, 168);
+	WMResizeWidget(panel->sizeF, WMScaled(100), WMScaled(52));
+	WMMoveWidget(panel->sizeF, WMScaled(12), WMScaled(168));
 	WMSetFrameTitle(panel->sizeF, _("Icon Size"));
 
 	WMSetBalloonTextForView(_("The size of the dock/application icon and miniwindows"),
 				WMWidgetView(panel->sizeF));
 
 	panel->sizeP = WMCreatePopUpButton(panel->sizeF);
-	WMResizeWidget(panel->sizeP, 80, 20);
-	WMMoveWidget(panel->sizeP, 10, 19);
+	WMResizeWidget(panel->sizeP, WMScaled(80), WMScaled(20));
+	WMMoveWidget(panel->sizeP, WMScaled(10), WMScaled(19));
 	for (i = 24; i <= 256; i += 8) {
 		sprintf(buf, "%ix%i", i, i);
 		WMAddPopUpButtonItem(panel->sizeP, buf);
@@ -347,8 +348,8 @@ static void createPanel(Panel * p)
 
 	/***************** Mini-Previews ****************/
 	panel->minipreview.frame = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->minipreview.frame, 156, 52);
-	WMMoveWidget(panel->minipreview.frame, 124, 168);
+	WMResizeWidget(panel->minipreview.frame, WMScaled(156), WMScaled(52));
+	WMMoveWidget(panel->minipreview.frame, WMScaled(124), WMScaled(168));
 	WMSetFrameTitle(panel->minipreview.frame, _("Mini-Previews for Icons"));
 
 	WMSetBalloonTextForView(_("The Mini-Preview provides a small view of the content of the\n"
@@ -356,28 +357,28 @@ static void createPanel(Panel * p)
 	                        WMWidgetView(panel->minipreview.frame));
 
 	panel->minipreview.slider = WMCreateSlider(panel->minipreview.frame);
-	WMResizeWidget(panel->minipreview.slider, 109, 15);
-	WMMoveWidget(panel->minipreview.slider, 11, 23);
+	WMResizeWidget(panel->minipreview.slider, WMScaled(109), WMScaled(15));
+	WMMoveWidget(panel->minipreview.slider, WMScaled(11), WMScaled(23));
 	WMSetSliderMinValue(panel->minipreview.slider, minipreview_minimum_size);
 	WMSetSliderMaxValue(panel->minipreview.slider, minipreview_maximum_size);
 	WMSetSliderAction(panel->minipreview.slider, minipreview_slider_changed, panel);
 
 	panel->minipreview.label = WMCreateLabel(panel->minipreview.frame);
-	WMResizeWidget(panel->minipreview.label, 33, 15);
-	WMMoveWidget(panel->minipreview.label, 120, 23);
+	WMResizeWidget(panel->minipreview.label, WMScaled(33), WMScaled(15));
+	WMMoveWidget(panel->minipreview.label, WMScaled(120), WMScaled(23));
 	WMSetLabelText(panel->minipreview.label, _("OFF"));
 
 	WMMapSubwidgets(panel->minipreview.frame);
 
     /***************** Animation ****************/
 	panel->animF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->animF, 215, 52);
-	WMMoveWidget(panel->animF, 292, 6);
+	WMResizeWidget(panel->animF, WMScaled(215), WMScaled(52));
+	WMMoveWidget(panel->animF, WMScaled(292), WMScaled(6));
 	WMSetFrameTitle(panel->animF, _("Iconification Animation"));
 
 	panel->animP = WMCreatePopUpButton(panel->animF);
-	WMResizeWidget(panel->animP, 195, 20);
-	WMMoveWidget(panel->animP, 10, 19);
+	WMResizeWidget(panel->animP, WMScaled(195), WMScaled(20));
+	WMMoveWidget(panel->animP, WMScaled(10), WMScaled(19));
 	for (i = 0; i < wlengthof(icon_animation); i++)
 		WMAddPopUpButtonItem(panel->animP, _(icon_animation[i].label));
 
@@ -385,39 +386,39 @@ static void createPanel(Panel * p)
 
     /***************** Options ****************/
 	panel->optF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->optF, 215, 148);
-	WMMoveWidget(panel->optF, 292, 72);
+	WMResizeWidget(panel->optF, WMScaled(215), WMScaled(148));
+	WMMoveWidget(panel->optF, WMScaled(292), WMScaled(72));
 	/*    WMSetFrameTitle(panel->optF, _("Icon Display")); */
-	starty = 8 + 14;   /* the last term centers the checkboxes within the panel; subtract 13 for a new option */
+	starty = WMScaled(8 + 14);   /* the last term centers the checkboxes within the panel; subtract 13 for a new option */
 
 	panel->arrB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->arrB, 198, 26);
-	WMMoveWidget(panel->arrB, 12, starty);
-	starty += 26;
+	WMResizeWidget(panel->arrB, WMScaled(198), WMScaled(26));
+	WMMoveWidget(panel->arrB, WMScaled(12), starty);
+	starty += WMScaled(26);
 	WMSetButtonText(panel->arrB, _("Auto-arrange icons"));
 
 	WMSetBalloonTextForView(_("Keep icons and miniwindows arranged all the time."), WMWidgetView(panel->arrB));
 
 	panel->omnB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->omnB, 198, 26);
-	WMMoveWidget(panel->omnB, 12, starty);
-	starty += 26;
+	WMResizeWidget(panel->omnB, WMScaled(198), WMScaled(26));
+	WMMoveWidget(panel->omnB, WMScaled(12), starty);
+	starty += WMScaled(26);
 	WMSetButtonText(panel->omnB, _("Omnipresent miniwindows"));
 
 	WMSetBalloonTextForView(_("Make miniwindows be present in all workspaces."), WMWidgetView(panel->omnB));
 
 	panel->sclB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->sclB, 198, 26);
-	WMMoveWidget(panel->sclB, 12, starty);
-	starty += 26;
+	WMResizeWidget(panel->sclB, WMScaled(198), WMScaled(26));
+	WMMoveWidget(panel->sclB, WMScaled(12), starty);
+	starty += WMScaled(26);
 	WMSetButtonText(panel->sclB, _("Single click activation"));
 
 	WMSetBalloonTextForView(_("Launch applications and restore windows with a single click."), WMWidgetView(panel->sclB));
 
 	panel->marginB = WMCreateSwitchButton(panel->optF);
-	WMResizeWidget(panel->marginB, 198, 26);
-	WMMoveWidget(panel->marginB, 12, starty);
-	starty += 26;
+	WMResizeWidget(panel->marginB, WMScaled(198), WMScaled(26));
+	WMMoveWidget(panel->marginB, WMScaled(12), starty);
+	starty += WMScaled(26);
 	WMSetButtonText(panel->marginB, _("Enforce icon margin"));
 
 	WMSetBalloonTextForView(_("Make sure that the icon image does not protrude into the icon frame."), WMWidgetView(panel->marginB));

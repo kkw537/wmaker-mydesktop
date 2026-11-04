@@ -40,18 +40,18 @@ typedef struct W_FontPanel {
 	WMPropList *fdb;
 } FontPanel;
 
-#define MIN_UPPER_HEIGHT	20
-#define MIN_LOWER_HEIGHT	140
+#define MIN_UPPER_HEIGHT	WMScaled(20)
+#define MIN_LOWER_HEIGHT	WMScaled(140)
 
-#define BUTTON_SPACE_HEIGHT 40
+#define BUTTON_SPACE_HEIGHT WMScaled(40)
 
-#define MIN_WIDTH	250
+#define MIN_WIDTH	WMScaled(250)
 #define MIN_HEIGHT 	(MIN_UPPER_HEIGHT+MIN_LOWER_HEIGHT+BUTTON_SPACE_HEIGHT)
 
-#define DEF_UPPER_HEIGHT 60
-#define DEF_LOWER_HEIGHT 310
+#define DEF_UPPER_HEIGHT WMScaled(60)
+#define DEF_LOWER_HEIGHT WMScaled(310)
 
-#define DEF_WIDTH	320
+#define DEF_WIDTH	WMScaled(320)
 #define DEF_HEIGHT	(DEF_UPPER_HEIGHT+DEF_LOWER_HEIGHT)
 
 static const int scalableFontSizes[] = {
@@ -105,17 +105,17 @@ static void notificationObserver(void *self, WMNotification * notif)
 
 			WMResizeWidget(panel->split, w, h - BUTTON_SPACE_HEIGHT);
 
-			WMMoveWidget(panel->setB, w - 80, h - (BUTTON_SPACE_HEIGHT - 5));
+			WMMoveWidget(panel->setB, w - WMScaled(80), h - (BUTTON_SPACE_HEIGHT - WMScaled(5)));
 
-			WMMoveWidget(panel->revertB, w - 240, h - (BUTTON_SPACE_HEIGHT - 5));
+			WMMoveWidget(panel->revertB, w - WMScaled(240), h - (BUTTON_SPACE_HEIGHT - WMScaled(5)));
 
 		} else if (object == WMWidgetView(panel->upperF)) {
 
 			if (WMWidgetHeight(panel->upperF) < MIN_UPPER_HEIGHT) {
 				WMResizeWidget(panel->upperF, WMWidgetWidth(panel->upperF), MIN_UPPER_HEIGHT);
 			} else {
-				WMResizeWidget(panel->sampleT, WMWidgetWidth(panel->upperF) - 20,
-					       WMWidgetHeight(panel->upperF) - 10);
+				WMResizeWidget(panel->sampleT, WMWidgetWidth(panel->upperF) - WMScaled(20),
+					       WMWidgetHeight(panel->upperF) - WMScaled(10));
 			}
 
 		} else if (object == WMWidgetView(panel->lowerF)) {
@@ -209,14 +209,14 @@ WMFontPanel *WMGetFontPanel(WMScreen * scr)
 
 	WMResizeWidget(panel->lowerF, DEF_WIDTH, DEF_LOWER_HEIGHT);
 
-	WMMoveWidget(panel->lowerF, 0, 60 + divThickness);
+	WMMoveWidget(panel->lowerF, 0, WMScaled(60) + divThickness);
 
 	white = WMWhiteColor(scr);
 	dark = WMDarkGrayColor(scr);
 
 	panel->sampleT = WMCreateTextField(panel->upperF);
-	WMResizeWidget(panel->sampleT, DEF_WIDTH - 20, 50);
-	WMMoveWidget(panel->sampleT, 10, 10);
+	WMResizeWidget(panel->sampleT, DEF_WIDTH - WMScaled(20), WMScaled(50));
+	WMMoveWidget(panel->sampleT, WMScaled(10), WMScaled(10));
 	WMSetTextFieldText(panel->sampleT, _("The quick brown fox jumps over the lazy dog"));
 
 	font = WMBoldSystemFontOfSize(scr, 12);
@@ -262,14 +262,14 @@ WMFontPanel *WMGetFontPanel(WMScreen * scr)
 	WMReleaseColor(dark);
 
 	panel->setB = WMCreateCommandButton(panel->win);
-	WMResizeWidget(panel->setB, 70, 24);
-	WMMoveWidget(panel->setB, 240, DEF_HEIGHT - (BUTTON_SPACE_HEIGHT - 5));
+	WMResizeWidget(panel->setB, WMScaled(70), WMScaled(24));
+	WMMoveWidget(panel->setB, WMScaled(240), DEF_HEIGHT - (BUTTON_SPACE_HEIGHT - WMScaled(5)));
 	WMSetButtonText(panel->setB, _("Set"));
 	WMSetButtonAction(panel->setB, setClickedAction, panel);
 
 	panel->revertB = WMCreateCommandButton(panel->win);
-	WMResizeWidget(panel->revertB, 70, 24);
-	WMMoveWidget(panel->revertB, 80, DEF_HEIGHT - (BUTTON_SPACE_HEIGHT - 5));
+	WMResizeWidget(panel->revertB, WMScaled(70), WMScaled(24));
+	WMMoveWidget(panel->revertB, WMScaled(80), DEF_HEIGHT - (BUTTON_SPACE_HEIGHT - WMScaled(5)));
 	WMSetButtonText(panel->revertB, _("Revert"));
 	WMSetButtonAction(panel->revertB, revertClickedAction, panel);
 
@@ -360,40 +360,40 @@ void WMSetFontPanelAction(WMFontPanel * panel, WMAction2 * action, void *data)
 
 static void arrangeLowerFrame(FontPanel * panel)
 {
-	int width = WMWidgetWidth(panel->lowerF) - 55 - 30;
+	int width = WMWidgetWidth(panel->lowerF) - WMScaled(55) - WMScaled(30);
 	int height = WMWidgetHeight(panel->split) - WMWidgetHeight(panel->upperF);
 	int fw, tw, sw;
 
-#define LABEL_HEIGHT 20
+#define LABEL_HEIGHT WMScaled(20)
 
 	height -= WMGetSplitViewDividerThickness(panel->split);
 
-	height -= LABEL_HEIGHT + 8;
+	height -= LABEL_HEIGHT + WMScaled(8);
 
 	fw = (125 * width) / 235;
 	tw = (110 * width) / 235;
-	sw = 55;
+	sw = WMScaled(55);
 
-	WMMoveWidget(panel->famL, 10, 0);
+	WMMoveWidget(panel->famL, WMScaled(10), 0);
 	WMResizeWidget(panel->famL, fw, LABEL_HEIGHT);
 
-	WMMoveWidget(panel->famLs, 10, 23);
+	WMMoveWidget(panel->famLs, WMScaled(10), WMScaled(23));
 	WMResizeWidget(panel->famLs, fw, height);
 
-	WMMoveWidget(panel->typL, 10 + fw + 3, 0);
+	WMMoveWidget(panel->typL, WMScaled(10) + fw + WMScaled(3), 0);
 	WMResizeWidget(panel->typL, tw, LABEL_HEIGHT);
 
-	WMMoveWidget(panel->typLs, 10 + fw + 3, 23);
+	WMMoveWidget(panel->typLs, WMScaled(10) + fw + WMScaled(3), WMScaled(23));
 	WMResizeWidget(panel->typLs, tw, height);
 
-	WMMoveWidget(panel->sizL, 10 + fw + 3 + tw + 3, 0);
-	WMResizeWidget(panel->sizL, sw + 4, LABEL_HEIGHT);
+	WMMoveWidget(panel->sizL, WMScaled(10) + fw + WMScaled(3) + tw + WMScaled(3), 0);
+	WMResizeWidget(panel->sizL, sw + WMScaled(4), LABEL_HEIGHT);
 
-	WMMoveWidget(panel->sizT, 10 + fw + 3 + tw + 3, 23);
-	WMResizeWidget(panel->sizT, sw + 4, 20);
+	WMMoveWidget(panel->sizT, WMScaled(10) + fw + WMScaled(3) + tw + WMScaled(3), WMScaled(23));
+	WMResizeWidget(panel->sizT, sw + WMScaled(4), WMScaled(20));
 
-	WMMoveWidget(panel->sizLs, 10 + fw + 3 + tw + 3, 46);
-	WMResizeWidget(panel->sizLs, sw + 4, height - 23);
+	WMMoveWidget(panel->sizLs, WMScaled(10) + fw + WMScaled(3) + tw + WMScaled(3), WMScaled(46));
+	WMResizeWidget(panel->sizLs, sw + WMScaled(4), height - WMScaled(23));
 }
 
 #define NUM_FIELDS 14

@@ -365,6 +365,7 @@ static int userWidgetCount = 0;
 static void renderPixmap(W_Screen * screen, Pixmap d, Pixmap mask, char **data, int width, int height)
 {
 	int x, y;
+	int dx, dy, dw, dh;
 	GC whiteGC = WMColorGC(screen->white);
 	GC blackGC = WMColorGC(screen->black);
 	GC lightGC = WMColorGC(screen->gray);
@@ -374,32 +375,37 @@ static void renderPixmap(W_Screen * screen, Pixmap d, Pixmap mask, char **data, 
 		XSetForeground(screen->display, screen->monoGC, 0);
 
 	for (y = 0; y < height; y++) {
+		/* each pixel of the image is drawn as a GSScaleFactor sized block */
+		dy = WMScaled(y);
+		dh = WMScaled(y + 1) - dy;
 		for (x = 0; x < width; x++) {
+			dx = WMScaled(x);
+			dw = WMScaled(x + 1) - dx;
 			switch (data[y][x]) {
 			case ' ':
 			case 'w':
-				XDrawPoint(screen->display, d, whiteGC, x, y);
+				XFillRectangle(screen->display, d, whiteGC, dx, dy, dw, dh);
 				break;
 
 			case '=':
 				if (mask)
-					XDrawPoint(screen->display, mask, screen->monoGC, x, y);
+					XFillRectangle(screen->display, mask, screen->monoGC, dx, dy, dw, dh);
 
 				/* FALLTHRU */
 			case '.':
 			case 'l':
-				XDrawPoint(screen->display, d, lightGC, x, y);
+				XFillRectangle(screen->display, d, lightGC, dx, dy, dw, dh);
 				break;
 
 			case '%':
 			case 'd':
-				XDrawPoint(screen->display, d, darkGC, x, y);
+				XFillRectangle(screen->display, d, darkGC, dx, dy, dw, dh);
 				break;
 
 			case '#':
 			case 'b':
 			default:
-				XDrawPoint(screen->display, d, blackGC, x, y);
+				XFillRectangle(screen->display, d, blackGC, dx, dy, dw, dh);
 				break;
 			}
 		}
@@ -409,18 +415,65 @@ static void renderPixmap(W_Screen * screen, Pixmap d, Pixmap mask, char **data, 
 static WMPixmap *makePixmap(W_Screen * sPtr, char **data, int width, int height, int masked)
 {
 	Pixmap pixmap, mask = None;
+	int swidth = WMScaled(width);
+	int sheight = WMScaled(height);
 
-	pixmap = XCreatePixmap(sPtr->display, W_DRAWABLE(sPtr), width, height, sPtr->depth);
+	pixmap = XCreatePixmap(sPtr->display, W_DRAWABLE(sPtr), swidth, sheight, sPtr->depth);
 
 	if (masked) {
-		mask = XCreatePixmap(sPtr->display, W_DRAWABLE(sPtr), width, height, 1);
+		mask = XCreatePixmap(sPtr->display, W_DRAWABLE(sPtr), swidth, sheight, 1);
 		XSetForeground(sPtr->display, sPtr->monoGC, 1);
-		XFillRectangle(sPtr->display, mask, sPtr->monoGC, 0, 0, width, height);
+		XFillRectangle(sPtr->display, mask, sPtr->monoGC, 0, 0, swidth, sheight);
 	}
 
 	renderPixmap(sPtr, pixmap, mask, data, width, height);
 
-	return WMCreatePixmapFromXPixmaps(sPtr, pixmap, mask, width, height, sPtr->depth);
+	return WMCreatePixmapFromXPixmaps(sPtr, pixmap, mask, swidth, sheight, sPtr->depth);
+}
+
+static WMPixmap *createScaledPixmap(WMScreen *scr, RImage *image)
+{
+	WMPixmap *pixmap;
+	RImage *scaled;
+
+	scaled = WMScaleImageByFactor(image);
+	if (!scaled)
+		return NULL;
+	pixmap = WMCreatePixmapFromRImage(scr, scaled, 128);
+	RReleaseImage(scaled);
+
+	return pixmap;
+}
+
+/* Creates the 50% stipple used to draw disabled things, drawn with the
+ * GSScaleFactor applied to its "pixels" */
+static Pixmap createStipple(Display *display, Drawable d)
+{
+	int width = WMScaled(STIPPLE_WIDTH);
+	int height = WMScaled(STIPPLE_HEIGHT);
+	int bytesPerLine = (width + 7) / 8;
+	char *bits;
+	Pixmap stipple;
+	int x, y;
+
+	if (width == STIPPLE_WIDTH && height == STIPPLE_HEIGHT)
+		return XCreateBitmapFromData(display, d, STIPPLE_BITS, STIPPLE_WIDTH, STIPPLE_HEIGHT);
+
+	bits = wmalloc(bytesPerLine * height);
+	for (y = 0; y < height; y++) {
+		int sy = y * STIPPLE_HEIGHT / height;
+
+		for (x = 0; x < width; x++) {
+			int sx = x * STIPPLE_WIDTH / width;
+
+			if (STIPPLE_BITS[sy] & (1 << sx))
+				bits[y * bytesPerLine + x / 8] |= (1 << (x % 8));
+		}
+	}
+	stipple = XCreateBitmapFromData(display, d, bits, width, height);
+	wfree(bits);
+
+	return stipple;
 }
 
 #define T_WINGS_IMAGES_FILE  RESOURCE_PATH"/Images.tiff"
@@ -451,83 +504,83 @@ static Bool loadPixmaps(WMScreen * scr)
 	/* make it have a gray background */
 	tmp = RGetSubImage(image, 0, 0, 24, 24);
 	RCombineImageWithColor(tmp, &gray);
-	scr->homeIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->homeIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* make it have a white background */
 	tmp = RGetSubImage(image, 0, 0, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->altHomeIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->altHomeIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 
 	/* trash can */
 	tmp = RGetSubImage(image, 104, 0, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->trashcanIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->trashcanIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	tmp = RGetSubImage(image, 104, 0, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->altTrashcanIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->altTrashcanIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* create dir */
 	tmp = RGetSubImage(image, 104, 24, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->createDirIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->createDirIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	tmp = RGetSubImage(image, 104, 24, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->altCreateDirIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->altCreateDirIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* diskettes */
 	tmp = RGetSubImage(image, 24, 80, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->disketteIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->disketteIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	tmp = RGetSubImage(image, 24, 80, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->altDisketteIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->altDisketteIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* unmount */
 	tmp = RGetSubImage(image, 0, 80, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->unmountIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->unmountIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	tmp = RGetSubImage(image, 0, 80, 24, 24);
 	RCombineImageWithColor(tmp, &white);
-	scr->altUnmountIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->altUnmountIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 
 	/* Magnifying Glass Icon for ColorPanel */
 	tmp = RGetSubImage(image, 24, 0, 40, 32);
 	RCombineImageWithColor(tmp, &gray);
-	scr->magnifyIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->magnifyIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* ColorWheel Icon for ColorPanel */
 	tmp = RGetSubImage(image, 0, 25, 24, 24);
-	scr->wheelIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->wheelIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* GrayScale Icon for ColorPanel */
 	tmp = RGetSubImage(image, 65, 0, 40, 24);
-	scr->grayIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->grayIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* RGB Icon for ColorPanel */
 	tmp = RGetSubImage(image, 25, 33, 40, 24);
-	scr->rgbIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->rgbIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* CMYK Icon for ColorPanel */
 	tmp = RGetSubImage(image, 65, 25, 40, 24);
-	scr->cmykIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->cmykIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* HSB Icon for ColorPanel */
 	tmp = RGetSubImage(image, 0, 57, 40, 24);
-	scr->hsbIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->hsbIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* CustomColorPalette Icon for ColorPanel */
 	tmp = RGetSubImage(image, 81, 57, 40, 24);
-	scr->customPaletteIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->customPaletteIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 	/* ColorList Icon for ColorPanel */
 	tmp = RGetSubImage(image, 41, 57, 40, 24);
-	scr->colorListIcon = WMCreatePixmapFromRImage(scr, tmp, 128);
+	scr->colorListIcon = createScaledPixmap(scr, tmp);
 	RReleaseImage(tmp);
 
 	RReleaseImage(image);
@@ -742,7 +795,7 @@ WMScreen *WMCreateScreenWithRContext(Display * display, int screen, RContext * c
 
 	scrPtr->clipGC = XCreateGC(display, W_DRAWABLE(scrPtr), GCFunction | GCGraphicsExposures, &gcv);
 
-	stipple = XCreateBitmapFromData(display, W_DRAWABLE(scrPtr), STIPPLE_BITS, STIPPLE_WIDTH, STIPPLE_HEIGHT);
+	stipple = createStipple(display, W_DRAWABLE(scrPtr));
 	gcv.foreground = W_PIXEL(scrPtr->darkGray);
 	gcv.background = W_PIXEL(scrPtr->gray);
 	gcv.fill_style = FillStippled;
