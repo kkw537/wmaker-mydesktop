@@ -57,13 +57,13 @@ stringDraw(WMScreen * scr, Drawable d, GC gc, GC sgc, WMColor * textColor,
 	XRectangle rects[1];
 	Display *dpy = WMScreenDisplay(scr);
 
-	x = rect.pos.x + 5;
+	x = rect.pos.x + WMScaled(5);
 	y = rect.pos.y + (rect.size.height - WMFontHeight(font)) / 2;
 
-	rects[0].x = rect.pos.x + 1;
-	rects[0].y = rect.pos.y + 1;
-	rects[0].width = rect.size.width - 1;
-	rects[0].height = rect.size.height - 1;
+	rects[0].x = rect.pos.x + WMScaled(1);
+	rects[0].y = rect.pos.y + WMScaled(1);
+	rects[0].width = rect.size.width - WMScaled(1);
+	rects[0].height = rect.size.height - WMScaled(1);
 	XSetClipRectangles(dpy, gc, 0, 0, rects, 1, YXSorted);
 
 	if (!selected) {
@@ -86,10 +86,10 @@ static void pixmapDraw(WMScreen * scr, Drawable d, GC gc, GC sgc, WMPixmap * pix
 	Display *dpy = WMScreenDisplay(scr);
 	WMSize size;
 
-	rects[0].x = rect.pos.x + 1;
-	rects[0].y = rect.pos.y + 1;
-	rects[0].width = rect.size.width - 1;
-	rects[0].height = rect.size.height - 1;
+	rects[0].x = rect.pos.x + WMScaled(1);
+	rects[0].y = rect.pos.y + WMScaled(1);
+	rects[0].width = rect.size.width - WMScaled(1);
+	rects[0].height = rect.size.height - WMScaled(1);
 	XSetClipRectangles(dpy, gc, 0, 0, rects, 1, YXSorted);
 
 	if (!selected) {
@@ -147,7 +147,7 @@ static void beginSECellEdit(WMTableColumnDelegate * self, WMTableColumn * column
 
 	WMSetTextFieldText(strdata->widget, (char *)data);
 	WMMoveWidget(strdata->widget, rect.pos.x, rect.pos.y);
-	WMResizeWidget(strdata->widget, rect.size.width + 1, rect.size.height + 1);
+	WMResizeWidget(strdata->widget, rect.size.width + WMScaled(1), rect.size.height + WMScaled(1));
 
 	WMMapWidget(strdata->widget);
 }
@@ -221,7 +221,7 @@ static void beginESCellEdit(WMTableColumnDelegate * self, WMTableColumn * column
 	WMSetPopUpButtonSelectedItem(strdata->widget, data);
 
 	WMMoveWidget(strdata->widget, rect.pos.x, rect.pos.y);
-	WMResizeWidget(strdata->widget, rect.size.width, rect.size.height + 1);
+	WMResizeWidget(strdata->widget, rect.size.width, rect.size.height + WMScaled(1));
 
 	WMMapWidget(strdata->widget);
 }
@@ -322,8 +322,8 @@ static void beginBSCellEdit(WMTableColumnDelegate * self, WMTableColumn * column
 	uintptr_t data = (uintptr_t)WMTableViewDataForCell(strdata->table, column, row);
 
 	WMSetButtonSelected(strdata->widget, data);
-	WMMoveWidget(strdata->widget, rect.pos.x + 1, rect.pos.y + 1);
-	WMResizeWidget(strdata->widget, rect.size.width - 1, rect.size.height - 1);
+	WMMoveWidget(strdata->widget, rect.pos.x + WMScaled(1), rect.pos.y + WMScaled(1));
+	WMResizeWidget(strdata->widget, rect.size.width - WMScaled(1), rect.size.height - WMScaled(1));
 
 	WMMapWidget(strdata->widget);
 }
@@ -482,8 +482,8 @@ static void drawPSCell(WMTableColumnDelegate * self, Drawable d, WMTableColumn *
 			   WMViewXID(WMGetTableViewDocumentView(table)),
 			   strdata->gc, strdata->selGC, pix, rect, selected);
 
-		rect.pos.x += size.width - 1;
-		rect.size.width = owidth - size.width + 1;
+		rect.pos.x += size.width - WMScaled(1);
+		rect.size.width = owidth - size.width + WMScaled(1);
 	}
 
 	stringDraw(WMWidgetScreen(table), d, strdata->gc, strdata->selGC,

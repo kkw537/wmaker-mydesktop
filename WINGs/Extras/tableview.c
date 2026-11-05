@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	XSynchronize(WMScreenDisplay(scr), 1);
 
 	win = WMCreateWindow(scr, "eweq");
-	WMResizeWidget(win, 400, 200);
+	WMResizeWidget(win, WMScaled(400), WMScaled(200));
 	WMMapWidget(win);
 
 	table = WMCreateTableView(win);
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	colDeleg = WTCreateStringEditorDelegate(table);
 
 	col = WMCreateTableColumn("Group");
-	WMSetTableColumnWidth(col, 180);
+	WMSetTableColumnWidth(col, WMScaled(180));
 	WMAddTableViewColumn(table, col);
 	WMSetTableColumnDelegate(col, colDeleg);
 	WMSetTableColumnId(col, (void *)1);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	WTSetEnumSelectorOptions(colDeleg, options, 5);
 
 	col = WMCreateTableColumn("Package");
-	WMSetTableColumnWidth(col, 140);
+	WMSetTableColumnWidth(col, WMScaled(140));
 	WMAddTableViewColumn(table, col);
 	WMSetTableColumnDelegate(col, colDeleg);
 	WMSetTableColumnId(col, (void *)2);
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	colDeleg = WTCreateBooleanSwitchDelegate(table);
 
 	col = WMCreateTableColumn("Bool");
-	WMSetTableColumnWidth(col, 50);
+	WMSetTableColumnWidth(col, WMScaled(50));
 	WMAddTableViewColumn(table, col);
 	WMSetTableColumnDelegate(col, colDeleg);
 	WMSetTableColumnId(col, (void *)2);
