@@ -44,6 +44,7 @@
 #include "dock.h"
 #include "actions.h"
 #include "workspace.h"
+#include "animation.h"
 #include "appicon.h"
 #include "wmspec.h"
 #include "xinerama.h"
@@ -208,8 +209,13 @@ Bool wWorkspaceDelete(WScreen * scr, int workspace)
 	return True;
 }
 
+/* the fade out lasts as long as the 10 steps it used to be drawn in, but it
+ * is now drawn at the monitor refresh rate */
+#define WORKSPACE_NAME_FADE_TIME (10UL * WORKSPACE_NAME_FADE_DELAY * 1000UL)
+
 typedef struct WorkspaceNameData {
-	int count;
+	Bool fading;
+	WAnimation fade;
 	RImage *back;
 	RImage *text;
 	time_t timeout;
@@ -219,8 +225,17 @@ static void hideWorkspaceName(void *data)
 {
 	WScreen *scr = (WScreen *) data;
 
-	if (!scr->workspace_name_data || scr->workspace_name_data->count == 0
-	    || time(NULL) > scr->workspace_name_data->timeout) {
+	WorkspaceNameData *wdata = scr->workspace_name_data;
+	float progress = 0;
+
+	if (wdata && !wdata->fading) {
+		wdata->fading = True;
+		wAnimationStart(&wdata->fade, scr);
+	}
+	if (wdata)
+		progress = wAnimationProgress(&wdata->fade, WORKSPACE_NAME_FADE_TIME);
+
+	if (!wdata || progress >= 1.0F || time(NULL) > wdata->timeout) {
 		XUnmapWindow(dpy, scr->workspace_name);
 
 		if (scr->workspace_name_data) {
@@ -232,13 +247,15 @@ static void hideWorkspaceName(void *data)
 		}
 		scr->workspace_name_timer = NULL;
 	} else {
-		RImage *img = RCloneImage(scr->workspace_name_data->back);
+		RImage *img = RCloneImage(wdata->back);
 		Pixmap pix;
+		int delay = (wdata->fade.interval + 500) / 1000;
 
-		scr->workspace_name_timer = WMAddTimerHandler(WORKSPACE_NAME_FADE_DELAY, hideWorkspaceName, scr);
+		if (delay < 1)
+			delay = 1;
+		scr->workspace_name_timer = WMAddTimerHandler(delay, hideWorkspaceName, scr);
 
-		RCombineImagesWithOpaqueness(img, scr->workspace_name_data->text,
-					     scr->workspace_name_data->count * 255 / 10);
+		RCombineImagesWithOpaqueness(img, wdata->text, (int)(255 * (1.0F - progress)));
 
 		RConvertImage(scr->rcontext, img, &pix);
 
@@ -248,8 +265,6 @@ static void hideWorkspaceName(void *data)
 		XClearWindow(dpy, scr->workspace_name);
 		XFreePixmap(dpy, pix);
 		XFlush(dpy);
-
-		scr->workspace_name_data->count--;
 	}
 }
 
@@ -408,10 +423,10 @@ static void showWorkspaceName(WScreen * scr, int workspace)
 		goto erro;
 	}
 
-	data->count = 10;
+	data->fading = False;
 
 	/* set a timeout for the effect */
-	data->timeout = time(NULL) + 2 + (WORKSPACE_NAME_DELAY + WORKSPACE_NAME_FADE_DELAY * data->count) / 1000;
+	data->timeout = time(NULL) + 2 + (WORKSPACE_NAME_DELAY + WORKSPACE_NAME_FADE_TIME / 1000) / 1000;
 
 	scr->workspace_name_data = data;
 

@@ -38,6 +38,7 @@
 #include "colormap.h"
 #include "application.h"
 #include "actions.h"
+#include "animation.h"
 #include "stacking.h"
 #include "appicon.h"
 #include "dock.h"
@@ -1158,30 +1159,32 @@ void wUnfullscreenWindow(WWindow *wwin)
 }
 
 #ifdef USE_ANIMATIONS
+/*
+ * The miniaturize animations are time based: each one lasts as long as the
+ * fixed number of frames it used to draw with the delay between them in
+ * wconfig.h, but frames are drawn as often as the monitor refreshes, at the
+ * position matching the elapsed time.
+ */
 static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int fw, int fh, int steps)
 {
-#define FRAMES (MINIATURIZE_ANIMATION_FRAMES_F)
-	float cx, cy, cw, ch;
-	float xstep, ystep, wstep, hstep;
+	const unsigned long duration = (unsigned long)MINIATURIZE_ANIMATION_FRAMES_F * MINIATURIZE_ANIMATION_DELAY_F;
+	const float final_angle = 2 * WM_PI * MINIATURIZE_ANIMATION_TWIST_F;
+	WAnimation anim;
 	XPoint points[5];
+	float cx, cy, cw, ch;
 	float dx, dch, midy;
-	float angle, final_angle, delta;
+	float angle, p;
 
-	xstep = (float)(fx - x) / steps;
-	ystep = (float)(fy - y) / steps;
-	wstep = (float)(fw - w) / steps;
-	hstep = (float)(fh - h) / steps;
+	(void)steps;
 
-	cx = (float)x;
-	cy = (float)y;
-	cw = (float)w;
-	ch = (float)h;
-
-	final_angle = 2 * WM_PI * MINIATURIZE_ANIMATION_TWIST_F;
-	delta = (float)(final_angle / FRAMES);
-	for (angle = 0;; angle += delta) {
-		if (angle > final_angle)
-			angle = final_angle;
+	wAnimationStart(&anim, scr);
+	do {
+		p = wAnimationProgress(&anim, duration);
+		angle = final_angle * p;
+		cx = x + (fx - x) * p;
+		cy = y + (fy - y) * p;
+		cw = w + (fw - w) * p;
+		ch = h + (fh - h) * p;
 
 		dx = (cw / 10) - ((cw / 5) * sinf(angle));
 		dch = (ch / 2) * cosf(angle);
@@ -1201,52 +1204,39 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wusleep(MINIATURIZE_ANIMATION_DELAY_F);
+		wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-		cx += xstep;
-		cy += ystep;
-		cw += wstep;
-		ch += hstep;
-		if (angle >= final_angle)
-			break;
-
-	}
+	} while (p < 1.0F);
 	XFlush(dpy);
 }
-
-#undef FRAMES
 
 static void
 animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int fw, int fh, int steps)
 {
-#define FRAMES (MINIATURIZE_ANIMATION_FRAMES_T)
-	float cx, cy, cw, ch;
-	float xstep, ystep, wstep, hstep;
+	const unsigned long duration = (unsigned long)MINIATURIZE_ANIMATION_FRAMES_T * MINIATURIZE_ANIMATION_DELAY_T;
+	const float final_angle = 2 * WM_PI * MINIATURIZE_ANIMATION_TWIST_T;
+	WAnimation anim;
 	XPoint points[5];
-	float angle, final_angle, a, d, delta;
+	float cx, cy, cw, ch;
+	float angle, a, d, p;
+
+	(void)steps;
 
 	x += w / 2;
 	y += h / 2;
 	fx += fw / 2;
 	fy += fh / 2;
 
-	xstep = (float)(fx - x) / steps;
-	ystep = (float)(fy - y) / steps;
-	wstep = (float)(fw - w) / steps;
-	hstep = (float)(fh - h) / steps;
-
-	cx = (float)x;
-	cy = (float)y;
-	cw = (float)w;
-	ch = (float)h;
-
-	final_angle = 2 * WM_PI * MINIATURIZE_ANIMATION_TWIST_T;
-	delta = (float)(final_angle / FRAMES);
-	for (angle = 0;; angle += delta) {
-		if (angle > final_angle)
-			angle = final_angle;
+	wAnimationStart(&anim, scr);
+	do {
+		p = wAnimationProgress(&anim, duration);
+		angle = final_angle * p;
+		cx = x + (fx - x) * p;
+		cy = y + (fy - y) * p;
+		cw = w + (fw - w) * p;
+		ch = h + (fh - h) * p;
 
 		a = atan2f(ch, cw);
 		d = sqrtf((cw / 2) * (cw / 2) + (ch / 2) * (ch / 2));
@@ -1259,79 +1249,52 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 		points[2].y = cy + sinf(angle - a + (float)WM_PI) * d;
 		points[3].x = cx + cosf(angle + a + (float)WM_PI) * d;
 		points[3].y = cy + sinf(angle + a + (float)WM_PI) * d;
-		points[4].x = cx + cosf(angle - a) * d;
-		points[4].y = cy + sinf(angle - a) * d;
+		points[4].x = points[0].x;
+		points[4].y = points[0].y;
+
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wusleep(MINIATURIZE_ANIMATION_DELAY_T);
+		wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-		cx += xstep;
-		cy += ystep;
-		cw += wstep;
-		ch += hstep;
-		if (angle >= final_angle)
-			break;
-
-	}
+	} while (p < 1.0F);
 	XFlush(dpy);
 }
-
-#undef FRAMES
 
 static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int fw, int fh, int steps)
 {
 #define FRAMES (MINIATURIZE_ANIMATION_FRAMES_Z)
-	float cx[FRAMES], cy[FRAMES], cw[FRAMES], ch[FRAMES];
-	float xstep, ystep, wstep, hstep;
-	int i, j;
+	const unsigned long duration = (unsigned long)steps * MINIATURIZE_ANIMATION_DELAY_Z;
+	XRectangle rects[FRAMES];
+	WAnimation anim;
+	float p, q;
+	int j;
 
-	xstep = (float)(fx - x) / steps;
-	ystep = (float)(fy - y) / steps;
-	wstep = (float)(fw - w) / steps;
-	hstep = (float)(fh - h) / steps;
-
-	for (j = 0; j < FRAMES; j++) {
-		cx[j] = (float)x;
-		cy[j] = (float)y;
-		cw[j] = (float)w;
-		ch[j] = (float)h;
-	}
 	XGrabServer(dpy);
-	for (i = 0; i < steps; i++) {
+	wAnimationStart(&anim, scr);
+	do {
+		p = wAnimationProgress(&anim, duration);
+
+		/* the head of the trail is the last rectangle, every other one
+		 * lags one of the original steps behind the one after it */
 		for (j = 0; j < FRAMES; j++) {
-			XDrawRectangle(dpy, scr->root_win, scr->frame_gc,
-				       (int)cx[j], (int)cy[j], (int)cw[j], (int)ch[j]);
+			q = p - (float)(FRAMES - 1 - j) / steps;
+			if (q < 0)
+				q = 0;
+			rects[j].x = (int)(x + (fx - x) * q);
+			rects[j].y = (int)(y + (fy - y) * q);
+			rects[j].width = (int)(w + (fw - w) * q);
+			rects[j].height = (int)(h + (fh - h) * q);
 		}
+
+		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
 		XFlush(dpy);
-		wusleep(MINIATURIZE_ANIMATION_DELAY_Z);
-
-		for (j = 0; j < FRAMES; j++) {
-			XDrawRectangle(dpy, scr->root_win, scr->frame_gc,
-				       (int)cx[j], (int)cy[j], (int)cw[j], (int)ch[j]);
-			if (j < FRAMES - 1) {
-				cx[j] = cx[j + 1];
-				cy[j] = cy[j + 1];
-				cw[j] = cw[j + 1];
-				ch[j] = ch[j + 1];
-			} else {
-				cx[j] += xstep;
-				cy[j] += ystep;
-				cw[j] += wstep;
-				ch[j] += hstep;
-			}
-		}
-	}
-
-	for (j = 0; j < FRAMES; j++)
-		XDrawRectangle(dpy, scr->root_win, scr->frame_gc, (int)cx[j], (int)cy[j], (int)cw[j], (int)ch[j]);
+		wAnimationWaitFrame(&anim);
+		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
+	} while (p < 1.0F);
 	XFlush(dpy);
-	wusleep(MINIATURIZE_ANIMATION_DELAY_Z);
-
-	for (j = 0; j < FRAMES; j++)
-		XDrawRectangle(dpy, scr->root_win, scr->frame_gc, (int)cx[j], (int)cy[j], (int)cw[j], (int)ch[j]);
 
 	XUngrabServer(dpy);
 }

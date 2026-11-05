@@ -11,6 +11,8 @@ wmaker_SOURCES = 	\
 	WindowMaker.h \
 	actions.c \
 	actions.h \
+	animation.c \
+	animation.h \
 	appicon.c \
 	appicon.h \
 	application.c \

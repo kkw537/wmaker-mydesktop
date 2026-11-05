@@ -27,6 +27,16 @@ font sizes, title clearances, EdgeResistance, ...) keep being expressed in
 logical pixels and are scaled automatically.
 
 
+Animations follow the monitor refresh rate
+------------------------------------------
+
+The miniaturize animations (zoom, twist and flip) and the fade out of the
+workspace name are now time based: they last as long as before, but their
+frames are drawn at the refresh rate of the fastest active monitor, read
+with RandR (60Hz when it is not available). On a 120Hz monitor they are
+twice as smooth as on a 60Hz one, without being any faster. The twist and
+flip animations now also end exactly on the icon.
+
 Directional window focus
 ------------------------
 
