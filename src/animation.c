@@ -27,6 +27,8 @@
 #include <X11/extensions/Xrandr.h>
 #endif
 
+#include <X11/extensions/dpms.h>
+
 #ifdef USE_XPRESENT
 #include <poll.h>
 #include <X11/extensions/Xpresent.h>
@@ -37,8 +39,8 @@
 #define MIN_REFRESH_RATE	30
 #define MAX_REFRESH_RATE	360
 
-/* longest wait for a vertical blank before falling back to a timer, in
- * microseconds (the monitor may have been switched off) */
+/* longest wait for a vertical blank before the animation is given up, in
+ * microseconds (the monitor may have been switched off meanwhile) */
 #define VBLANK_TIMEOUT		100000
 
 static unsigned int cached_interval = 0;
@@ -117,6 +119,26 @@ unsigned int wAnimationFrameInterval(WScreen *scr)
 void wAnimationResetFrameRate(void)
 {
 	cached_interval = 0;
+}
+
+Bool wAnimationDisplayOff(void)
+{
+	static int dpms_supported = -1;
+	CARD16 level;
+	BOOL enabled;
+
+	if (dpms_supported < 0) {
+		int event_base, error_base;
+
+		dpms_supported = DPMSQueryExtension(dpy, &event_base, &error_base) && DPMSCapable(dpy);
+	}
+	if (!dpms_supported)
+		return False;
+
+	if (!DPMSInfo(dpy, &level, &enabled) || !enabled)
+		return False;
+
+	return level != DPMSModeOn;
 }
 
 static void getTime(struct timespec *ts)
@@ -288,7 +310,7 @@ void wAnimationEnd(WAnimation *anim)
 #endif
 }
 
-void wAnimationWaitFrame(WAnimation *anim)
+Bool wAnimationWaitFrame(WAnimation *anim)
 {
 	unsigned long elapsed;
 	unsigned long due;
@@ -304,10 +326,12 @@ void wAnimationWaitFrame(WAnimation *anim)
 			anim->frame += (msc > anim->msc) ? msc - anim->msc : 1;
 			anim->msc = msc;
 			anim->time = (ust > anim->start_ust) ? ust - anim->start_ust : 0;
-			return;
+			return True;
 		}
-		/* no vertical blank (monitor switched off?), use the timer */
+		/* no vertical blank: the monitor was most likely switched off,
+		 * there is no point in drawing the rest of the animation */
 		stopSync(anim);
+		return False;
 	}
 #endif
 
@@ -324,4 +348,6 @@ void wAnimationWaitFrame(WAnimation *anim)
 		wusleep(due - elapsed);
 
 	anim->time = wAnimationElapsed(anim);
+
+	return True;
 }

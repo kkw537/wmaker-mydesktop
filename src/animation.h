@@ -75,7 +75,14 @@ unsigned long wAnimationElapsed(const WAnimation *anim);
 float wAnimationProgress(const WAnimation *anim, unsigned long duration);
 
 /* wait until the next frame is due: the next vertical blank for a
- * synchronised animation, else sleep for one frame interval */
-void wAnimationWaitFrame(WAnimation *anim);
+ * synchronised animation, else sleep for one frame interval. Returns False
+ * when the animation should stop, because the vertical blanks stopped
+ * coming (the monitor was switched off): the frame on screen must then
+ * still be erased */
+Bool wAnimationWaitFrame(WAnimation *anim);
+
+/* True when the monitors are switched off by DPMS, animations are then
+ * not worth drawing */
+Bool wAnimationDisplayOff(void);
 
 #endif /* WMANIMATION_H_ */

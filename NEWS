@@ -44,9 +44,12 @@ blank of the monitor instead of sleeping, and are timed with it: every
 frame is drawn right after a vertical blank, so it is shown exactly once,
 at a regular interval. Together with a tear free X server (for example
 the modesetting driver with Option "TearFree") they are then both free
-of tearing and of uneven frames. If a vertical blank does not come in
-time, for example because the monitor is off, the animation falls back
-to the timer.
+of tearing and of uneven frames.
+
+The miniaturize animations are not drawn at all while the monitors are
+switched off by DPMS, and an animation synchronised with the vertical
+blank stops as soon as the vertical blanks stop coming (the monitor was
+switched off while it was running).
 
 Directional window focus
 ------------------------

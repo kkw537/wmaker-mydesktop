@@ -1175,6 +1175,7 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 	float cx, cy, cw, ch;
 	float dx, dch, midy;
 	float angle, p;
+	Bool running;
 
 	(void)steps;
 
@@ -1205,11 +1206,11 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
 	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
@@ -1223,6 +1224,7 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	XPoint points[5];
 	float cx, cy, cw, ch;
 	float angle, a, d, p;
+	Bool running;
 
 	(void)steps;
 
@@ -1257,11 +1259,11 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
 	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
@@ -1274,6 +1276,7 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 	WAnimation anim;
 	float p, q;
 	int j;
+	Bool running;
 
 	XGrabServer(dpy);
 	wAnimationStartSynced(&anim, scr);
@@ -1294,9 +1297,9 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 
 		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
 	wAnimationEnd(&anim);
 	XFlush(dpy);
 
@@ -1311,6 +1314,10 @@ void animateResize(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	int steps;
 
 	if (style == WIS_NONE)
+		return;
+
+	/* nothing would be seen */
+	if (wAnimationDisplayOff())
 		return;
 
 	if (style == WIS_RANDOM)
