@@ -232,8 +232,12 @@ static void hideWorkspaceName(void *data)
 		wdata->fading = True;
 		wAnimationStart(&wdata->fade, scr);
 	}
-	if (wdata)
-		progress = wAnimationProgress(&wdata->fade, WORKSPACE_NAME_FADE_TIME);
+	if (wdata) {
+		unsigned long elapsed = wAnimationElapsed(&wdata->fade);
+
+		progress = (elapsed >= WORKSPACE_NAME_FADE_TIME) ? 1.0F
+			: (float)elapsed / (float)WORKSPACE_NAME_FADE_TIME;
+	}
 
 	if (!wdata || progress >= 1.0F || time(NULL) > wdata->timeout) {
 		XUnmapWindow(dpy, scr->workspace_name);

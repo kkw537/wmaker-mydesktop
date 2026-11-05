@@ -234,6 +234,31 @@ AC_SUBST([LIBXRANDR])dnl
 ]) dnl AC_DEFUN
 
 
+# WM_XEXT_CHECK_XPRESENT
+# ----------------------
+#
+# Check for the X Present extension library (libXpresent), used to
+# synchronise animations with the vertical blank of the monitor
+# The check depends on variable 'enable_xpresent' being either:
+#   yes  - detect, fail if not found
+#   no   - do not detect, disable support
+#   auto - detect, disable if not found
+#
+# When found, append appropriate stuff in LIBXPRESENT, and append info to
+# the variable 'supported_xext'
+# When not found, append info to variable 'unsupported'
+AC_DEFUN_ONCE([WM_XEXT_CHECK_XPRESENT],
+[WM_LIB_CHECK([XPresent], [-lXpresent], [XPresentQueryExtension], [$XLIBS],
+    [wm_save_CFLAGS="$CFLAGS"
+     AS_IF([wm_fn_lib_try_compile "X11/extensions/Xpresent.h" "Display *dpy;" "XPresentQueryExtension(dpy, NULL, NULL, NULL)" ""],
+        [],
+        [AC_MSG_ERROR([found $CACHEVAR but cannot compile using XPresent header])])
+     CFLAGS="$wm_save_CFLAGS"],
+    [supported_xext], [LIBXPRESENT], [], [-])dnl
+AC_SUBST([LIBXPRESENT])dnl
+]) dnl AC_DEFUN
+
+
 # WM_XEXT_CHECK_XKBFILE
 # ---------------------
 #

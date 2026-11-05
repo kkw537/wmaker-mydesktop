@@ -1163,7 +1163,8 @@ void wUnfullscreenWindow(WWindow *wwin)
  * The miniaturize animations are time based: each one lasts as long as the
  * fixed number of frames it used to draw with the delay between them in
  * wconfig.h, but frames are drawn as often as the monitor refreshes, at the
- * position matching the elapsed time.
+ * position matching the elapsed time, right after each vertical blank when
+ * the Present extension is available.
  */
 static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int fw, int fh, int steps)
 {
@@ -1174,10 +1175,11 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 	float cx, cy, cw, ch;
 	float dx, dch, midy;
 	float angle, p;
+	Bool running;
 
 	(void)steps;
 
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 		angle = final_angle * p;
@@ -1204,11 +1206,12 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
 
@@ -1221,6 +1224,7 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	XPoint points[5];
 	float cx, cy, cw, ch;
 	float angle, a, d, p;
+	Bool running;
 
 	(void)steps;
 
@@ -1229,7 +1233,7 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	fx += fw / 2;
 	fy += fh / 2;
 
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 		angle = final_angle * p;
@@ -1255,11 +1259,12 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 		XGrabServer(dpy);
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
 
@@ -1271,9 +1276,10 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 	WAnimation anim;
 	float p, q;
 	int j;
+	Bool running;
 
 	XGrabServer(dpy);
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 
@@ -1291,9 +1297,10 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 
 		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
 		XFlush(dpy);
-		wAnimationWaitFrame(&anim);
+		running = wAnimationWaitFrame(&anim);
 		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
-	} while (p < 1.0F);
+	} while (p < 1.0F && running);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 
 	XUngrabServer(dpy);
@@ -1307,6 +1314,10 @@ void animateResize(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	int steps;
 
 	if (style == WIS_NONE)
+		return;
+
+	/* nothing would be seen */
+	if (wAnimationDisplayOff())
 		return;
 
 	if (style == WIS_RANDOM)
