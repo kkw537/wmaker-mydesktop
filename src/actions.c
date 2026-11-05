@@ -1163,7 +1163,8 @@ void wUnfullscreenWindow(WWindow *wwin)
  * The miniaturize animations are time based: each one lasts as long as the
  * fixed number of frames it used to draw with the delay between them in
  * wconfig.h, but frames are drawn as often as the monitor refreshes, at the
- * position matching the elapsed time.
+ * position matching the elapsed time, right after each vertical blank when
+ * the Present extension is available.
  */
 static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int fw, int fh, int steps)
 {
@@ -1177,7 +1178,7 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 
 	(void)steps;
 
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 		angle = final_angle * p;
@@ -1209,6 +1210,7 @@ static void animateResizeFlip(WScreen *scr, int x, int y, int w, int h, int fx, 
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
 	} while (p < 1.0F);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
 
@@ -1229,7 +1231,7 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 	fx += fw / 2;
 	fy += fh / 2;
 
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 		angle = final_angle * p;
@@ -1260,6 +1262,7 @@ animateResizeTwist(WScreen *scr, int x, int y, int w, int h, int fx, int fy, int
 		XDrawLines(dpy, scr->root_win, scr->frame_gc, points, 5, CoordModeOrigin);
 		XUngrabServer(dpy);
 	} while (p < 1.0F);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 }
 
@@ -1273,7 +1276,7 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 	int j;
 
 	XGrabServer(dpy);
-	wAnimationStart(&anim, scr);
+	wAnimationStartSynced(&anim, scr);
 	do {
 		p = wAnimationProgress(&anim, duration);
 
@@ -1294,6 +1297,7 @@ static void animateResizeZoom(WScreen *scr, int x, int y, int w, int h, int fx, 
 		wAnimationWaitFrame(&anim);
 		XDrawRectangles(dpy, scr->root_win, scr->frame_gc, rects, FRAMES);
 	} while (p < 1.0F);
+	wAnimationEnd(&anim);
 	XFlush(dpy);
 
 	XUngrabServer(dpy);

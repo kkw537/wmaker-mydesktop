@@ -37,6 +37,17 @@ with RandR (60Hz when it is not available). On a 120Hz monitor they are
 twice as smooth as on a 60Hz one, without being any faster. The twist and
 flip animations now also end exactly on the icon.
 
+When Window Maker is built with libXpresent (configure option
+--enable-xpresent, detected automatically) and the X server supports the
+Present extension, the miniaturize animations also wait for the vertical
+blank of the monitor instead of sleeping, and are timed with it: every
+frame is drawn right after a vertical blank, so it is shown exactly once,
+at a regular interval. Together with a tear free X server (for example
+the modesetting driver with Option "TearFree") they are then both free
+of tearing and of uneven frames. If a vertical blank does not come in
+time, for example because the monitor is off, the animation falls back
+to the timer.
+
 Directional window focus
 ------------------------
 
