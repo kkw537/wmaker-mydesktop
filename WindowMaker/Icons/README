@@ -27,10 +27,10 @@ xv.tiff
 
 
 
-The following icons come from the WindowMaker-extra 0.1 data package
-(WindowMaker-extra-0.1.tar.gz), distributed under the GNU General Public
-License version 2. Its xv.xpm is installed as xv-extra.xpm, as it differs
-from the xv.xpm above.
+The following icons come from the WindowMaker-extra 0.1 data package, as
+packaged by Fedora (WindowMaker-extra-0.1.tar.gz from its lookaside cache),
+distributed under the GNU General Public License version 2. Like Fedora, its
+xv.xpm is left out in favour of the one above.
 
 Ant.xpm
 Antennae.xpm
@@ -93,4 +93,3 @@ TrueDie48.xpm
 WheelbarrowFull.xpm
 WordEditor.xpm
 Wrench-12bit.xpm
-xv-extra.xpm

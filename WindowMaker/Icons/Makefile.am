@@ -131,7 +131,6 @@ icondata_DATA = \
 	XChat.png\
 	xdvi.tiff\
 	xdvi.xpm\
-	xv-extra.xpm\
 	xv.tiff\
 	xv.xpm
 
