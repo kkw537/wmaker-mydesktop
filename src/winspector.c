@@ -53,11 +53,11 @@
 #define USE_TEXT_FIELD		1
 #define UPDATE_TEXT_FIELD	2
 #define REVERT_TO_DEFAULT	4
-#define PWIDTH			290
+#define PWIDTH			WMScaled(290)
 #ifdef XKB_BUTTON_HINT
-#define PHEIGHT			380
+#define PHEIGHT			WMScaled(380)
 #else
-#define PHEIGHT			360
+#define PHEIGHT			WMScaled(360)
 #endif
 #define UNDEFINED_POS		0xffffff
 #define UPDATE_DEFAULTS		1
@@ -1049,32 +1049,32 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 
 	/**** create common stuff ****/
 	/* command buttons */
-	btn_width = (PWIDTH - (2 * 15) - (2 * 10)) / 3;
+	btn_width = (PWIDTH - (2 * WMScaled(15)) - (2 * WMScaled(10))) / 3;
 	panel->saveBtn = WMCreateCommandButton(panel->win);
 	WMSetButtonAction(panel->saveBtn, saveSettings, panel);
-	WMMoveWidget(panel->saveBtn, (2 * (btn_width + 10)) + 15, PHEIGHT - 40);
+	WMMoveWidget(panel->saveBtn, (2 * (btn_width + WMScaled(10))) + WMScaled(15), PHEIGHT - WMScaled(40));
 	WMSetButtonText(panel->saveBtn, _("Save"));
-	WMResizeWidget(panel->saveBtn, btn_width, 28);
+	WMResizeWidget(panel->saveBtn, btn_width, WMScaled(28));
 	if (wPreferences.flags.noupdates || !(wwin->wm_class || wwin->wm_instance))
 		WMSetButtonEnabled(panel->saveBtn, False);
 
 	panel->applyBtn = WMCreateCommandButton(panel->win);
 	WMSetButtonAction(panel->applyBtn, applySettings, panel);
-	WMMoveWidget(panel->applyBtn, btn_width + 10 + 15, PHEIGHT - 40);
+	WMMoveWidget(panel->applyBtn, btn_width + WMScaled(10) + WMScaled(15), PHEIGHT - WMScaled(40));
 	WMSetButtonText(panel->applyBtn, _("Apply"));
-	WMResizeWidget(panel->applyBtn, btn_width, 28);
+	WMResizeWidget(panel->applyBtn, btn_width, WMScaled(28));
 
 	panel->revertBtn = WMCreateCommandButton(panel->win);
 	WMSetButtonAction(panel->revertBtn, revertSettings, panel);
-	WMMoveWidget(panel->revertBtn, 15, PHEIGHT - 40);
+	WMMoveWidget(panel->revertBtn, WMScaled(15), PHEIGHT - WMScaled(40));
 	WMSetButtonText(panel->revertBtn, _("Reload"));
-	WMResizeWidget(panel->revertBtn, btn_width, 28);
+	WMResizeWidget(panel->revertBtn, btn_width, WMScaled(28));
 
 	/* page selection popup button */
 	panel->pagePopUp = WMCreatePopUpButton(panel->win);
 	WMSetPopUpButtonAction(panel->pagePopUp, changePage, panel);
-	WMMoveWidget(panel->pagePopUp, 25, 15);
-	WMResizeWidget(panel->pagePopUp, PWIDTH - 50, 20);
+	WMMoveWidget(panel->pagePopUp, WMScaled(25), WMScaled(15));
+	WMResizeWidget(panel->pagePopUp, PWIDTH - WMScaled(50), WMScaled(20));
 
 	WMAddPopUpButtonItem(panel->pagePopUp, _("Window Specification"));
 	WMAddPopUpButtonItem(panel->pagePopUp, _("Window Attributes"));
@@ -1083,16 +1083,16 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 	WMAddPopUpButtonItem(panel->pagePopUp, _("Application Specific"));
 
 	/**** window spec ****/
-	frame_width = PWIDTH - (2 * 15);
+	frame_width = PWIDTH - (2 * WMScaled(15));
 
 	panel->specFrm = WMCreateFrame(panel->win);
 	WMSetFrameTitle(panel->specFrm, _("Window Specification"));
-	WMMoveWidget(panel->specFrm, 15, 65);
-	WMResizeWidget(panel->specFrm, frame_width, 145);
+	WMMoveWidget(panel->specFrm, WMScaled(15), WMScaled(65));
+	WMResizeWidget(panel->specFrm, frame_width, WMScaled(145));
 
 	panel->defaultRb = WMCreateRadioButton(panel->specFrm);
-	WMMoveWidget(panel->defaultRb, 10, 78);
-	WMResizeWidget(panel->defaultRb, frame_width - (2 * 10), 20);
+	WMMoveWidget(panel->defaultRb, WMScaled(10), WMScaled(78));
+	WMResizeWidget(panel->defaultRb, frame_width - (2 * WMScaled(10)), WMScaled(20));
 	WMSetButtonText(panel->defaultRb, _("Defaults for all windows"));
 	WMSetButtonSelected(panel->defaultRb, False);
 	WMSetButtonAction(panel->defaultRb, selectSpecification, panel);
@@ -1102,8 +1102,8 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 		str = wstrconcat(tmp, wwin->wm_class);
 
 		panel->bothRb = WMCreateRadioButton(panel->specFrm);
-		WMMoveWidget(panel->bothRb, 10, 18);
-		WMResizeWidget(panel->bothRb, frame_width - (2 * 10), 20);
+		WMMoveWidget(panel->bothRb, WMScaled(10), WMScaled(18));
+		WMResizeWidget(panel->bothRb, frame_width - (2 * WMScaled(10)), WMScaled(20));
 		WMSetButtonText(panel->bothRb, str);
 		wfree(tmp);
 		wfree(str);
@@ -1117,8 +1117,8 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 
 	if (wwin->wm_instance) {
 		panel->instRb = WMCreateRadioButton(panel->specFrm);
-		WMMoveWidget(panel->instRb, 10, 38);
-		WMResizeWidget(panel->instRb, frame_width - (2 * 10), 20);
+		WMMoveWidget(panel->instRb, WMScaled(10), WMScaled(38));
+		WMResizeWidget(panel->instRb, frame_width - (2 * WMScaled(10)), WMScaled(20));
 		WMSetButtonText(panel->instRb, wwin->wm_instance);
 		WMGroupButtons(panel->defaultRb, panel->instRb);
 
@@ -1130,8 +1130,8 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 
 	if (wwin->wm_class) {
 		panel->clsRb = WMCreateRadioButton(panel->specFrm);
-		WMMoveWidget(panel->clsRb, 10, 58);
-		WMResizeWidget(panel->clsRb, frame_width - (2 * 10), 20);
+		WMMoveWidget(panel->clsRb, WMScaled(10), WMScaled(58));
+		WMResizeWidget(panel->clsRb, frame_width - (2 * WMScaled(10)), WMScaled(20));
 		WMSetButtonText(panel->clsRb, wwin->wm_class);
 		WMGroupButtons(panel->defaultRb, panel->clsRb);
 
@@ -1142,14 +1142,14 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 	}
 
 	panel->selWinB = WMCreateCommandButton(panel->specFrm);
-	WMMoveWidget(panel->selWinB, 20, 145 - 24 - 10);
-	WMResizeWidget(panel->selWinB, frame_width - 2 * 10 - 20, 24);
+	WMMoveWidget(panel->selWinB, WMScaled(20), WMScaled(145) - WMScaled(24) - WMScaled(10));
+	WMResizeWidget(panel->selWinB, frame_width - 2 * WMScaled(10) - WMScaled(20), WMScaled(24));
 	WMSetButtonText(panel->selWinB, _("Select window"));
 	WMSetButtonAction(panel->selWinB, selectWindow, panel);
 
 	panel->specLbl = WMCreateLabel(panel->win);
-	WMMoveWidget(panel->specLbl, 15, 210);
-	WMResizeWidget(panel->specLbl, frame_width, 100);
+	WMMoveWidget(panel->specLbl, WMScaled(15), WMScaled(210));
+	WMResizeWidget(panel->specLbl, frame_width, WMScaled(100));
 	WMSetLabelText(panel->specLbl, spec_text);
 	WMSetLabelWraps(panel->specLbl, True);
 
@@ -1202,7 +1202,7 @@ static InspectorPanel *createInspectorForWindow(WWindow *wwin, int xpos, int ypo
 		x = wwin->frame_x + wwin->frame->core->width / 2;
 		y = wwin->frame_y + wwin->frame->top_width * 2;
 		if (y + PHEIGHT > scr->scr_height)
-			y = scr->scr_height - PHEIGHT - 30;
+			y = scr->scr_height - PHEIGHT - WMScaled(30);
 		if (x + PWIDTH > scr->scr_width)
 			x = scr->scr_width - PWIDTH;
 	} else {
@@ -1289,8 +1289,8 @@ static void create_tab_window_attributes(WWindow *wwin, InspectorPanel *panel, i
 
 	panel->attrFrm = WMCreateFrame(panel->win);
 	WMSetFrameTitle(panel->attrFrm, _("Attributes"));
-	WMMoveWidget(panel->attrFrm, 15, 45);
-	WMResizeWidget(panel->attrFrm, frame_width, 250);
+	WMMoveWidget(panel->attrFrm, WMScaled(15), WMScaled(45));
+	WMResizeWidget(panel->attrFrm, frame_width, WMScaled(250));
 
 	for (i = 0; i < wlengthof(window_attribute); i++) {
 		int is_userdef, flag;
@@ -1302,8 +1302,8 @@ static void create_tab_window_attributes(WWindow *wwin, InspectorPanel *panel, i
 			flag = get_attr_flag(&wwin->client_flags, &window_attribute[i].flag);
 
 		panel->attrChk[i] = WMCreateSwitchButton(panel->attrFrm);
-		WMMoveWidget(panel->attrChk[i], 10, 20 * (i + 1));
-		WMResizeWidget(panel->attrChk[i], frame_width - 15, 20);
+		WMMoveWidget(panel->attrChk[i], WMScaled(10), WMScaled(20) * (i + 1));
+		WMResizeWidget(panel->attrChk[i], frame_width - WMScaled(15), WMScaled(20));
 		WMSetButtonSelected(panel->attrChk[i], flag);
 		WMSetButtonText(panel->attrChk[i], _(window_attribute[i].caption));
 
@@ -1317,11 +1317,11 @@ static void create_tab_window_advanced(WWindow *wwin, InspectorPanel *panel, int
 
 	panel->moreFrm = WMCreateFrame(panel->win);
 	WMSetFrameTitle(panel->moreFrm, _("Advanced"));
-	WMMoveWidget(panel->moreFrm, 15, 45);
+	WMMoveWidget(panel->moreFrm, WMScaled(15), WMScaled(45));
 #ifdef XKB_BUTTON_HINT
-	WMResizeWidget(panel->moreFrm, frame_width, 285);
+	WMResizeWidget(panel->moreFrm, frame_width, WMScaled(285));
 #else
-	WMResizeWidget(panel->moreFrm, frame_width, 265);
+	WMResizeWidget(panel->moreFrm, frame_width, WMScaled(265));
 #endif
 
 	for (i = 0; i < wlengthof(advanced_option); i++) {
@@ -1334,8 +1334,8 @@ static void create_tab_window_advanced(WWindow *wwin, InspectorPanel *panel, int
 			flag = get_attr_flag(&wwin->client_flags, &advanced_option[i].flag);
 
 		panel->moreChk[i] = WMCreateSwitchButton(panel->moreFrm);
-		WMMoveWidget(panel->moreChk[i], 10, 20 * (i + 1) - 4);
-		WMResizeWidget(panel->moreChk[i], frame_width - 15, 20);
+		WMMoveWidget(panel->moreChk[i], WMScaled(10), WMScaled(20) * (i + 1) - WMScaled(4));
+		WMResizeWidget(panel->moreChk[i], frame_width - WMScaled(15), WMScaled(20));
 		WMSetButtonSelected(panel->moreChk[i], flag);
 		WMSetButtonText(panel->moreChk[i], _(advanced_option[i].caption));
 
@@ -1351,51 +1351,51 @@ static void create_tab_icon_workspace(WWindow *wwin, InspectorPanel *panel)
 
 	/* miniwindow/workspace */
 	panel->iconFrm = WMCreateFrame(panel->win);
-	WMMoveWidget(panel->iconFrm, 15, 50);
-	WMResizeWidget(panel->iconFrm, PWIDTH - (2 * 15), 170);
+	WMMoveWidget(panel->iconFrm, WMScaled(15), WMScaled(50));
+	WMResizeWidget(panel->iconFrm, PWIDTH - (2 * WMScaled(15)), WMScaled(170));
 	WMSetFrameTitle(panel->iconFrm, _("Miniwindow Image"));
 
 	panel->iconLbl = WMCreateLabel(panel->iconFrm);
-	WMMoveWidget(panel->iconLbl, PWIDTH - (2 * 15) - 22 - 64, 20);
-	WMResizeWidget(panel->iconLbl, 64, 64);
+	WMMoveWidget(panel->iconLbl, PWIDTH - (2 * WMScaled(15)) - WMScaled(22) - WMScaled(64), WMScaled(20));
+	WMResizeWidget(panel->iconLbl, WMScaled(64), WMScaled(64));
 	WMSetLabelRelief(panel->iconLbl, WRGroove);
 	WMSetLabelImagePosition(panel->iconLbl, WIPImageOnly);
 
 	panel->browseIconBtn = WMCreateCommandButton(panel->iconFrm);
 	WMSetButtonAction(panel->browseIconBtn, chooseIconCallback, panel);
-	WMMoveWidget(panel->browseIconBtn, 22, 32);
-	WMResizeWidget(panel->browseIconBtn, 120, 26);
+	WMMoveWidget(panel->browseIconBtn, WMScaled(22), WMScaled(32));
+	WMResizeWidget(panel->browseIconBtn, WMScaled(120), WMScaled(26));
 	WMSetButtonText(panel->browseIconBtn, _("Browse..."));
 
 	panel->fileLbl = WMCreateLabel(panel->iconFrm);
-	WMMoveWidget(panel->fileLbl, 20, 85);
-	WMResizeWidget(panel->fileLbl, PWIDTH - (2 * 15) - (2 * 20), 14);
+	WMMoveWidget(panel->fileLbl, WMScaled(20), WMScaled(85));
+	WMResizeWidget(panel->fileLbl, PWIDTH - (2 * WMScaled(15)) - (2 * WMScaled(20)), WMScaled(14));
 	WMSetLabelText(panel->fileLbl, _("Icon filename:"));
 
 	panel->fileText = WMCreateTextField(panel->iconFrm);
-	WMMoveWidget(panel->fileText, 20, 105);
-	WMResizeWidget(panel->fileText, PWIDTH - (2 * 20) - (2 * 15), 20);
+	WMMoveWidget(panel->fileText, WMScaled(20), WMScaled(105));
+	WMResizeWidget(panel->fileText, PWIDTH - (2 * WMScaled(20)) - (2 * WMScaled(15)), WMScaled(20));
 	db_icon = wDefaultGetIconFile(wwin->wm_instance, wwin->wm_class, False);
 	WMSetTextFieldText(panel->fileText, db_icon);
 	WMAddNotificationObserver(textEditedObserver, panel, WMTextDidEndEditingNotification, panel->fileText);
 
 	panel->alwChk = WMCreateSwitchButton(panel->iconFrm);
-	WMMoveWidget(panel->alwChk, 20, 130);
-	WMResizeWidget(panel->alwChk, PWIDTH - (2 * 15) - (2 * 15), 30);
+	WMMoveWidget(panel->alwChk, WMScaled(20), WMScaled(130));
+	WMResizeWidget(panel->alwChk, PWIDTH - (2 * WMScaled(15)) - (2 * WMScaled(15)), WMScaled(30));
 	WMSetButtonText(panel->alwChk, _("Ignore client supplied icon"));
 	WMSetButtonSelected(panel->alwChk, WFLAGP(wwin, always_user_icon));
 
 	panel->wsFrm = WMCreateFrame(panel->win);
-	WMMoveWidget(panel->wsFrm, 15, 225);
-	WMResizeWidget(panel->wsFrm, PWIDTH - (2 * 15), 70);
+	WMMoveWidget(panel->wsFrm, WMScaled(15), WMScaled(225));
+	WMResizeWidget(panel->wsFrm, PWIDTH - (2 * WMScaled(15)), WMScaled(70));
 	WMSetFrameTitle(panel->wsFrm, _("Initial Workspace"));
 
 	WMSetBalloonTextForView(_("The workspace to place the window when it's"
 				  " first shown."), WMWidgetView(panel->wsFrm));
 
 	panel->wsP = WMCreatePopUpButton(panel->wsFrm);
-	WMMoveWidget(panel->wsP, 20, 30);
-	WMResizeWidget(panel->wsP, PWIDTH - (2 * 15) - (2 * 20), 20);
+	WMMoveWidget(panel->wsP, WMScaled(20), WMScaled(30));
+	WMResizeWidget(panel->wsP, PWIDTH - (2 * WMScaled(15)) - (2 * WMScaled(20)), WMScaled(20));
 	WMAddPopUpButtonItem(panel->wsP, _("Nowhere in particular"));
 
 	for (i = 0; i < wwin->screen_ptr->workspace_count; i++)
@@ -1418,8 +1418,8 @@ static void create_tab_app_specific(WWindow *wwin, InspectorPanel *panel, int fr
 
 		panel->appFrm = WMCreateFrame(panel->win);
 		WMSetFrameTitle(panel->appFrm, _("Application Attributes"));
-		WMMoveWidget(panel->appFrm, 15, 50);
-		WMResizeWidget(panel->appFrm, frame_width, 240);
+		WMMoveWidget(panel->appFrm, WMScaled(15), WMScaled(50));
+		WMResizeWidget(panel->appFrm, frame_width, WMScaled(240));
 
 		for (i = 0; i < wlengthof(application_attr); i++) {
 			int is_userdef, flag;
@@ -1431,8 +1431,8 @@ static void create_tab_app_specific(WWindow *wwin, InspectorPanel *panel, int fr
 				flag = get_attr_flag(&wapp->main_window_desc->client_flags, &application_attr[i].flag);
 
 			panel->appChk[i] = WMCreateSwitchButton(panel->appFrm);
-			WMMoveWidget(panel->appChk[i], 10, 20 * (i + 1));
-			WMResizeWidget(panel->appChk[i], 205, 20);
+			WMMoveWidget(panel->appChk[i], WMScaled(10), WMScaled(20) * (i + 1));
+			WMResizeWidget(panel->appChk[i], WMScaled(205), WMScaled(20));
 			WMSetButtonSelected(panel->appChk[i], flag);
 			WMSetButtonText(panel->appChk[i], _(application_attr[i].caption));
 
