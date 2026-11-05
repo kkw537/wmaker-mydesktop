@@ -37,8 +37,8 @@ WMTableColumn *WMCreateTableColumn(char *title)
 
 	col->table = NULL;
 	col->titleW = NULL;
-	col->width = 50;
-	col->minWidth = 5;
+	col->width = WMScaled(50);
+	col->minWidth = WMScaled(5);
 	col->maxWidth = 0;
 
 	col->id = NULL;
@@ -390,10 +390,10 @@ static void doScroll(WMWidget * self, void *data)
 
 			WMMoveWidget(column->titleW, x - rect.pos.x, 0);
 
-			x += W_VIEW_WIDTH(WMWidgetView(column->titleW)) + 1;
+			x += W_VIEW_WIDTH(WMWidgetView(column->titleW)) + WMScaled(1);
 
 			splitter = WMGetFromArray(table->splitters, i);
-			W_MoveView(splitter, x - rect.pos.x - 1, 0);
+			W_MoveView(splitter, x - rect.pos.x - WMScaled(1), 0);
 		}
 	}
 }
@@ -409,7 +409,7 @@ static void splitterHandler(XEvent * event, void *data)
 	WMScreen *scr = WMWidgetScreen(table);
 	GC gc = scr->ixorGC;
 	Display *dpy = WMScreenDisplay(scr);
-	int h = WMWidgetHeight(table) - 22;
+	int h = WMWidgetHeight(table) - WMScaled(22);
 	Window w = WMViewXID(table->view);
 
 	pos = WMGetViewPosition(WMWidgetView(column->titleW));
@@ -418,7 +418,7 @@ static void splitterHandler(XEvent * event, void *data)
 
 	ox = cx = offsX;
 
-	XDrawLine(dpy, w, gc, cx + 20, 0, cx + 20, h);
+	XDrawLine(dpy, w, gc, cx + WMScaled(20), 0, cx + WMScaled(20), h);
 
 	while (!done) {
 		XEvent ev;
@@ -436,8 +436,8 @@ static void splitterHandler(XEvent * event, void *data)
 			else
 				cx = offsX + ev.xmotion.x;
 
-			XDrawLine(dpy, w, gc, ox + 20, 0, ox + 20, h);
-			XDrawLine(dpy, w, gc, cx + 20, 0, cx + 20, h);
+			XDrawLine(dpy, w, gc, ox + WMScaled(20), 0, ox + WMScaled(20), h);
+			XDrawLine(dpy, w, gc, cx + WMScaled(20), 0, cx + WMScaled(20), h);
 			break;
 
 		case ButtonRelease:
@@ -447,7 +447,7 @@ static void splitterHandler(XEvent * event, void *data)
 		}
 	}
 
-	XDrawLine(dpy, w, gc, cx + 20, 0, cx + 20, h);
+	XDrawLine(dpy, w, gc, cx + WMScaled(20), 0, cx + WMScaled(20), h);
 	rearrangeHeader(table);
 	repaintTable(table);
 }
@@ -478,11 +478,11 @@ WMTableView *WMCreateTableView(WMWidget * parent)
 
 	table->view->delegate = &viewDelegate;
 
-	table->headerHeight = 20;
+	table->headerHeight = WMScaled(20);
 
 	table->hscroll = WMCreateScroller(table);
 	WMSetScrollerAction(table->hscroll, doScroll, table);
-	WMMoveWidget(table->hscroll, 1, 2 + table->headerHeight);
+	WMMoveWidget(table->hscroll, WMScaled(1), WMScaled(2) + table->headerHeight);
 	WMMapWidget(table->hscroll);
 
 	table->hasHScroller = 1;
@@ -490,19 +490,19 @@ WMTableView *WMCreateTableView(WMWidget * parent)
 	table->vscroll = WMCreateScroller(table);
 	WMSetScrollerArrowsPosition(table->vscroll, WSAMaxEnd);
 	WMSetScrollerAction(table->vscroll, doScroll, table);
-	WMMoveWidget(table->vscroll, 1, 2 + table->headerHeight);
+	WMMoveWidget(table->vscroll, WMScaled(1), WMScaled(2) + table->headerHeight);
 	WMMapWidget(table->vscroll);
 
 	table->hasVScroller = 1;
 
 	table->header = WMCreateFrame(table);
-	WMMoveWidget(table->header, 22, 2);
+	WMMoveWidget(table->header, WMScaled(22), WMScaled(2));
 	WMMapWidget(table->header);
 	WMSetFrameRelief(table->header, WRFlat);
 
 	table->corner = WMCreateLabel(table);
-	WMResizeWidget(table->corner, 20, table->headerHeight);
-	WMMoveWidget(table->corner, 2, 2);
+	WMResizeWidget(table->corner, WMScaled(20), table->headerHeight);
+	WMMoveWidget(table->corner, WMScaled(2), WMScaled(2));
 	WMMapWidget(table->corner);
 	WMSetLabelRelief(table->corner, WRRaised);
 	WMSetWidgetBackgroundColor(table->corner, scr->darkGray);
@@ -526,16 +526,18 @@ WMTableView *WMCreateTableView(WMWidget * parent)
 		table->backColor = WMWhiteColor(scr);
 
 		gcv.foreground = WMColorPixel(table->gridColor);
-		gcv.dashes = 1;
+		gcv.dashes = WMScaled(1);
 		gcv.line_style = LineOnOffDash;
-		table->gridGC = XCreateGC(WMScreenDisplay(scr), W_DRAWABLE(scr), GCForeground, &gcv);
+		/* grid lines are drawn with the GUI scale factor applied */
+		gcv.line_width = (WMScaled(1) > 1) ? WMScaled(1) : 0;
+		table->gridGC = XCreateGC(WMScreenDisplay(scr), W_DRAWABLE(scr), GCForeground | GCLineWidth, &gcv);
 	}
 
 	table->editingRow = -1;
 	table->clickedRow = -1;
 
 	table->drawsGrid = 1;
-	table->rowHeight = 16;
+	table->rowHeight = WMScaled(16);
 
 	table->tableWidth = 1;
 
@@ -553,7 +555,7 @@ WMTableView *WMCreateTableView(WMWidget * parent)
 	WMCreateEventHandler(table->tableView, ExposureMask | ButtonPressMask |
 			     ButtonReleaseMask | ButtonMotionMask, handleTableEvents, table);
 
-	WMResizeWidget(table, 50, 50);
+	WMResizeWidget(table, WMScaled(50), WMScaled(50));
 
 	return table;
 
@@ -595,7 +597,7 @@ void WMAddTableViewColumn(WMTableView * table, WMTableColumn * column)
 		if (W_VIEW_REALIZED(table->view))
 			W_RealizeView(splitter);
 
-		W_ResizeView(splitter, 2, table->headerHeight);
+		W_ResizeView(splitter, WMScaled(2), table->headerHeight);
 		W_MapView(splitter);
 
 		W_SetViewCursor(splitter, table->splitterCursor);
@@ -1180,24 +1182,24 @@ static void reorganizeInterior(WMTableView * table)
 	if (table->hscroll)
 		hsThickness = WMWidgetHeight(table->hscroll);
 
-	width = W_VIEW_WIDTH(view) - 2;
-	height = W_VIEW_HEIGHT(view) - 3;
+	width = W_VIEW_WIDTH(view) - WMScaled(2);
+	height = W_VIEW_HEIGHT(view) - WMScaled(3);
 
 	height -= table->headerHeight;	/* table header */
 
 	if (table->corner)
-		WMResizeWidget(table->corner, 20, table->headerHeight);
+		WMResizeWidget(table->corner, WMScaled(20), table->headerHeight);
 
-	WMMoveWidget(table->vscroll, 1, table->headerHeight + 1);
-	WMResizeWidget(table->vscroll, 20, height + 1);
+	WMMoveWidget(table->vscroll, WMScaled(1), table->headerHeight + WMScaled(1));
+	WMResizeWidget(table->vscroll, WMScaled(20), height + WMScaled(1));
 
 	if (table->hscroll) {
-		WMMoveWidget(table->hscroll, vsThickness, W_VIEW_HEIGHT(view) - hsThickness - 1);
-		WMResizeWidget(table->hscroll, width - (vsThickness + 1), hsThickness);
+		WMMoveWidget(table->hscroll, vsThickness, W_VIEW_HEIGHT(view) - hsThickness - WMScaled(1));
+		WMResizeWidget(table->hscroll, width - (vsThickness + WMScaled(1)), hsThickness);
 	}
 
 	if (table->header)
-		WMResizeWidget(table->header, width - (vsThickness + 1), table->headerHeight);
+		WMResizeWidget(table->header, width - (vsThickness + WMScaled(1)), table->headerHeight);
 
 	if (table->viewBuffer) {
 		WMReleasePixmap(table->viewBuffer);
@@ -1210,8 +1212,8 @@ static void reorganizeInterior(WMTableView * table)
 	vw = WMIN(size.width, width);
 	vh = WMIN(size.height, height);
 
-	W_MoveView(table->tableView, vsThickness + 1, 1 + table->headerHeight + 1);
-	W_ResizeView(table->tableView, WMAX(vw, 1), WMAX(vh, 1) + 1);
+	W_MoveView(table->tableView, vsThickness + WMScaled(1), WMScaled(1) + table->headerHeight + WMScaled(1));
+	W_ResizeView(table->tableView, WMAX(vw, 1), WMAX(vh, 1) + WMScaled(1));
 
 	adjustScrollers(table);
 
@@ -1233,17 +1235,17 @@ static void rearrangeHeader(WMTableView * table)
 		WMView *splitter = WMGetFromArray(table->splitters, i);
 
 		WMMoveWidget(column->titleW, width, 0);
-		WMResizeWidget(column->titleW, column->width - 1, table->headerHeight);
+		WMResizeWidget(column->titleW, column->width - WMScaled(1), table->headerHeight);
 
 		width += column->width;
-		W_MoveView(splitter, width - 1, 0);
+		W_MoveView(splitter, width - WMScaled(1), 0);
 	}
 
 	wassertr(table->delegate && table->delegate->numberOfRows);
 
 	table->rows = table->delegate->numberOfRows(table->delegate, table);
 
-	table->tableWidth = width + 1;
+	table->tableWidth = width + WMScaled(1);
 
 	handleResize(table->view->delegate, table->view);
 }

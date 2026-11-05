@@ -351,7 +351,7 @@ void wShadeWindow(WWindow *wwin)
 	XSelectInput(dpy, wwin->client_win, wwin->event_mask);
 
 	/* for the client it's just like iconification */
-	wFrameWindowResize(wwin->frame, wwin->frame->core->width, wwin->frame->top_width - 1);
+	wFrameWindowResize(wwin->frame, wwin->frame->core->width, wwin->frame->top_width - WMScaled(1));
 
 	wwin->client.y = wwin->frame_y - wwin->client.height + wwin->frame->top_width;
 	wWindowSynthConfigureNotify(wwin);
@@ -516,7 +516,7 @@ void wMaximizeWindow(WWindow *wwin, int directions, int head)
 		new_x = maximus_x;
 		new_y = maximus_y;
 		if (WFLAGP(wwin, full_maximize) && (new_y == 0)) {
-			new_height += wwin->frame->bottom_width - 1;
+			new_height += wwin->frame->bottom_width - WMScaled(1);
 			new_y -= wwin->frame->top_width;
 		}
 
@@ -2390,7 +2390,7 @@ static void shade_animate(WWindow *wwin, Bool what)
 				s = 1;
 			w = wwin->frame->core->width;
 			y = wwin->frame->top_width;
-			while (h > wwin->frame->top_width + 1) {
+			while (h > wwin->frame->top_width + WMScaled(1)) {
 				XMoveWindow(dpy, wwin->client_win, 0, y);
 				XResizeWindow(dpy, wwin->frame->core->window, w, h);
 				XFlush(dpy);

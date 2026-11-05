@@ -577,10 +577,11 @@ void StartUp(Bool defaultScreenOnly)
 	wReadStaticDefaults(w_global.domain.wmaker ? w_global.domain.wmaker->dictionary : NULL);
 
 	/* check sanity of some values */
-	if (wPreferences.icon_size < 16) {
+	/* icon_size has the GUI scale factor applied */
+	if (wPreferences.icon_size < WMScaled(16)) {
 		wwarning(_("icon size is configured to %i, but it's too small. Using 16 instead"),
-			 wPreferences.icon_size);
-		wPreferences.icon_size = 16;
+			 WMUnscaled(wPreferences.icon_size));
+		wPreferences.icon_size = WMScaled(16);
 	}
 
 	/* init other domains */

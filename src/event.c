@@ -2392,9 +2392,10 @@ static void handleMotionNotify(XEvent *event)
 
 		if (wPreferences.scrollable_menus) {
 			if (scr->flags.jump_back_pending ||
-			    p.x <= (rect.pos.x + 1) ||
-			    p.x >= (rect.pos.x + rect.size.width - 2) ||
-			    p.y <= (rect.pos.y + 1) || p.y >= (rect.pos.y + rect.size.height - 2)) {
+			    p.x <= (rect.pos.x + WMScaled(1)) ||
+			    p.x >= (rect.pos.x + rect.size.width - WMScaled(2)) ||
+			    p.y <= (rect.pos.y + WMScaled(1)) ||
+			    p.y >= (rect.pos.y + rect.size.height - WMScaled(2))) {
 				WMenu *menu;
 
 				menu = wMenuUnderPointer(scr);

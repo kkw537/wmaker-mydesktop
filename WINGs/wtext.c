@@ -726,10 +726,10 @@ static void paintText(Text * tPtr)
 			WMDrawString(scr, tPtr->db, color, font, tb->sections[s].x - tPtr->hpos, y, text, len);
 
 			if (!tPtr->flags.monoFont && tb->underlined) {
-				XDrawLine(dpy, tPtr->db, WMColorGC(color),
+				W_DrawScaledLine(scr, tPtr->db, WMColorGC(color),
 					  tb->sections[s].x - tPtr->hpos,
-					  y + font->y + 1,
-					  tb->sections[s].x + tb->sections[s].w - tPtr->hpos, y + font->y + 1);
+					  y + font->y + WMScaled(1),
+					  tb->sections[s].x + tb->sections[s].w - tPtr->hpos, y + font->y + WMScaled(1));
 			}
 		}
 		tb = (!done ? tb->next : NULL);
@@ -770,13 +770,13 @@ static void paintText(Text * tPtr)
 					WMMoveWidget(tb->d.widget,
 						     tb->sections[0].x + tPtr->visible.x - tPtr->hpos,
 						     tb->sections[0].y + tPtr->visible.y - tPtr->vpos);
-					h = WMWidgetHeight(tb->d.widget) + 1;
+					h = WMWidgetHeight(tb->d.widget) + WMScaled(1);
 
 				} else {
 					WMDrawPixmap(tb->d.pixmap, tPtr->db,
 						     tb->sections[0].x - tPtr->hpos,
 						     tb->sections[0].y - tPtr->vpos);
-					h = tb->d.pixmap->height + 1;
+					h = tb->d.pixmap->height + WMScaled(1);
 
 				}
 
@@ -795,7 +795,7 @@ static void paintText(Text * tPtr)
 				}
 
 				if (!tPtr->flags.monoFont && tb->underlined) {
-					XDrawLine(dpy, tPtr->db, WMColorGC(tb->color),
+					W_DrawScaledLine(scr, tPtr->db, WMColorGC(tb->color),
 						  tb->sections[0].x - tPtr->hpos,
 						  tb->sections[0].y + h - tPtr->vpos,
 						  tb->sections[0].x + tb->sections[0].w - tPtr->hpos,
@@ -808,7 +808,7 @@ static void paintText(Text * tPtr)
  _copy_area:
 	if (tPtr->flags.editable && tPtr->flags.cursorShown && tPtr->cursor.x != -23 && tPtr->flags.focused) {
 		int y = tPtr->cursor.y - tPtr->vpos;
-		XDrawLine(dpy, tPtr->db, WMColorGC(tPtr->fgColor),
+		W_DrawScaledLine(scr, tPtr->db, WMColorGC(tPtr->fgColor),
 			  tPtr->cursor.x, y, tPtr->cursor.x, y + tPtr->cursor.h);
 	}
 
@@ -818,7 +818,8 @@ static void paintText(Text * tPtr)
 	W_DrawRelief(scr, win, 0, 0, tPtr->view->size.width, tPtr->view->size.height, tPtr->flags.relief);
 
 	if (tPtr->ruler && tPtr->flags.rulerShown)
-		XDrawLine(dpy, win, WMColorGC(tPtr->fgColor), 2, 42, tPtr->view->size.width - 4, 42);
+		W_DrawScaledLine(scr, win, WMColorGC(tPtr->fgColor), WMScaled(2), WMScaled(42),
+				 tPtr->view->size.width - WMScaled(4), WMScaled(42));
 
 }
 
@@ -909,8 +910,8 @@ static void updateCursorPosition(Text * tPtr)
 			tPtr->tpos = 0;
 			tPtr->cursor.h = font->height + abs(font->height - font->y);
 
-			tPtr->cursor.y = 2;
-			tPtr->cursor.x = 2;
+			tPtr->cursor.y = WMScaled(2);
+			tPtr->cursor.x = WMScaled(2);
 			return;
 		}
 	}
@@ -953,7 +954,7 @@ static void updateCursorPosition(Text * tPtr)
 	if (tPtr->flags.editable && tPtr->cursor.x != -23) {
 		if (tPtr->cursor.y + tPtr->cursor.h > tPtr->vpos + tPtr->visible.y + tPtr->visible.h) {
 			tPtr->vpos +=
-			    (tPtr->cursor.y + tPtr->cursor.h + 10
+			    (tPtr->cursor.y + tPtr->cursor.h + WMScaled(10)
 			     - (tPtr->vpos + tPtr->visible.y + tPtr->visible.h));
 		} else if (tPtr->cursor.y < tPtr->vpos + tPtr->visible.y) {
 			tPtr->vpos -= (tPtr->vpos + tPtr->visible.y - tPtr->cursor.y);
@@ -977,7 +978,7 @@ static void cursorToTextPosition(Text * tPtr, int x, int y)
 	if (y < 0)
 		y = 0;
 
-	x -= (tPtr->visible.x - 2);
+	x -= (tPtr->visible.x - WMScaled(2));
 	if (x < 0)
 		x = 0;
 
@@ -990,8 +991,8 @@ static void cursorToTextPosition(Text * tPtr, int x, int y)
 			WMFont *font = tPtr->dFont;
 			tPtr->tpos = 0;
 			tPtr->cursor.h = font->height + abs(font->height - font->y);
-			tPtr->cursor.y = 2;
-			tPtr->cursor.x = 2;
+			tPtr->cursor.y = WMScaled(2);
+			tPtr->cursor.x = WMScaled(2);
 			return;
 		}
 	}
@@ -1067,9 +1068,9 @@ static void cursorToTextPosition(Text * tPtr, int x, int y)
 		if (dir) {
 			if (tb->graphic) {
 				if (tb->object)
-					_w = WMWidgetWidth(tb->d.widget) - 5;
+					_w = WMWidgetWidth(tb->d.widget) - WMScaled(5);
 				else
-					_w = tb->d.pixmap->width - 5;
+					_w = tb->d.pixmap->width - WMScaled(5);
 
 				if (tb->sections[0].x + _w >= x)
 					break;
@@ -1189,7 +1190,7 @@ static void cursorToTextPosition(Text * tPtr, int x, int y)
 	if (tPtr->flags.editable && tPtr->cursor.x != -23) {
 		if (tPtr->cursor.y + tPtr->cursor.h > tPtr->vpos + tPtr->visible.y + tPtr->visible.h) {
 			tPtr->vpos +=
-			    (tPtr->cursor.y + tPtr->cursor.h + 10
+			    (tPtr->cursor.y + tPtr->cursor.h + WMScaled(10)
 			     - (tPtr->vpos + tPtr->visible.y + tPtr->visible.h));
 			updateScrollers(tPtr);
 		} else if (tPtr->cursor.y < tPtr->vpos + tPtr->visible.y) {
@@ -1252,8 +1253,8 @@ static void scrollersCallBack(WMWidget * w, void *self)
 
 		case WSDecrementLine:
 			if (tPtr->vpos > 0) {
-				if (tPtr->vpos > 16)
-					tPtr->vpos -= 16;
+				if (tPtr->vpos > WMScaled(16))
+					tPtr->vpos -= WMScaled(16);
 				else
 					tPtr->vpos = 0;
 			}
@@ -1262,8 +1263,8 @@ static void scrollersCallBack(WMWidget * w, void *self)
 		case WSIncrementLine:{
 				int limit = tPtr->docHeight - height;
 				if (tPtr->vpos < limit) {
-					if (tPtr->vpos < limit - 16)
-						tPtr->vpos += 16;
+					if (tPtr->vpos < limit - WMScaled(16))
+						tPtr->vpos += WMScaled(16);
 					else
 						tPtr->vpos = limit;
 				}
@@ -1304,8 +1305,8 @@ static void scrollersCallBack(WMWidget * w, void *self)
 
 		case WSDecrementLine:
 			if (tPtr->hpos > 0) {
-				if (tPtr->hpos > 16)
-					tPtr->hpos -= 16;
+				if (tPtr->hpos > WMScaled(16))
+					tPtr->hpos -= WMScaled(16);
 				else
 					tPtr->hpos = 0;
 			}
@@ -1314,8 +1315,8 @@ static void scrollersCallBack(WMWidget * w, void *self)
 		case WSIncrementLine:{
 				int limit = tPtr->docWidth - width;
 				if (tPtr->hpos < limit) {
-					if (tPtr->hpos < limit - 16)
-						tPtr->hpos += 16;
+					if (tPtr->hpos < limit - WMScaled(16))
+						tPtr->hpos += WMScaled(16);
 					else
 						tPtr->hpos = limit;
 				}
@@ -1389,7 +1390,7 @@ static int layOutLine(Text * tPtr, myLineItems * items, int nitems, int x, int y
 		} else {
 			font = (tPtr->flags.monoFont) ? tPtr->dFont : tb->d.font;
 			/*max_d = WMAX(max_d, abs(font->height-font->y)); */
-			max_d = 2;
+			max_d = WMScaled(2);
 			line_height = WMAX(line_height, font->height + max_d);
 			text = &(tb->text[items[i].begin]);
 			len = items[i].end - items[i].begin;
@@ -1468,7 +1469,7 @@ static void layOutDocument(Text * tPtr)
 	if (tPtr->flags.frozen || (!(tb = tPtr->firstTextBlock)))
 		return;
 
-	assert(tPtr->visible.w > 20);
+	assert(tPtr->visible.w > WMScaled(20));
 
 	tPtr->docWidth = tPtr->visible.w;
 	x = tPtr->margins[tb->marginN].first;
@@ -1656,8 +1657,8 @@ static void layOutDocument(Text * tPtr)
 	if (nitems > 0)
 		y += layOutLine(tPtr, items, nitems, x, y);
 
-	if (tPtr->docHeight != y + 10) {
-		tPtr->docHeight = y + 10;
+	if (tPtr->docHeight != y + WMScaled(10)) {
+		tPtr->docHeight = y + WMScaled(10);
 		updateScrollers(tPtr);
 	}
 
@@ -1694,34 +1695,34 @@ static void textDidResize(W_ViewDelegate * self, WMView * view)
 	rel = (tPtr->flags.relief == WRFlat);
 
 	if (tPtr->ruler && tPtr->flags.rulerShown) {
-		WMMoveWidget(tPtr->ruler, 2, 2);
-		WMResizeWidget(tPtr->ruler, w - 4, 40);
-		rh = 40;
+		WMMoveWidget(tPtr->ruler, WMScaled(2), WMScaled(2));
+		WMResizeWidget(tPtr->ruler, w - WMScaled(4), WMScaled(40));
+		rh = WMScaled(40);
 	}
 
 	if (tPtr->vS) {
-		WMMoveWidget(tPtr->vS, 1 - (rel ? 1 : 0), rh + 1 - (rel ? 1 : 0));
-		WMResizeWidget(tPtr->vS, 20, h - rh - 2 + (rel ? 2 : 0));
-		vw = 20;
-		WMSetRulerOffset(tPtr->ruler, 22);
+		WMMoveWidget(tPtr->vS, WMScaled(1) - (rel ? WMScaled(1) : 0), rh + WMScaled(1) - (rel ? WMScaled(1) : 0));
+		WMResizeWidget(tPtr->vS, WMScaled(20), h - rh - WMScaled(2) + (rel ? WMScaled(2) : 0));
+		vw = WMScaled(20);
+		WMSetRulerOffset(tPtr->ruler, WMScaled(22));
 	} else
-		WMSetRulerOffset(tPtr->ruler, 2);
+		WMSetRulerOffset(tPtr->ruler, WMScaled(2));
 
 	if (tPtr->hS) {
 		if (tPtr->vS) {
-			WMMoveWidget(tPtr->hS, vw, h - 21);
-			WMResizeWidget(tPtr->hS, w - vw - 1, 20);
+			WMMoveWidget(tPtr->hS, vw, h - WMScaled(21));
+			WMResizeWidget(tPtr->hS, w - vw - WMScaled(1), WMScaled(20));
 		} else {
-			WMMoveWidget(tPtr->hS, vw + 1, h - 21);
-			WMResizeWidget(tPtr->hS, w - vw - 2, 20);
+			WMMoveWidget(tPtr->hS, vw + WMScaled(1), h - WMScaled(21));
+			WMResizeWidget(tPtr->hS, w - vw - WMScaled(2), WMScaled(20));
 		}
 	}
 
-	tPtr->visible.x = (tPtr->vS) ? 24 : 4;
+	tPtr->visible.x = (tPtr->vS) ? WMScaled(24) : WMScaled(4);
 	tPtr->visible.y = (tPtr->ruler && tPtr->flags.rulerShown) ? 43 : 3;
-	tPtr->visible.w = tPtr->view->size.width - tPtr->visible.x - 8;
+	tPtr->visible.w = tPtr->view->size.width - tPtr->visible.x - WMScaled(8);
 	tPtr->visible.h = tPtr->view->size.height - tPtr->visible.y;
-	tPtr->visible.h -= (tPtr->hS) ? 20 : 0;
+	tPtr->visible.h -= (tPtr->hS) ? WMScaled(20) : 0;
 	tPtr->margins[0].right = tPtr->visible.w;
 
 	if (tPtr->view->flags.realized) {
@@ -1731,10 +1732,10 @@ static void textDidResize(W_ViewDelegate * self, WMView * view)
 			tPtr->db = (Pixmap) NULL;
 		}
 
-		if (tPtr->visible.w < 40)
-			tPtr->visible.w = 40;
-		if (tPtr->visible.h < 20)
-			tPtr->visible.h = 20;
+		if (tPtr->visible.w < WMScaled(40))
+			tPtr->visible.w = WMScaled(40);
+		if (tPtr->visible.h < WMScaled(20))
+			tPtr->visible.h = WMScaled(20);
 
 		if (!tPtr->db) {
 			tPtr->db = XCreatePixmap(tPtr->view->screen->display,
@@ -2011,10 +2012,10 @@ static void selectRegion(Text * tPtr, int x, int y)
 
 	y += (tPtr->flags.rulerShown ? 40 : 0);
 	y += tPtr->vpos;
-	if (y > 10)
-		y -= 10;	/* the original offset */
+	if (y > WMScaled(10))
+		y -= WMScaled(10);	/* the original offset */
 
-	x -= tPtr->visible.x - 2;
+	x -= tPtr->visible.x - WMScaled(2);
 	if (x < 0)
 		x = 0;
 
@@ -2123,8 +2124,8 @@ static void autoSelectText(Text * tPtr, int clicks)
 			behind = ahead = ' ';
 		}
 
-		tPtr->sel.y = tPtr->cursor.y + 5;
-		tPtr->sel.h = 6;	/*tPtr->cursor.h-10; */
+		tPtr->sel.y = tPtr->cursor.y + WMScaled(5);
+		tPtr->sel.h = WMScaled(6);	/*tPtr->cursor.h-10; */
 
 		if (tb->graphic) {
 			tPtr->sel.x = tb->sections[0].x;
@@ -2281,7 +2282,7 @@ static void handleTextKeyPress(Text * tPtr, XEvent * event)
 
 	case XK_Up:
 		cursorToTextPosition(tPtr, tPtr->cursor.x + tPtr->visible.x,
-				     tPtr->visible.y + tPtr->cursor.y - tPtr->vpos - 3);
+				     tPtr->visible.y + tPtr->cursor.y - tPtr->vpos - WMScaled(3));
 		paintText(tPtr);
 		break;
 
@@ -2500,12 +2501,12 @@ static void handleActionEvents(XEvent * event, void *data)
 		}
 
 		if (event->xbutton.button == WINGsConfiguration.mouseWheelDown) {
-			WMScrollText(tPtr, 16);
+			WMScrollText(tPtr, WMScaled(16));
 			break;
 		}
 
 		if (event->xbutton.button == WINGsConfiguration.mouseWheelUp) {
-			WMScrollText(tPtr, -16);
+			WMScrollText(tPtr, -WMScaled(16));
 			break;
 		}
 
@@ -2991,7 +2992,7 @@ WMText *WMCreateTextForDocumentType(WMWidget * parent, WMAction * parser, WMActi
 	tPtr->view->self = tPtr;
 	tPtr->view->attribs.cursor = scr->textCursor;
 	tPtr->view->attribFlags |= CWOverrideRedirect | CWCursor;
-	W_ResizeView(tPtr->view, 250, 200);
+	W_ResizeView(tPtr->view, WMScaled(250), WMScaled(200));
 
 	tPtr->dColor = WMBlackColor(scr);
 	tPtr->fgColor = WMBlackColor(scr);
@@ -3054,14 +3055,14 @@ WMText *WMCreateTextForDocumentType(WMWidget * parent, WMAction * parser, WMActi
 	tPtr->parser = parser;
 	tPtr->writer = writer;
 
-	tPtr->sel.x = tPtr->sel.y = 2;
+	tPtr->sel.x = tPtr->sel.y = WMScaled(2);
 	tPtr->sel.w = tPtr->sel.h = 0;
 
-	tPtr->clicked.x = tPtr->clicked.y = 2;
+	tPtr->clicked.x = tPtr->clicked.y = WMScaled(2);
 
-	tPtr->visible.x = tPtr->visible.y = 2;
+	tPtr->visible.x = tPtr->visible.y = WMScaled(2);
 	tPtr->visible.h = tPtr->view->size.height;
-	tPtr->visible.w = tPtr->view->size.width - 4;
+	tPtr->visible.w = tPtr->view->size.width - WMScaled(4);
 
 	tPtr->cursor.x = -23;
 
@@ -3945,9 +3946,9 @@ Bool WMFindInTextStream(WMText * tPtr, const char *needle, Bool direction, Bool 
 				tPtr->tpos = (int)(mark - tb->text);
 				tPtr->currentTextBlock = tb;
 				updateCursorPosition(tPtr);
-				tPtr->sel.y = tPtr->cursor.y + 5;
-				tPtr->sel.h = tPtr->cursor.h - 10;
-				tPtr->sel.x = tPtr->cursor.x + 1;
+				tPtr->sel.y = tPtr->cursor.y + WMScaled(5);
+				tPtr->sel.h = tPtr->cursor.h - WMScaled(10);
+				tPtr->sel.x = tPtr->cursor.x + WMScaled(1);
 				tPtr->sel.w = WMIN(WMWidthOfString(font,
 								   &tb->text[tPtr->tpos], strlen(needle)),
 						   tPtr->docWidth - tPtr->sel.x);

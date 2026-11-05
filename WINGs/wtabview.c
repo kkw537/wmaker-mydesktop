@@ -52,11 +52,11 @@ typedef struct W_TabViewItem {
 	} flags;
 } W_TabViewItem;
 
-#define DEFAULT_WIDTH	40
-#define DEFAULT_HEIGHT	40
+#define DEFAULT_WIDTH	WMScaled(40)
+#define DEFAULT_HEIGHT	WMScaled(40)
 
-#define NORMAL_SIDE_OFFSET 8
-#define BUTTONED_SIDE_OFFSET 15
+#define NORMAL_SIDE_OFFSET WMScaled(8)
+#define BUTTONED_SIDE_OFFSET WMScaled(15)
 
 static void destroyTabView(TabView * tPtr);
 static void paintTabView(TabView * tPtr);
@@ -105,7 +105,7 @@ static int positionOfTab(WMTabView * tabView, int tab)
 		offs = NORMAL_SIDE_OFFSET;
 
 	for (i = tabView->firstVisible; i < tab; i++)
-		offs += W_TabViewItemTabWidth(tabView->items[i]) - 10;
+		offs += W_TabViewItemTabWidth(tabView->items[i]) - WMScaled(10);
 
 	return offs;
 }
@@ -123,7 +123,7 @@ static int countVisibleTabs(TabView * tPtr, int first)
 	}
 
 	for (i = first; i < tPtr->itemCount; i++) {
-		width -= W_TabViewItemTabWidth(tPtr->items[i]) - 10;
+		width -= W_TabViewItemTabWidth(tPtr->items[i]) - WMScaled(10);
 		if (width <= 0) {
 			return i - first;
 		}
@@ -214,7 +214,7 @@ WMTabView *WMCreateTabView(WMWidget * parent)
 
 	WMResizeWidget(tPtr, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
-	tPtr->tabHeight = WMFontHeight(tPtr->font) + 3;
+	tPtr->tabHeight = WMFontHeight(tPtr->font) + WMScaled(3);
 
 	return tPtr;
 }
@@ -284,10 +284,10 @@ void WMInsertItemInTabView(WMTabView * tPtr, int index, WMTabViewItem * item)
 	W_UnmapTabViewItem(item);
 
 	if (tPtr->flags.bordered) {
-		W_ReparentView(W_TabViewItemView(item), tPtr->view, 1, tPtr->tabHeight + 1);
+		W_ReparentView(W_TabViewItemView(item), tPtr->view, WMScaled(1), tPtr->tabHeight + WMScaled(1));
 
-		W_ResizeView(W_TabViewItemView(item), tPtr->view->size.width - 3,
-			     tPtr->view->size.height - tPtr->tabHeight - 3);
+		W_ResizeView(W_TabViewItemView(item), tPtr->view->size.width - WMScaled(3),
+			     tPtr->view->size.height - tPtr->tabHeight - WMScaled(3));
 	} else {
 		W_ReparentView(W_TabViewItemView(item), tPtr->view, 0, tPtr->tabHeight);
 
@@ -328,17 +328,17 @@ void WMRemoveTabViewItem(WMTabView * tPtr, WMTabViewItem * item)
 
 static Bool isInside(int x, int y, int width, int height, int px, int py)
 {
-	if (py >= y + height - 3 && py <= y + height && px >= x + py - (y + height - 3)
-	    && px <= x + width - (py - (y + height - 3))) {
+	if (py >= y + height - WMScaled(3) && py <= y + height && px >= x + py - (y + height - WMScaled(3))
+	    && px <= x + width - (py - (y + height - WMScaled(3)))) {
 
 		return True;
 	}
-	if (py >= y + 3 && py < y + height - 3
-	    && px >= x + 3 + ((y + 3) - py) * 3 / 7 && px <= x + width - 3 - ((y + 3) - py) * 3 / 7) {
+	if (py >= y + WMScaled(3) && py < y + height - WMScaled(3)
+	    && px >= x + WMScaled(3) + ((y + WMScaled(3)) - py) * 3 / 7 && px <= x + width - WMScaled(3) - ((y + WMScaled(3)) - py) * 3 / 7) {
 
 		return True;
 	}
-	if (py >= y && py < y + 3 && px >= x + 7 + py - y && px <= x + width - 7 - (py - y)) {
+	if (py >= y && py < y + WMScaled(3) && px >= x + WMScaled(7) + py - y && px <= x + width - WMScaled(7) - (py - y)) {
 
 		return True;
 	}
@@ -384,7 +384,7 @@ void WMSetTabViewType(WMTabView * tPtr, WMTabViewType type)
 	if (type != WTTopTabsBevelBorder)
 		tPtr->tabHeight = 0;
 	else
-		tPtr->tabHeight = WMFontHeight(tPtr->font) + 3;
+		tPtr->tabHeight = WMFontHeight(tPtr->font) + WMScaled(3);
 
 	if (type == WTNoTabsNoBorder)
 		tPtr->flags.bordered = 0;
@@ -488,7 +488,7 @@ static void recalcTabWidth(TabView * tPtr)
 			}
 		}
 
-		tabWidth = tabWidth + 30;
+		tabWidth = tabWidth + WMScaled(30);
 
 		for (i = 0; i < tPtr->itemCount; i++)
 			W_SetTabViewItemTabWidth(tPtr->items[i], tabWidth);
@@ -505,7 +505,7 @@ static void recalcTabWidth(TabView * tPtr)
 			if (!str)
 				continue;
 
-			width = WMWidthOfString(tPtr->font, str, strlen(str)) + 30;
+			width = WMWidthOfString(tPtr->font, str, strlen(str)) + WMScaled(30);
 
 			W_SetTabViewItemTabWidth(tPtr->items[i], width);
 		}
@@ -524,18 +524,17 @@ static void recalcTabWidth(TabView * tPtr)
 
 static void drawRelief(W_Screen * scr, Drawable d, int x, int y, unsigned int width, unsigned int height)
 {
-	Display *dpy = scr->display;
 	GC bgc = WMColorGC(scr->black);
 	GC wgc = WMColorGC(scr->white);
 	GC dgc = WMColorGC(scr->darkGray);
 
-	XDrawLine(dpy, d, wgc, x, y, x, y + height - 1);
+	W_DrawScaledLine(scr, d, wgc, x, y, x, y + height - WMScaled(1));
 
-	XDrawLine(dpy, d, bgc, x, y + height - 1, x + width - 1, y + height - 1);
-	XDrawLine(dpy, d, dgc, x + 1, y + height - 2, x + width - 2, y + height - 2);
+	W_DrawScaledLine(scr, d, bgc, x, y + height - WMScaled(1), x + width - WMScaled(1), y + height - WMScaled(1));
+	W_DrawScaledLine(scr, d, dgc, x + WMScaled(1), y + height - WMScaled(2), x + width - WMScaled(2), y + height - WMScaled(2));
 
-	XDrawLine(dpy, d, bgc, x + width - 1, y, x + width - 1, y + height - 1);
-	XDrawLine(dpy, d, dgc, x + width - 2, y + 1, x + width - 2, y + height - 2);
+	W_DrawScaledLine(scr, d, bgc, x + width - WMScaled(1), y, x + width - WMScaled(1), y + height - WMScaled(1));
+	W_DrawScaledLine(scr, d, dgc, x + width - WMScaled(2), y + WMScaled(1), x + width - WMScaled(2), y + height - WMScaled(2));
 }
 
 static void drawTab(TabView * tPtr, Drawable d, int x, int y, unsigned width, unsigned height, Bool selected)
@@ -548,41 +547,41 @@ static void drawTab(TabView * tPtr, Drawable d, int x, int y, unsigned width, un
 	GC light = WMColorGC(scr->gray);
 	XPoint trap[8];
 
-	trap[0].x = x + (selected ? 0 : 1);
-	trap[0].y = y + height - (selected ? 0 : 1);
+	trap[0].x = x + (selected ? 0 : WMScaled(1));
+	trap[0].y = y + height - (selected ? 0 : WMScaled(1));
 
-	trap[1].x = x + 3;
-	trap[1].y = y + height - 3;
+	trap[1].x = x + WMScaled(3);
+	trap[1].y = y + height - WMScaled(3);
 
-	trap[2].x = x + 10 - 3;
-	trap[2].y = y + 3;
+	trap[2].x = x + WMScaled(10) - WMScaled(3);
+	trap[2].y = y + WMScaled(3);
 
-	trap[3].x = x + 10;
+	trap[3].x = x + WMScaled(10);
 	trap[3].y = y;
 
-	trap[4].x = x + width - 10;
+	trap[4].x = x + width - WMScaled(10);
 	trap[4].y = y;
 
-	trap[5].x = x + width - 10 + 3;
-	trap[5].y = y + 3;
+	trap[5].x = x + width - WMScaled(10) + WMScaled(3);
+	trap[5].y = y + WMScaled(3);
 
-	trap[6].x = x + width - 3;
-	trap[6].y = y + height - 3;
+	trap[6].x = x + width - WMScaled(3);
+	trap[6].y = y + height - WMScaled(3);
 
-	trap[7].x = x + width - (selected ? 0 : 1);
-	trap[7].y = y + height - (selected ? 0 : 1);
+	trap[7].x = x + width - (selected ? 0 : WMScaled(1));
+	trap[7].y = y + height - (selected ? 0 : WMScaled(1));
 
 	XFillPolygon(dpy, d, selected ? light : WMColorGC(tPtr->tabColor), trap, 8, Convex, CoordModeOrigin);
 
-	XDrawLine(dpy, d, white, trap[0].x, trap[0].y, trap[1].x, trap[1].y);
-	XDrawLine(dpy, d, white, trap[1].x, trap[1].y, trap[2].x, trap[2].y);
-	XDrawLine(dpy, d, white, trap[2].x, trap[2].y, trap[3].x, trap[3].y);
-	XDrawLine(dpy, d, white, trap[3].x, trap[3].y, trap[4].x, trap[4].y);
-	XDrawLine(dpy, d, dark, trap[4].x, trap[4].y, trap[5].x, trap[5].y);
-	XDrawLine(dpy, d, black, trap[5].x, trap[5].y, trap[6].x, trap[6].y);
-	XDrawLine(dpy, d, black, trap[6].x, trap[6].y, trap[7].x, trap[7].y);
+	W_DrawScaledLine(scr, d, white, trap[0].x, trap[0].y, trap[1].x, trap[1].y);
+	W_DrawScaledLine(scr, d, white, trap[1].x, trap[1].y, trap[2].x, trap[2].y);
+	W_DrawScaledLine(scr, d, white, trap[2].x, trap[2].y, trap[3].x, trap[3].y);
+	W_DrawScaledLine(scr, d, white, trap[3].x, trap[3].y, trap[4].x, trap[4].y);
+	W_DrawScaledLine(scr, d, dark, trap[4].x, trap[4].y, trap[5].x, trap[5].y);
+	W_DrawScaledLine(scr, d, black, trap[5].x, trap[5].y, trap[6].x, trap[6].y);
+	W_DrawScaledLine(scr, d, black, trap[6].x, trap[6].y, trap[7].x, trap[7].y);
 
-	XDrawLine(dpy, d, selected ? light : WMColorGC(scr->white), trap[0].x, trap[0].y, trap[7].x, trap[7].y);
+	W_DrawScaledLine(scr, d, selected ? light : WMColorGC(scr->white), trap[0].x, trap[0].y, trap[7].x, trap[7].y);
 }
 
 static void paintDot(TabView * tPtr, Drawable d, int x, int y)
@@ -592,8 +591,8 @@ static void paintDot(TabView * tPtr, Drawable d, int x, int y)
 	GC white = WMColorGC(scr->white);
 	GC black = WMColorGC(scr->black);
 
-	XFillRectangle(dpy, d, black, x, y, 2, 2);
-	XDrawPoint(dpy, d, white, x, y);
+	XFillRectangle(dpy, d, black, x, y, WMScaled(2), WMScaled(2));
+	XFillRectangle(dpy, d, white, x, y, WMScaled(1), WMScaled(1));
 }
 
 static void paintTabView(TabView * tPtr)
@@ -613,7 +612,7 @@ static void paintTabView(TabView * tPtr)
 		int ty;
 		int twidth, theight;
 
-		ty = 2;
+		ty = WMScaled(2);
 		theight = tPtr->tabHeight;
 
 		buffer = XCreatePixmap(dpy, W_VIEW(tPtr)->window,
@@ -657,19 +656,19 @@ static void paintTabView(TabView * tPtr)
 			drawTab(tPtr, buffer, positionOfTab(tPtr, idx),
 				0, W_TabViewItemTabWidth(tPtr->items[idx]), theight, True);
 
-			XDrawLine(dpy, buffer, white, 0, theight - 1, positionOfTab(tPtr, idx), theight - 1);
+			W_DrawScaledLine(scr, buffer, white, 0, theight - WMScaled(1), positionOfTab(tPtr, idx), theight - WMScaled(1));
 
-			XDrawLine(dpy, buffer, white,
+			W_DrawScaledLine(scr, buffer, white,
 				  positionOfTab(tPtr, idx) + W_TabViewItemTabWidth(tPtr->items[idx]),
-				  tPtr->tabHeight - 1, W_VIEW_WIDTH(tPtr->view) - 1, tPtr->tabHeight - 1);
+				  tPtr->tabHeight - WMScaled(1), W_VIEW_WIDTH(tPtr->view) - WMScaled(1), tPtr->tabHeight - WMScaled(1));
 		} else {
-			XDrawLine(dpy, buffer, white, 0, theight - 1, W_VIEW_WIDTH(tPtr->view), theight - 1);
+			W_DrawScaledLine(scr, buffer, white, 0, theight - WMScaled(1), W_VIEW_WIDTH(tPtr->view), theight - WMScaled(1));
 		}
 
 		for (i = 0; i < count; i++) {
 			WMRect rect;
 
-			rect.pos.x = 15 + positionOfTab(tPtr, first + i);
+			rect.pos.x = WMScaled(15) + positionOfTab(tPtr, first + i);
 			rect.pos.y = ty;
 			rect.size.width = W_TabViewItemTabWidth(tPtr->items[first + i]);
 			rect.size.height = theight;
@@ -678,9 +677,9 @@ static void paintTabView(TabView * tPtr)
 		}
 
 		if (moreAtLeft) {
-			paintDot(tPtr, buffer, 4, 10);
-			paintDot(tPtr, buffer, 7, 10);
-			paintDot(tPtr, buffer, 10, 10);
+			paintDot(tPtr, buffer, WMScaled(4), WMScaled(10));
+			paintDot(tPtr, buffer, WMScaled(7), WMScaled(10));
+			paintDot(tPtr, buffer, WMScaled(10), WMScaled(10));
 		}
 		if (moreAtRight) {
 			int x;
@@ -688,9 +687,9 @@ static void paintTabView(TabView * tPtr)
 			x = positionOfTab(tPtr, tPtr->firstVisible + tPtr->visibleTabs);
 
 			x = x + (W_VIEW_WIDTH(tPtr->view) - x) / 2;
-			paintDot(tPtr, buffer, x + 5, 10);
-			paintDot(tPtr, buffer, x + 8, 10);
-			paintDot(tPtr, buffer, x + 11, 10);
+			paintDot(tPtr, buffer, x + WMScaled(5), WMScaled(10));
+			paintDot(tPtr, buffer, x + WMScaled(8), WMScaled(10));
+			paintDot(tPtr, buffer, x + WMScaled(11), WMScaled(10));
 		}
 
 		XCopyArea(dpy, buffer, W_VIEW(tPtr)->window, scr->copyGC, 0, 0,
@@ -700,8 +699,8 @@ static void paintTabView(TabView * tPtr)
 	}
 	switch (tPtr->flags.type) {
 	case WTTopTabsBevelBorder:
-		drawRelief(scr, W_VIEW(tPtr)->window, 0, tPtr->tabHeight - 1,
-			   W_VIEW(tPtr)->size.width, W_VIEW(tPtr)->size.height - tPtr->tabHeight + 1);
+		drawRelief(scr, W_VIEW(tPtr)->window, 0, tPtr->tabHeight - WMScaled(1),
+			   W_VIEW(tPtr)->size.width, W_VIEW(tPtr)->size.height - tPtr->tabHeight + WMScaled(1));
 		break;
 
 	case WTNoTabsBevelBorder:
@@ -727,11 +726,12 @@ static void rearrange(TabView * tPtr)
 
 	recalcTabWidth(tPtr);
 
-	width = tPtr->view->size.width - (bordered ? 3 : 0);
-	height = tPtr->view->size.height - tPtr->tabHeight - (bordered ? 3 : 0);
+	width = tPtr->view->size.width - (bordered ? WMScaled(3) : 0);
+	height = tPtr->view->size.height - tPtr->tabHeight - (bordered ? WMScaled(3) : 0);
 
 	for (i = 0; i < tPtr->itemCount; i++) {
-		W_MoveView(W_TabViewItemView(tPtr->items[i]), 1 * bordered, tPtr->tabHeight + 1 * bordered);
+		W_MoveView(W_TabViewItemView(tPtr->items[i]), WMScaled(1) * bordered,
+			   tPtr->tabHeight + WMScaled(1) * bordered);
 		W_ResizeView(W_TabViewItemView(tPtr->items[i]), width, height);
 	}
 	if (W_VIEW_MAPPED(tPtr->view) && W_VIEW_REALIZED(tPtr->view))

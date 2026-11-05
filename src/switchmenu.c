@@ -59,9 +59,9 @@ static WPixmap *switchMenuIconForWindow(WScreen *scr, WWindow *wwin)
 	if (!scr || !wwin)
 		return NULL;
 
-	max_size = WMFontHeight(scr->menu_entry_font) + 2;
-	if (max_size < 12)
-		max_size = 12;
+	max_size = WMFontHeight(scr->menu_entry_font) + WMScaled(2);
+	if (max_size < WMScaled(12))
+		max_size = WMScaled(12);
 
 	/* Prefer the actual appicon image when available */
 	wapp = wApplicationOf(wwin->main_window);
@@ -394,7 +394,7 @@ void UpdateSwitchMenu(WScreen * scr, WWindow * wwin, int action)
 	if (checkVisibility) {
 		int tmp;
 
-		tmp = switchmenu->frame->top_width + 5;
+		tmp = switchmenu->frame->top_width + WMScaled(5);
 		/* if menu got unreachable, bring it to a visible place */
 		if (switchmenu->frame_x < tmp - (int)switchmenu->frame->core->width) {
 			wMenuMove(switchmenu, tmp - (int)switchmenu->frame->core->width,

@@ -56,7 +56,7 @@
 /* index of the first workspace menu entry */
 #define MC_WORKSPACE1   3
 
-#define WORKSPACE_NAME_DISPLAY_PADDING 32
+#define WORKSPACE_NAME_DISPLAY_PADDING WMScaled(32)
 
 static WMPropList *dWorkspaces = NULL;
 static WMPropList *dClip, *dName;
@@ -295,12 +295,12 @@ static void showWorkspaceName(WScreen * scr, int workspace)
 	head = wGetHeadForPointerLocation(scr);
 	rect = wGetRectForHead(scr, head);
 	if (scr->xine_info.count) {
-		xx = rect.pos.x + (scr->xine_info.screens[head].size.width - (w + 4)) / 2;
-		yy = rect.pos.y + (scr->xine_info.screens[head].size.height - (h + 4)) / 2;
+		xx = rect.pos.x + (scr->xine_info.screens[head].size.width - (w + WMScaled(4))) / 2;
+		yy = rect.pos.y + (scr->xine_info.screens[head].size.height - (h + WMScaled(4))) / 2;
 	}
 	else {
-		xx = (scr->scr_width - (w + 4)) / 2;
-		yy = (scr->scr_height - (h + 4)) / 2;
+		xx = (scr->scr_width - (w + WMScaled(4))) / 2;
+		yy = (scr->scr_height - (h + WMScaled(4))) / 2;
 	}
 #endif
 
@@ -309,7 +309,7 @@ static void showWorkspaceName(WScreen * scr, int workspace)
 #ifdef USE_XINERAMA
 		px = xx;
 #else
-		px = (scr->scr_width - (w + 4)) / 2;
+		px = (scr->scr_width - (w + WMScaled(4))) / 2;
 #endif
 		py = WORKSPACE_NAME_DISPLAY_PADDING;
 		break;
@@ -317,25 +317,25 @@ static void showWorkspaceName(WScreen * scr, int workspace)
 #ifdef USE_XINERAMA
 		px = xx;
 #else
-		px = (scr->scr_width - (w + 4)) / 2;
+		px = (scr->scr_width - (w + WMScaled(4))) / 2;
 #endif
-		py = scr->scr_height - (h + 4 + WORKSPACE_NAME_DISPLAY_PADDING);
+		py = scr->scr_height - (h + WMScaled(4) + WORKSPACE_NAME_DISPLAY_PADDING);
 		break;
 	case WD_TOPLEFT:
 		px = WORKSPACE_NAME_DISPLAY_PADDING;
 		py = WORKSPACE_NAME_DISPLAY_PADDING;
 		break;
 	case WD_TOPRIGHT:
-		px = scr->scr_width - (w + 4 + WORKSPACE_NAME_DISPLAY_PADDING);
+		px = scr->scr_width - (w + WMScaled(4) + WORKSPACE_NAME_DISPLAY_PADDING);
 		py = WORKSPACE_NAME_DISPLAY_PADDING;
 		break;
 	case WD_BOTTOMLEFT:
 		px = WORKSPACE_NAME_DISPLAY_PADDING;
-		py = scr->scr_height - (h + 4 + WORKSPACE_NAME_DISPLAY_PADDING);
+		py = scr->scr_height - (h + WMScaled(4) + WORKSPACE_NAME_DISPLAY_PADDING);
 		break;
 	case WD_BOTTOMRIGHT:
-		px = scr->scr_width - (w + 4 + WORKSPACE_NAME_DISPLAY_PADDING);
-		py = scr->scr_height - (h + 4 + WORKSPACE_NAME_DISPLAY_PADDING);
+		px = scr->scr_width - (w + WMScaled(4) + WORKSPACE_NAME_DISPLAY_PADDING);
+		py = scr->scr_height - (h + WMScaled(4) + WORKSPACE_NAME_DISPLAY_PADDING);
 		break;
 	case WD_CENTER:
 	default:
@@ -343,37 +343,37 @@ static void showWorkspaceName(WScreen * scr, int workspace)
 		px = xx;
 		py = yy;
 #else
-		px = (scr->scr_width - (w + 4)) / 2;
-		py = (scr->scr_height - (h + 4)) / 2;
+		px = (scr->scr_width - (w + WMScaled(4))) / 2;
+		py = (scr->scr_height - (h + WMScaled(4))) / 2;
 #endif
 		break;
 	}
-	XResizeWindow(dpy, scr->workspace_name, w + 4, h + 4);
+	XResizeWindow(dpy, scr->workspace_name, w + WMScaled(4), h + WMScaled(4));
 	XMoveWindow(dpy, scr->workspace_name, px, py);
 
-	text = XCreatePixmap(dpy, scr->w_win, w + 4, h + 4, scr->w_depth);
-	mask = XCreatePixmap(dpy, scr->w_win, w + 4, h + 4, 1);
+	text = XCreatePixmap(dpy, scr->w_win, w + WMScaled(4), h + WMScaled(4), scr->w_depth);
+	mask = XCreatePixmap(dpy, scr->w_win, w + WMScaled(4), h + WMScaled(4), 1);
 
 	/*XSetForeground(dpy, scr->mono_gc, 0);
-	   XFillRectangle(dpy, mask, scr->mono_gc, 0, 0, w+4, h+4); */
+	   XFillRectangle(dpy, mask, scr->mono_gc, 0, 0, w + WMScaled(4), h + WMScaled(4)); */
 
-	XFillRectangle(dpy, text, WMColorGC(scr->black), 0, 0, w + 4, h + 4);
+	XFillRectangle(dpy, text, WMColorGC(scr->black), 0, 0, w + WMScaled(4), h + WMScaled(4));
 
-	for (x = 0; x <= 4; x++)
-		for (y = 0; y <= 4; y++)
+	for (x = 0; x <= WMScaled(4); x++)
+		for (y = 0; y <= WMScaled(4); y++)
 			WMDrawString(scr->wmscreen, text, scr->white, scr->workspace_name_font, x, y, name, len);
 
 	XSetForeground(dpy, scr->mono_gc, 1);
 	XSetBackground(dpy, scr->mono_gc, 0);
 
-	XCopyPlane(dpy, text, mask, scr->mono_gc, 0, 0, w + 4, h + 4, 0, 0, 1 << (scr->w_depth - 1));
+	XCopyPlane(dpy, text, mask, scr->mono_gc, 0, 0, w + WMScaled(4), h + WMScaled(4), 0, 0, 1 << (scr->w_depth - 1));
 
 	/*XSetForeground(dpy, scr->mono_gc, 1); */
 	XSetBackground(dpy, scr->mono_gc, 1);
 
-	XFillRectangle(dpy, text, WMColorGC(scr->black), 0, 0, w + 4, h + 4);
+	XFillRectangle(dpy, text, WMColorGC(scr->black), 0, 0, w + WMScaled(4), h + WMScaled(4));
 
-	WMDrawString(scr->wmscreen, text, scr->white, scr->workspace_name_font, 2, 2, name, len);
+	WMDrawString(scr->wmscreen, text, scr->white, scr->workspace_name_font, WMScaled(2), WMScaled(2), name, len);
 
 #ifdef USE_XSHAPE
 	if (w_global.xext.shape.supported)
@@ -835,7 +835,7 @@ void wWorkspaceMenuUpdate(WScreen * scr, WMenu * menu)
 	else
 		wMenuSetEnabled(menu, MC_LAST_USED, False);
 
-	tmp = menu->frame->top_width + 5;
+	tmp = menu->frame->top_width + WMScaled(5);
 	/* if menu got unreachable, bring it to a visible place */
 	if (menu->frame_x < tmp - (int)menu->frame->core->width)
 		wMenuMove(menu, tmp - (int)menu->frame->core->width, menu->frame_y, False);

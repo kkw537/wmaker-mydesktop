@@ -100,6 +100,30 @@ W_DrawReliefWithGC(W_Screen * scr, Drawable d, int x, int y, unsigned int width,
 	}
 }
 
+void W_DrawScaledLine(W_Screen *scr, Drawable d, GC gc, int x1, int y1, int x2, int y2)
+{
+	Display *dpy = scr->display;
+	int t = WMScaled(1);
+	int i, j;
+
+	if (t <= 1) {
+		XDrawLine(dpy, d, gc, x1, y1, x2, y2);
+		return;
+	}
+
+	/* horizontal and vertical lines are simple rectangles */
+	if (y1 == y2 || x1 == x2) {
+		XFillRectangle(dpy, d, gc, WMIN(x1, x2), WMIN(y1, y2),
+			       abs(x2 - x1) + t, abs(y2 - y1) + t);
+		return;
+	}
+
+	/* every pixel of the line becomes a t x t block */
+	for (i = 0; i < t; i++)
+		for (j = 0; j < t; j++)
+			XDrawLine(dpy, d, gc, x1 + i, y1 + j, x2 + i, y2 + j);
+}
+
 static int findNextWord(const char *text, int limit)
 {
 	int pos, len;

@@ -360,16 +360,18 @@ static void drawCorner(WIcon * icon)
 	WScreen *scr = icon->core->screen_ptr;
 	XPoint points[3];
 
-	points[0].x = 1;
-	points[0].y = 1;
-	points[1].x = 12;
-	points[1].y = 1;
-	points[2].x = 1;
-	points[2].y = 12;
+	points[0].x = WMScaled(1);
+	points[0].y = WMScaled(1);
+	points[1].x = WMScaled(12);
+	points[1].y = WMScaled(1);
+	points[2].x = WMScaled(1);
+	points[2].y = WMScaled(12);
 	XFillPolygon(dpy, icon->core->window, scr->icon_title_texture->normal_gc,
 		     points, 3, Convex, CoordModeOrigin);
-	XDrawLine(dpy, icon->core->window, scr->icon_title_texture->light_gc, 0, 0, 0, 12);
-	XDrawLine(dpy, icon->core->window, scr->icon_title_texture->light_gc, 0, 0, 12, 0);
+	XFillRectangle(dpy, icon->core->window, scr->icon_title_texture->light_gc,
+		       0, 0, WMScaled(1), WMScaled(13));
+	XFillRectangle(dpy, icon->core->window, scr->icon_title_texture->light_gc,
+		       0, 0, WMScaled(13), WMScaled(1));
 }
 
 void wAppIconMove(WAppIcon * aicon, int x, int y)
@@ -389,13 +391,14 @@ static void updateDockNumbers(WScreen *scr)
 	snprintf(ws_numbers, sizeof(ws_numbers), "%i [ %i ]", scr->current_workspace + 1, ((scr->current_workspace / 10) + 1));
 	length = strlen(ws_numbers);
 
-	XClearArea(dpy, dicon->icon->core->window, 2, 2, 50, WMFontHeight(scr->icon_title_font) + 1, False);
+	XClearArea(dpy, dicon->icon->core->window, WMScaled(2), WMScaled(2), WMScaled(50),
+		   WMFontHeight(scr->icon_title_font) + WMScaled(1), False);
 
 	WMDrawString(scr->wmscreen, dicon->icon->core->window, scr->black,
-		     scr->icon_title_font, 4, 3, ws_numbers, length);
+		     scr->icon_title_font, WMScaled(4), WMScaled(3), ws_numbers, length);
 
 	WMDrawString(scr->wmscreen, dicon->icon->core->window, scr->white,
-		     scr->icon_title_font, 3, 2, ws_numbers, length);
+		     scr->icon_title_font, WMScaled(3), WMScaled(2), ws_numbers, length);
 }
 #endif				/* WS_INDICATOR */
 
@@ -426,7 +429,7 @@ void wAppIconPaint(WAppIcon *aicon)
 		XSetClipMask(dpy, scr->copy_gc, scr->dock_dots->mask);
 		XSetClipOrigin(dpy, scr->copy_gc, 0, 0);
 		XCopyArea(dpy, scr->dock_dots->image,
-			  aicon->icon->core->window, scr->copy_gc, 0, 0, 7, scr->dock_dots->height, 0, 0);
+			  aicon->icon->core->window, scr->copy_gc, 0, 0, WMScaled(7), scr->dock_dots->height, 0, 0);
 	}
 #endif				/* HIDDENDOT */
 

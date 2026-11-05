@@ -42,4 +42,6 @@ WPixmap *wPixmapCreateFromXBMData(WScreen *scr, char *data, char *mask,
                                   unsigned long bg);
 void wPixmapDestroy(WPixmap *pix);
 
+char *wScaleBitmapData(const char *data, int width, int height, int *swidth, int *sheight);
+
 #endif

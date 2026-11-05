@@ -20,7 +20,7 @@
 #include "WINGsP.h"
 #include "wconfig.h"
 
-#define MIN_DOC_WIDTH 10
+#define MIN_DOC_WIDTH WMScaled(10)
 
 typedef struct W_Ruler {
 	W_Class widgetClass;
@@ -66,15 +66,15 @@ static void drawLeftMarker(Ruler * rPtr)
 	XPoint points[4];
 	int xpos = (rPtr->flags.whichMarker == 1 ? rPtr->motion : rPtr->margins.left);
 
-	XDrawLine(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC, xpos, 8, xpos, 22);
+	W_DrawScaledLine(rPtr->view->screen, rPtr->drawBuffer, rPtr->fgGC, xpos, WMScaled(8), xpos, WMScaled(22));
 	points[0].x = xpos;
-	points[0].y = 1;
-	points[1].x = points[0].x + 6;
-	points[1].y = 8;
-	points[2].x = points[0].x + 6;
-	points[2].y = 9;
+	points[0].y = WMScaled(1);
+	points[1].x = points[0].x + WMScaled(6);
+	points[1].y = WMScaled(8);
+	points[2].x = points[0].x + WMScaled(6);
+	points[2].y = WMScaled(9);
 	points[3].x = points[0].x;
-	points[3].y = 9;
+	points[3].y = WMScaled(9);
 	XFillPolygon(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC,
 		     points, 4, Convex, CoordModeOrigin);
 }
@@ -93,15 +93,15 @@ static void drawRightMarker(Ruler * rPtr)
 	XPoint points[4];
 	int xpos = (rPtr->flags.whichMarker == 2 ? rPtr->motion : rPtr->margins.right);
 
-	XDrawLine(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC, xpos, 8, xpos, 22);
-	points[0].x = xpos + 1;
+	W_DrawScaledLine(rPtr->view->screen, rPtr->drawBuffer, rPtr->fgGC, xpos, WMScaled(8), xpos, WMScaled(22));
+	points[0].x = xpos + WMScaled(1);
 	points[0].y = 0;
-	points[1].x = points[0].x - 6;
-	points[1].y = 7;
-	points[2].x = points[0].x - 6;
-	points[2].y = 9;
+	points[1].x = points[0].x - WMScaled(6);
+	points[1].y = WMScaled(7);
+	points[2].x = points[0].x - WMScaled(6);
+	points[2].y = WMScaled(9);
 	points[3].x = points[0].x;
-	points[3].y = 9;
+	points[3].y = WMScaled(9);
 	XFillPolygon(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC,
 		     points, 4, Convex, CoordModeOrigin);
 }
@@ -117,8 +117,8 @@ static void drawFirstMarker(Ruler * rPtr)
 	int xpos = ((rPtr->flags.whichMarker == 3 || rPtr->flags.whichMarker == 6) ?
 		    rPtr->motion : rPtr->margins.first);
 
-	XFillRectangle(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC, xpos - 5, 10, 11, 5);
-	XDrawLine(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC, xpos, 12, xpos, 22);
+	XFillRectangle(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC, xpos - WMScaled(5), WMScaled(10), WMScaled(11), WMScaled(5));
+	W_DrawScaledLine(rPtr->view->screen, rPtr->drawBuffer, rPtr->fgGC, xpos, WMScaled(12), xpos, WMScaled(22));
 }
 
 /* Marker for rest of body
@@ -132,12 +132,12 @@ static void drawBodyMarker(Ruler * rPtr)
 	int xpos = ((rPtr->flags.whichMarker == 4 || rPtr->flags.whichMarker == 6) ?
 		    rPtr->motion : rPtr->margins.body);
 
-	points[0].x = xpos - 5;
-	points[0].y = 16;
-	points[1].x = points[0].x + 11;
-	points[1].y = 16;
-	points[2].x = points[0].x + 5;
-	points[2].y = 22;
+	points[0].x = xpos - WMScaled(5);
+	points[0].y = WMScaled(16);
+	points[1].x = points[0].x + WMScaled(11);
+	points[1].y = WMScaled(16);
+	points[2].x = points[0].x + WMScaled(5);
+	points[2].y = WMScaled(22);
 	XFillPolygon(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC,
 		     points, 3, Convex, CoordModeOrigin);
 }
@@ -151,10 +151,10 @@ static void createDrawBuffer(Ruler * rPtr)
 		XFreePixmap(rPtr->view->screen->display, rPtr->drawBuffer);
 
 	rPtr->drawBuffer = XCreatePixmap(rPtr->view->screen->display,
-					 rPtr->view->window, rPtr->view->size.width, 40,
+					 rPtr->view->window, rPtr->view->size.width, WMScaled(40),
 					 rPtr->view->screen->depth);
 	XFillRectangle(rPtr->view->screen->display, rPtr->drawBuffer,
-		       rPtr->bgGC, 0, 0, rPtr->view->size.width, 40);
+		       rPtr->bgGC, 0, 0, rPtr->view->size.width, WMScaled(40));
 }
 
 static void drawRulerOnPixmap(Ruler * rPtr)
@@ -167,31 +167,31 @@ static void drawRulerOnPixmap(Ruler * rPtr)
 		return;
 
 	XFillRectangle(rPtr->view->screen->display, rPtr->drawBuffer,
-		       rPtr->bgGC, 0, 0, rPtr->view->size.width, 40);
+		       rPtr->bgGC, 0, 0, rPtr->view->size.width, WMScaled(40));
 
 	WMDrawString(rPtr->view->screen, rPtr->drawBuffer, rPtr->fg,
-		     rPtr->font, rPtr->margins.left + 2, 26, _("0   inches"), 10);
+		     rPtr->font, rPtr->margins.left + WMScaled(2), WMScaled(26), _("0   inches"), 10);
 
 	/* marker ticks */
 	i = j = m = 0;
 	w = rPtr->view->size.width - rPtr->margins.left;
 	while (m < w) {
-		XDrawLine(rPtr->view->screen->display, rPtr->drawBuffer,
-			  rPtr->fgGC, rPtr->margins.left + m, 23, rPtr->margins.left + m, marks[i % 8] + 23);
+		W_DrawScaledLine(rPtr->view->screen, rPtr->drawBuffer,
+			  rPtr->fgGC, rPtr->margins.left + m, WMScaled(23), rPtr->margins.left + m, WMScaled(marks[i % 8]) + WMScaled(23));
 		if (i != 0 && i % 8 == 0) {
 			snprintf(c, sizeof(c), "%hu", ++j);
 			WMDrawString(rPtr->view->screen, rPtr->drawBuffer, rPtr->fg,
-				     rPtr->font, rPtr->margins.left + 2 + m, 26, c, 2);
+				     rPtr->font, rPtr->margins.left + WMScaled(2) + m, WMScaled(26), c, 2);
 		}
-		m = (++i) * 10;
+		m = (++i) * WMScaled(10);
 	}
 
-	rPtr->end = rPtr->margins.left + m - 10;
+	rPtr->end = rPtr->margins.left + m - WMScaled(10);
 	if (rPtr->margins.right > rPtr->end)
 		rPtr->margins.right = rPtr->end;
 	/* base line */
-	XDrawLine(rPtr->view->screen->display, rPtr->drawBuffer, rPtr->fgGC,
-		  rPtr->margins.left, 22, rPtr->margins.left + m - 10, 22);
+	W_DrawScaledLine(rPtr->view->screen, rPtr->drawBuffer, rPtr->fgGC,
+		  rPtr->margins.left, WMScaled(22), rPtr->margins.left + m - WMScaled(10), WMScaled(22));
 
 	drawLeftMarker(rPtr);
 	drawRightMarker(rPtr);
@@ -209,7 +209,7 @@ static void paintRuler(Ruler * rPtr)
 	if (rPtr->flags.redraw)
 		drawRulerOnPixmap(rPtr);
 	XCopyArea(rPtr->view->screen->display, rPtr->drawBuffer,
-		  rPtr->view->window, rPtr->bgGC, 0, 0, rPtr->view->size.width, 40, 0, 0);
+		  rPtr->view->window, rPtr->bgGC, 0, 0, rPtr->view->size.width, WMScaled(40), 0, 0);
 }
 
 static Bool verifyMarkerMove(Ruler * rPtr, int x)
@@ -219,7 +219,7 @@ static Bool verifyMarkerMove(Ruler * rPtr, int x)
 
 	switch (rPtr->flags.whichMarker) {
 	case 1:
-		if (x > rPtr->margins.right - 10 || x < rPtr->offset ||
+		if (x > rPtr->margins.right - WMScaled(10) || x < rPtr->offset ||
 		    rPtr->margins.body + x > rPtr->margins.right - MIN_DOC_WIDTH ||
 		    rPtr->margins.first + x > rPtr->margins.right - MIN_DOC_WIDTH)
 			return False;
@@ -255,31 +255,31 @@ static Bool verifyMarkerMove(Ruler * rPtr, int x)
 
 static int whichMarker(Ruler * rPtr, int x, int y)
 {
-	if (x < rPtr->offset || y > 22)
+	if (x < rPtr->offset || y > WMScaled(22))
 		return 0;
 
-	if (rPtr->margins.left - x >= -6 && y <= 9 && (rPtr->margins.left - x <= 0) && y >= 4) {
+	if (rPtr->margins.left - x >= -WMScaled(6) && y <= WMScaled(9) && (rPtr->margins.left - x <= 0) && y >= WMScaled(4)) {
 		rPtr->motion = rPtr->margins.left;
 		return 1;
 	}
-	if (rPtr->margins.right - x >= -1 && y <= 11 && rPtr->margins.right - x <= 5 && y >= 4) {
+	if (rPtr->margins.right - x >= -WMScaled(1) && y <= WMScaled(11) && rPtr->margins.right - x <= WMScaled(5) && y >= WMScaled(4)) {
 		rPtr->motion = rPtr->margins.right;
 		return 2;
 	}
 #if 0
 	/* both first and body? */
-	if (rPtr->margins.first - x <= 4 && rPtr->margins.first - x >= -5
-	    && rPtr->margins.body - x <= 4 && rPtr->margins.body - x >= -5 && y >= 15 && y <= 17) {
+	if (rPtr->margins.first - x <= WMScaled(4) && rPtr->margins.first - x >= -WMScaled(5)
+	    && rPtr->margins.body - x <= WMScaled(4) && rPtr->margins.body - x >= -WMScaled(5) && y >= WMScaled(15) && y <= WMScaled(17)) {
 		rPtr->motion = rPtr->margins.first;
 		return 6;
 	}
 #endif
 
-	if (rPtr->margins.first - x <= 4 && y <= 15 && rPtr->margins.first - x >= -5 && y >= 10) {
+	if (rPtr->margins.first - x <= WMScaled(4) && y <= WMScaled(15) && rPtr->margins.first - x >= -WMScaled(5) && y >= WMScaled(10)) {
 		rPtr->motion = rPtr->margins.first;
 		return 3;
 	}
-	if (rPtr->margins.body - x <= 4 && y <= 21 && rPtr->margins.body - x >= -5 && y >= 17) {
+	if (rPtr->margins.body - x <= WMScaled(4) && y <= WMScaled(21) && rPtr->margins.body - x >= -WMScaled(5) && y >= WMScaled(17)) {
 		rPtr->motion = rPtr->margins.body;
 		return 4;
 	}
@@ -321,10 +321,10 @@ static void handleEvents(XEvent * event, void *data)
 				paintRuler(rPtr);
 				XSetLineAttributes(rPtr->view->screen->display, gc, 1,
 						   LineSolid, CapNotLast, JoinMiter);
-				XDrawLine(rPtr->pview->screen->display,
+				W_DrawScaledLine(rPtr->pview->screen,
 					  rPtr->pview->window,
-					  gc, rPtr->motion + 1, 40,
-					  rPtr->motion + 1, rPtr->pview->size.height - 5);
+					  gc, rPtr->motion + WMScaled(1), WMScaled(40),
+					  rPtr->motion + WMScaled(1), rPtr->pview->size.height - WMScaled(5));
 			}
 		}
 		break;
@@ -396,7 +396,7 @@ WMRuler *WMCreateRuler(WMWidget * parent)
 
 	rPtr->drawBuffer = (Pixmap) NULL;
 
-	W_ResizeView(rPtr->view, w, 40);
+	W_ResizeView(rPtr->view, w, WMScaled(40));
 
 	WMCreateEventHandler(rPtr->view, ExposureMask | StructureNotifyMask
 			     | EnterWindowMask | LeaveWindowMask | FocusChangeMask
@@ -410,11 +410,11 @@ WMRuler *WMCreateRuler(WMWidget * parent)
 	rPtr->bgGC = WMColorGC(WMGrayColor(rPtr->view->screen));
 	rPtr->font = WMSystemFontOfSize(rPtr->view->screen, 8);
 
-	rPtr->offset = 22;
-	rPtr->margins.left = 22;
-	rPtr->margins.body = 22;
-	rPtr->margins.first = 42;
-	rPtr->margins.right = (w < 502 ? w : 502);
+	rPtr->offset = WMScaled(22);
+	rPtr->margins.left = WMScaled(22);
+	rPtr->margins.body = WMScaled(22);
+	rPtr->margins.first = WMScaled(42);
+	rPtr->margins.right = (w < WMScaled(502) ? w : WMScaled(502));
 	rPtr->margins.tabs = NULL;
 
 	rPtr->flags.whichMarker = 0;	/* none */
@@ -449,7 +449,7 @@ WMRulerMargins *WMGetRulerMargins(WMRuler * rPtr)
 
 	if (!rPtr) {
 		margins->first = margins->body = margins->left = 0;
-		margins->right = 100;
+		margins->right = WMScaled(100);
 		return margins;
 	}
 

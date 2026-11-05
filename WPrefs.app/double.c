@@ -96,7 +96,7 @@ static void paintDoubleTest(_DoubleTest * dPtr)
 		int y;
 		y = (dPtr->view->size.height - scr->normalFont->height) / 2;
 		W_PaintText(dPtr->view, dPtr->view->window, scr->normalFont,
-			    dPtr->on, dPtr->on + y, dPtr->view->size.width, WACenter,
+			    WMScaled(dPtr->on), WMScaled(dPtr->on) + y, dPtr->view->size.width, WACenter,
 			    scr->black, False, dPtr->text, strlen(dPtr->text));
 	}
 }

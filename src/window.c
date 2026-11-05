@@ -123,7 +123,7 @@ static void appearanceObserver(void *self, WMNotification * notif)
 	if (flags & WFontSettings) {
 		wWindowConfigureBorders(wwin);
 		if (wwin->flags.shaded) {
-			wFrameWindowResize(wwin->frame, wwin->frame->core->width, wwin->frame->top_width - 1);
+			wFrameWindowResize(wwin->frame, wwin->frame->core->width, wwin->frame->top_width - WMScaled(1));
 			wwin->client.y = wwin->frame_y - wwin->client.height + wwin->frame->top_width;
 			wWindowSynthConfigureNotify(wwin);
 		}
@@ -1112,7 +1112,7 @@ WWindow *wManageWindow(WScreen *scr, Window window)
 			   && !wwin->flags.maximized && !(wwin->normal_hints->flags & (USPosition | PPosition))) {
 
 			if (transientOwner && transientOwner->flags.mapped) {
-				int offs = WMAX(20, 2 * transientOwner->frame->top_width);
+				int offs = WMAX(WMScaled(20), 2 * transientOwner->frame->top_width);
 				WMRect rect;
 				int head;
 
@@ -2629,6 +2629,7 @@ void wWindowSetShape(WWindow * wwin)
 {
 	XRectangle rect[2];
 	int count;
+	int bw = WMScaled(1);	/* the decorations' border */
 #ifdef OPTIMIZE_SHAPE
 	XRectangle *rects;
 	XRectangle *urec;
@@ -2654,17 +2655,17 @@ void wWindowSetShape(WWindow * wwin)
 	XFree(rects);
 
 	if (HAS_TITLEBAR(wwin)) {
-		urec[count].x = -1;
-		urec[count].y = -1 - wwin->frame->top_width;
-		urec[count].width = wwin->frame->core->width + 2;
-		urec[count].height = wwin->frame->top_width + 1;
+		urec[count].x = -bw;
+		urec[count].y = -bw - wwin->frame->top_width;
+		urec[count].width = wwin->frame->core->width + 2 * bw;
+		urec[count].height = wwin->frame->top_width + bw;
 		count++;
 	}
 	if (HAS_RESIZEBAR(wwin)) {
-		urec[count].x = -1;
+		urec[count].x = -bw;
 		urec[count].y = wwin->frame->core->height - wwin->frame->bottom_width - wwin->frame->top_width;
-		urec[count].width = wwin->frame->core->width + 2;
-		urec[count].height = wwin->frame->bottom_width + 1;
+		urec[count].width = wwin->frame->core->width + 2 * bw;
+		urec[count].height = wwin->frame->bottom_width + bw;
 		count++;
 	}
 
@@ -2679,17 +2680,17 @@ void wWindowSetShape(WWindow * wwin)
 #endif				/* OPTIMIZE_SHAPE */
 	count = 0;
 	if (HAS_TITLEBAR(wwin)) {
-		rect[count].x = -1;
-		rect[count].y = -1;
-		rect[count].width = wwin->frame->core->width + 2;
-		rect[count].height = wwin->frame->top_width + 1;
+		rect[count].x = -bw;
+		rect[count].y = -bw;
+		rect[count].width = wwin->frame->core->width + 2 * bw;
+		rect[count].height = wwin->frame->top_width + bw;
 		count++;
 	}
 	if (HAS_RESIZEBAR(wwin)) {
-		rect[count].x = -1;
+		rect[count].x = -bw;
 		rect[count].y = wwin->frame->core->height - wwin->frame->bottom_width;
-		rect[count].width = wwin->frame->core->width + 2;
-		rect[count].height = wwin->frame->bottom_width + 1;
+		rect[count].width = wwin->frame->core->width + 2 * bw;
+		rect[count].height = wwin->frame->bottom_width + bw;
 		count++;
 	}
 	if (count > 0) {

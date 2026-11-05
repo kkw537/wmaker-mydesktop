@@ -130,42 +130,42 @@ static void createPanel(Panel * p)
 	_Panel *panel = (_Panel *) p;
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 	panel->saveB = WMCreateCommandButton(panel->box);
-	WMResizeWidget(panel->saveB, 154, 24);
-	WMMoveWidget(panel->saveB, 15, 10);
+	WMResizeWidget(panel->saveB, WMScaled(154), WMScaled(24));
+	WMMoveWidget(panel->saveB, WMScaled(15), WMScaled(10));
 	WMSetButtonText(panel->saveB, _("Save Current Theme"));
 
 	panel->list = WMCreateList(panel->box);
-	WMResizeWidget(panel->list, 154, 150);
-	WMMoveWidget(panel->list, 15, 40);
+	WMResizeWidget(panel->list, WMScaled(154), WMScaled(150));
+	WMMoveWidget(panel->list, WMScaled(15), WMScaled(40));
 
 	panel->loadB = WMCreateCommandButton(panel->box);
-	WMResizeWidget(panel->loadB, 74, 24);
-	WMMoveWidget(panel->loadB, 15, 200);
+	WMResizeWidget(panel->loadB, WMScaled(74), WMScaled(24));
+	WMMoveWidget(panel->loadB, WMScaled(15), WMScaled(200));
 	WMSetButtonText(panel->loadB, _("Load"));
 
 	panel->instB = WMCreateCommandButton(panel->box);
-	WMResizeWidget(panel->instB, 74, 24);
-	WMMoveWidget(panel->instB, 95, 200);
+	WMResizeWidget(panel->instB, WMScaled(74), WMScaled(24));
+	WMMoveWidget(panel->instB, WMScaled(95), WMScaled(200));
 	WMSetButtonText(panel->instB, _("Install"));
 
     /**************** Tile of the day ****************/
 
 	panel->totF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->totF, 210, 105);
-	WMMoveWidget(panel->totF, 240, 10);
+	WMResizeWidget(panel->totF, WMScaled(210), WMScaled(105));
+	WMMoveWidget(panel->totF, WMScaled(240), WMScaled(10));
 	WMSetFrameTitle(panel->totF, _("Tile of The Day"));
 
 	panel->totL = WMCreateLabel(panel->totF);
-	WMResizeWidget(panel->totL, 67, 67);
-	WMMoveWidget(panel->totL, 25, 25);
+	WMResizeWidget(panel->totL, WMScaled(67), WMScaled(67));
+	WMMoveWidget(panel->totL, WMScaled(25), WMScaled(25));
 	WMSetLabelRelief(panel->totL, WRSunken);
 
 	panel->totB = WMCreateCommandButton(panel->totF);
-	WMResizeWidget(panel->totB, 86, 24);
-	WMMoveWidget(panel->totB, 105, 45);
+	WMResizeWidget(panel->totB, WMScaled(86), WMScaled(24));
+	WMMoveWidget(panel->totB, WMScaled(105), WMScaled(45));
 	WMSetButtonText(panel->totB, _("Download"));
 	WMSetButtonAction(panel->totB, downloadCallback, panel);
 
@@ -174,18 +174,18 @@ static void createPanel(Panel * p)
     /**************** Bar of the day ****************/
 
 	panel->botF = WMCreateFrame(panel->box);
-	WMResizeWidget(panel->botF, 315, 95);
-	WMMoveWidget(panel->botF, 190, 125);
+	WMResizeWidget(panel->botF, WMScaled(315), WMScaled(95));
+	WMMoveWidget(panel->botF, WMScaled(190), WMScaled(125));
 	WMSetFrameTitle(panel->botF, _("Bar of The Day"));
 
 	panel->botL = WMCreateLabel(panel->botF);
-	WMResizeWidget(panel->botL, 285, 32);
-	WMMoveWidget(panel->botL, 15, 20);
+	WMResizeWidget(panel->botL, WMScaled(285), WMScaled(32));
+	WMMoveWidget(panel->botL, WMScaled(15), WMScaled(20));
 	WMSetLabelRelief(panel->botL, WRSunken);
 
 	panel->botB = WMCreateCommandButton(panel->botF);
-	WMResizeWidget(panel->botB, 86, 24);
-	WMMoveWidget(panel->botB, 110, 60);
+	WMResizeWidget(panel->botB, WMScaled(86), WMScaled(24));
+	WMMoveWidget(panel->botB, WMScaled(110), WMScaled(60));
 	WMSetButtonText(panel->botB, _("Download"));
 	WMSetButtonAction(panel->botB, downloadCallback, panel);
 

@@ -74,19 +74,19 @@ typedef struct W_Button {
 	} flags;
 } Button;
 
-#define DEFAULT_BUTTON_WIDTH	60
-#define DEFAULT_BUTTON_HEIGHT	24
+#define DEFAULT_BUTTON_WIDTH	WMScaled(60)
+#define DEFAULT_BUTTON_HEIGHT	WMScaled(24)
 #define DEFAULT_BUTTON_ALIGNMENT	WACenter
 #define DEFAULT_BUTTON_IS_BORDERED	True
 
-#define DEFAULT_RADIO_WIDTH	100
-#define DEFAULT_RADIO_HEIGHT	20
+#define DEFAULT_RADIO_WIDTH	WMScaled(100)
+#define DEFAULT_RADIO_HEIGHT	WMScaled(20)
 #define DEFAULT_RADIO_ALIGNMENT	WALeft
 #define DEFAULT_RADIO_IMAGE_POSITION	WIPLeft
 #define DEFAULT_RADIO_TEXT	"Radio"
 
-#define DEFAULT_SWITCH_WIDTH	100
-#define DEFAULT_SWITCH_HEIGHT	20
+#define DEFAULT_SWITCH_WIDTH	WMScaled(100)
+#define DEFAULT_SWITCH_HEIGHT	WMScaled(20)
 #define DEFAULT_SWITCH_ALIGNMENT	WALeft
 #define DEFAULT_SWITCH_IMAGE_POSITION	WIPLeft
 #define DEFAULT_SWITCH_TEXT	"Switch"
@@ -583,14 +583,14 @@ static void paintButton(Button * bPtr)
 
 		if (bPtr->flags.statePush && bPtr->flags.bordered) {
 			relief = WRSunken;
-			offset = 1;
+			offset = WMScaled(1);
 		}
 	}
 
 	if (bPtr->flags.pushed) {
 		if (bPtr->flags.pushIn) {
 			relief = WRPushed;
-			offset = 1;
+			offset = WMScaled(1);
 		}
 		if (bPtr->flags.pushLight) {
 			backColor = scrPtr->white;

@@ -246,11 +246,23 @@ void wIconDestroy(WIcon *icon)
 
 static void drawIconTitleBackground(WScreen *scr, Pixmap pixmap, int height)
 {
-	XFillRectangle(dpy, pixmap, scr->icon_title_texture->normal_gc, 0, 0, wPreferences.icon_size, height + 1);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, wPreferences.icon_size, 0);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, 0, height + 1);
-	XDrawLine(dpy, pixmap, scr->icon_title_texture->dim_gc,
-		  wPreferences.icon_size - 1, 0, wPreferences.icon_size - 1, height + 1);
+	int t = WMScaled(1);	/* line thickness */
+
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->normal_gc, 0, 0, wPreferences.icon_size, height + t);
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, wPreferences.icon_size, t);
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->light_gc, 0, 0, t, height + t);
+	XFillRectangle(dpy, pixmap, scr->icon_title_texture->dim_gc,
+		       wPreferences.icon_size - t, 0, t, height + t);
+}
+
+/* draw the dashed frame of selected icons, with the GUI scale factor applied */
+static void drawSelectionFrame(WIcon *icon)
+{
+	WScreen *scr = icon->core->screen_ptr;
+	int t = WMScaled(1);	/* line thickness */
+
+	XDrawRectangle(dpy, icon->core->window, scr->icon_select_gc, t / 2, t / 2,
+		       icon->core->width - t, icon->core->height - t);
 }
 
 static void icon_update_pixmap(WIcon *icon, RImage *image)
@@ -591,11 +603,10 @@ static void cycleColor(void *data)
 	XGCValues gcv;
 
 	icon->step--;
-	gcv.dash_offset = icon->step;
+	gcv.dash_offset = WMScaled(icon->step);
 	XChangeGC(dpy, scr->icon_select_gc, GCDashOffset, &gcv);
 
-	XDrawRectangle(dpy, icon->core->window, scr->icon_select_gc, 0, 0,
-		       icon->core->width - 1, icon->core->height - 1);
+	drawSelectionFrame(icon);
 	icon->handlerID = WMAddTimerHandler(COLOR_CYCLE_DELAY, cycleColor, icon);
 }
 
@@ -610,7 +621,6 @@ void wIconSetHighlited(WIcon *icon, Bool flag)
 
 void wIconSelect(WIcon *icon)
 {
-	WScreen *scr = icon->core->screen_ptr;
 	icon->selected = !icon->selected;
 
 	if (icon->selected) {
@@ -618,8 +628,7 @@ void wIconSelect(WIcon *icon)
 		if (!wPreferences.dont_blink)
 			icon->handlerID = WMAddTimerHandler(10, cycleColor, icon);
 		else
-			XDrawRectangle(dpy, icon->core->window, scr->icon_select_gc, 0, 0,
-				       icon->core->width - 1, icon->core->height - 1);
+			drawSelectionFrame(icon);
 	} else {
 		if (icon->handlerID) {
 			WMDeleteTimerHandler(icon->handlerID);
@@ -851,16 +860,16 @@ static void update_icon_title(WIcon *icon)
 
 	/* draw the icon title */
 	if (icon->show_title && icon->icon_name != NULL) {
-		tmp = ShrinkString(scr->icon_title_font, icon->icon_name, wPreferences.icon_size - 4);
+		tmp = ShrinkString(scr->icon_title_font, icon->icon_name, wPreferences.icon_size - WMScaled(4));
 		w = WMWidthOfString(scr->icon_title_font, tmp, l = strlen(tmp));
 
-		if (w > icon->core->width - 4)
-			x = (icon->core->width - 4) - w;
+		if (w > icon->core->width - WMScaled(4))
+			x = (icon->core->width - WMScaled(4)) - w;
 		else
 			x = (icon->core->width - w) / 2;
 
 		WMDrawString(scr->wmscreen, icon->core->window, scr->icon_title_color,
-			     scr->icon_title_font, x, 1, tmp, l);
+			     scr->icon_title_font, x, WMScaled(1), tmp, l);
 		wfree(tmp);
 	}
 }
@@ -871,15 +880,12 @@ void wIconPaint(WIcon *icon)
 	if (!icon || !icon->core || !icon->core->screen_ptr)
 		return;
 
-	WScreen *scr = icon->core->screen_ptr;
-
 	XClearWindow(dpy, icon->core->window);
 
 	update_icon_title(icon);
 
 	if (icon->selected)
-		XDrawRectangle(dpy, icon->core->window, scr->icon_select_gc, 0, 0,
-			       icon->core->width - 1, icon->core->height - 1);
+		drawSelectionFrame(icon);
 }
 
 /******************************************************************/

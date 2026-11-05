@@ -51,6 +51,16 @@ WPixmap *wPixmapCreateFromXPMData(WScreen * scr, char **data)
 	if (!image)
 		return NULL;
 
+	/* draw the built-in image with the GUI scale factor applied */
+	{
+		RImage *scaled = WMScaleImageByFactor(image);
+
+		if (scaled) {
+			RReleaseImage(image);
+			image = scaled;
+		}
+	}
+
 	pix = wmalloc(sizeof(WPixmap));
 
 	RConvertImageMask(scr->rcontext, image, &pix->image, &pix->mask, 128);
@@ -62,6 +72,45 @@ WPixmap *wPixmapCreateFromXPMData(WScreen * scr, char **data)
 	RReleaseImage(image);
 
 	return pix;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * wScaleBitmapData--
+ * 	Scales the bits of a XBM bitmap by the GUI scale factor
+ * (GSScaleFactor), so that each pixel of the bitmap is drawn as a block
+ * of scale factor sized pixels.
+ *
+ * Returns:
+ * 	The new bitmap data (to be freed with wfree()), and its size in
+ * swidth/sheight.
+ *----------------------------------------------------------------------
+ */
+char *wScaleBitmapData(const char *data, int width, int height, int *swidth, int *sheight)
+{
+	int sw = WMScaled(width);
+	int sh = WMScaled(height);
+	int src_bpl = (width + 7) / 8;
+	int dst_bpl = (sw + 7) / 8;
+	char *bits;
+	int x, y;
+
+	bits = wmalloc(dst_bpl * sh);
+	for (y = 0; y < sh; y++) {
+		int sy = y * height / sh;
+
+		for (x = 0; x < sw; x++) {
+			int sx = x * width / sw;
+
+			if (data[sy * src_bpl + sx / 8] & (1 << (sx % 8)))
+				bits[y * dst_bpl + x / 8] |= (1 << (x % 8));
+		}
+	}
+
+	*swidth = sw;
+	*sheight = sh;
+
+	return bits;
 }
 
 /*
@@ -79,20 +128,32 @@ WPixmap *wPixmapCreateFromXBMData(WScreen * scr, char *data, char *mask,
 				  int width, int height, unsigned long fg, unsigned long bg)
 {
 	WPixmap *pix;
+	char *sdata, *smask = NULL;
+	int swidth, sheight;
+
+	/* the bitmap is drawn with the GUI scale factor applied */
+	sdata = wScaleBitmapData(data, width, height, &swidth, &sheight);
+	if (mask)
+		smask = wScaleBitmapData(mask, width, height, &swidth, &sheight);
 
 	pix = wmalloc(sizeof(WPixmap));
-	pix->image = XCreatePixmapFromBitmapData(dpy, scr->w_win, data, width, height, fg, bg, scr->w_depth);
+	pix->image = XCreatePixmapFromBitmapData(dpy, scr->w_win, sdata, swidth, sheight, fg, bg, scr->w_depth);
 	if (pix->image == None) {
+		wfree(sdata);
+		if (smask)
+			wfree(smask);
 		wfree(pix);
 		return NULL;
 	}
-	if (mask) {
-		pix->mask = XCreateBitmapFromData(dpy, scr->w_win, mask, width, height);
+	if (smask) {
+		pix->mask = XCreateBitmapFromData(dpy, scr->w_win, smask, swidth, sheight);
+		wfree(smask);
 	} else {
 		pix->mask = None;
 	}
-	pix->width = width;
-	pix->height = height;
+	wfree(sdata);
+	pix->width = swidth;
+	pix->height = sheight;
 	pix->depth = scr->w_depth;
 	return pix;
 }

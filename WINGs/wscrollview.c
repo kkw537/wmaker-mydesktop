@@ -67,7 +67,7 @@ WMScrollView *WMCreateScrollView(WMWidget * parent)
 	WMCreateEventHandler(sPtr->view, StructureNotifyMask | ExposureMask, handleEvents, sPtr);
 	WMCreateEventHandler(sPtr->viewport, SubstructureNotifyMask, handleViewportEvents, sPtr);
 
-	sPtr->lineScroll = 4;
+	sPtr->lineScroll = WMScaled(4);
 
 	sPtr->pageScroll = 0;
 
@@ -122,22 +122,22 @@ static void reorganizeInterior(WMScrollView * sPtr)
 	vh = ch = sPtr->view->size.height;
 
 	if (sPtr->flags.relief == WRSimple) {
-		cw -= 2;
-		ch -= 2;
-		cx = 1;
-		cy = 1;
+		cw -= WMScaled(2);
+		ch -= WMScaled(2);
+		cx = WMScaled(1);
+		cy = WMScaled(1);
 	} else if (sPtr->flags.relief != WRFlat) {
-		cw -= 3;
-		ch -= 3;
-		cx = 2;
-		cy = 2;
+		cw -= WMScaled(3);
+		ch -= WMScaled(3);
+		cx = WMScaled(2);
+		cy = WMScaled(2);
 	} else {
 		cx = 0;
 		cy = 0;
 	}
 
 	if (sPtr->flags.hasHScroller) {
-		int h = 20;
+		int h = WMScaled(20);
 
 		ch -= h;
 
@@ -145,9 +145,9 @@ static void reorganizeInterior(WMScrollView * sPtr)
 			hx = 0;
 			hy = sPtr->view->size.height - h;
 		} else if (sPtr->flags.relief != WRFlat) {
-			hx = 1;
-			hy = sPtr->view->size.height - h - 1;
-			hw -= 2;
+			hx = WMScaled(1);
+			hy = sPtr->view->size.height - h - WMScaled(1);
+			hw -= WMScaled(2);
 		} else {
 			hx = 0;
 			hy = sPtr->view->size.height - h;
@@ -159,19 +159,19 @@ static void reorganizeInterior(WMScrollView * sPtr)
 	}
 
 	if (sPtr->flags.hasVScroller) {
-		int w = 20;
+		int w = WMScaled(20);
 		cw -= w;
 		cx += w;
-		hx += w - 1;
-		hw -= w - 1;
+		hx += w - WMScaled(1);
+		hw -= w - WMScaled(1);
 
 		if (sPtr->flags.relief == WRSimple) {
 			vx = 0;
 			vy = 0;
 		} else if (sPtr->flags.relief != WRFlat) {
-			vx = 1;
-			vy = 1;
-			vh -= 2;
+			vx = WMScaled(1);
+			vy = WMScaled(1);
+			vh -= WMScaled(2);
 		} else {
 			vx = 0;
 			vy = 0;
@@ -186,11 +186,11 @@ static void reorganizeInterior(WMScrollView * sPtr)
 	W_MoveView(sPtr->viewport, cx, cy);
 
 	if (sPtr->flags.hasHScroller) {
-		WMResizeWidget(sPtr->hScroller, hw, 20);
+		WMResizeWidget(sPtr->hScroller, hw, WMScaled(20));
 		WMMoveWidget(sPtr->hScroller, hx, hy);
 	}
 	if (sPtr->flags.hasVScroller) {
-		WMResizeWidget(sPtr->vScroller, 20, vh);
+		WMResizeWidget(sPtr->vScroller, WMScaled(20), vh);
 		WMMoveWidget(sPtr->vScroller, vx, vy);
 	}
 
@@ -215,21 +215,21 @@ void WMResizeScrollViewContent(WMScrollView * sPtr, unsigned int width, unsigned
 
 	x = 0;
 	if (sPtr->flags.relief == WRSimple) {
-		w += 2;
-		h += 2;
+		w += WMScaled(2);
+		h += WMScaled(2);
 	} else if (sPtr->flags.relief != WRFlat) {
-		w += 4;
-		h += 4;
-		x = 1;
+		w += WMScaled(4);
+		h += WMScaled(4);
+		x = WMScaled(1);
 	}
 
 	if (sPtr->flags.hasVScroller) {
-		WMResizeWidget(sPtr->vScroller, 20, h);
+		WMResizeWidget(sPtr->vScroller, WMScaled(20), h);
 		width -= W_VIEW(sPtr->vScroller)->size.width;
 	}
 
 	if (sPtr->flags.hasHScroller) {
-		WMResizeWidget(sPtr->hScroller, w, 20);
+		WMResizeWidget(sPtr->hScroller, w, WMScaled(20));
 		WMMoveWidget(sPtr->hScroller, x, h);
 		height -= W_VIEW(sPtr->hScroller)->size.height;
 	}

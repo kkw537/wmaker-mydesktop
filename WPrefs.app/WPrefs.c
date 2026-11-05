@@ -208,16 +208,16 @@ static void createMainWindow(WMScreen * scr)
 	char buffer[128];
 
 	WPrefs.win = WMCreateWindow(scr, "wprefs");
-	WMResizeWidget(WPrefs.win, 520, 390);
+	WMResizeWidget(WPrefs.win, WMScaled(520), WMScaled(390));
 	WMSetWindowTitle(WPrefs.win, _("Window Maker Preferences"));
 	WMSetWindowCloseAction(WPrefs.win, quit, NULL);
-	WMSetWindowMaxSize(WPrefs.win, 520, 390);
-	WMSetWindowMinSize(WPrefs.win, 520, 390);
+	WMSetWindowMaxSize(WPrefs.win, WMScaled(520), WMScaled(390));
+	WMSetWindowMinSize(WPrefs.win, WMScaled(520), WMScaled(390));
 	WMSetWindowMiniwindowTitle(WPrefs.win, _("Preferences"));
 
 	WPrefs.scrollV = WMCreateScrollView(WPrefs.win);
-	WMResizeWidget(WPrefs.scrollV, 500, 87);
-	WMMoveWidget(WPrefs.scrollV, 10, 10);
+	WMResizeWidget(WPrefs.scrollV, WMScaled(500), WMScaled(87));
+	WMMoveWidget(WPrefs.scrollV, WMScaled(10), WMScaled(10));
 	WMSetScrollViewRelief(WPrefs.scrollV, WRSunken);
 	WMSetScrollViewHasHorizontalScroller(WPrefs.scrollV, True);
 	WMSetScrollViewHasVerticalScroller(WPrefs.scrollV, False);
@@ -230,32 +230,32 @@ static void createMainWindow(WMScreen * scr)
 	WMSetScrollViewContentView(WPrefs.scrollV, WMWidgetView(WPrefs.buttonF));
 
 	WPrefs.undosBtn = WMCreateCommandButton(WPrefs.win);
-	WMResizeWidget(WPrefs.undosBtn, 90, 28);
-	WMMoveWidget(WPrefs.undosBtn, 135, 350);
+	WMResizeWidget(WPrefs.undosBtn, WMScaled(90), WMScaled(28));
+	WMMoveWidget(WPrefs.undosBtn, WMScaled(135), WMScaled(350));
 	WMSetButtonText(WPrefs.undosBtn, _("Revert Page"));
 	WMSetButtonAction(WPrefs.undosBtn, undo, NULL);
 
 	WPrefs.undoBtn = WMCreateCommandButton(WPrefs.win);
-	WMResizeWidget(WPrefs.undoBtn, 90, 28);
-	WMMoveWidget(WPrefs.undoBtn, 235, 350);
+	WMResizeWidget(WPrefs.undoBtn, WMScaled(90), WMScaled(28));
+	WMMoveWidget(WPrefs.undoBtn, WMScaled(235), WMScaled(350));
 	WMSetButtonText(WPrefs.undoBtn, _("Revert All"));
 	WMSetButtonAction(WPrefs.undoBtn, undoAll, NULL);
 
 	WPrefs.saveBtn = WMCreateCommandButton(WPrefs.win);
-	WMResizeWidget(WPrefs.saveBtn, 80, 28);
-	WMMoveWidget(WPrefs.saveBtn, 335, 350);
+	WMResizeWidget(WPrefs.saveBtn, WMScaled(80), WMScaled(28));
+	WMMoveWidget(WPrefs.saveBtn, WMScaled(335), WMScaled(350));
 	WMSetButtonText(WPrefs.saveBtn, _("Save"));
 	WMSetButtonAction(WPrefs.saveBtn, save, NULL);
 
 	WPrefs.closeBtn = WMCreateCommandButton(WPrefs.win);
-	WMResizeWidget(WPrefs.closeBtn, 80, 28);
-	WMMoveWidget(WPrefs.closeBtn, 425, 350);
+	WMResizeWidget(WPrefs.closeBtn, WMScaled(80), WMScaled(28));
+	WMMoveWidget(WPrefs.closeBtn, WMScaled(425), WMScaled(350));
 	WMSetButtonText(WPrefs.closeBtn, _("Close"));
 	WMSetButtonAction(WPrefs.closeBtn, quit, NULL);
 
 	WPrefs.balloonBtn = WMCreateSwitchButton(WPrefs.win);
-	WMResizeWidget(WPrefs.balloonBtn, 200, 28);
-	WMMoveWidget(WPrefs.balloonBtn, 15, 350);
+	WMResizeWidget(WPrefs.balloonBtn, WMScaled(200), WMScaled(28));
+	WMMoveWidget(WPrefs.balloonBtn, WMScaled(15), WMScaled(350));
 	WMSetButtonText(WPrefs.balloonBtn, _("Balloon Help"));
 	WMSetButtonAction(WPrefs.balloonBtn, toggleBalloons, NULL);
 	{
@@ -276,22 +276,22 @@ static void createMainWindow(WMScreen * scr)
 			    ":bold:pixelsize=26:antialias=true");
 	WPrefs.nameL = WMCreateLabel(WPrefs.banner);
 	WMSetLabelTextAlignment(WPrefs.nameL, WACenter);
-	WMResizeWidget(WPrefs.nameL, FRAME_WIDTH - 20, 60);
-	WMMoveWidget(WPrefs.nameL, 10, 50);
+	WMResizeWidget(WPrefs.nameL, FRAME_WIDTH - WMScaled(20), WMScaled(60));
+	WMMoveWidget(WPrefs.nameL, WMScaled(10), WMScaled(50));
 	WMSetLabelFont(WPrefs.nameL, font);
 	WMSetLabelText(WPrefs.nameL, _("Window Maker Preferences"));
 	WMReleaseFont(font);
 
 	WPrefs.versionL = WMCreateLabel(WPrefs.banner);
-	WMResizeWidget(WPrefs.versionL, FRAME_WIDTH - 20, 20);
-	WMMoveWidget(WPrefs.versionL, 10, 120);
+	WMResizeWidget(WPrefs.versionL, FRAME_WIDTH - WMScaled(20), WMScaled(20));
+	WMMoveWidget(WPrefs.versionL, WMScaled(10), WMScaled(120));
 	WMSetLabelTextAlignment(WPrefs.versionL, WACenter);
 	sprintf(buffer, _("Version %s"), VERSION);
 	WMSetLabelText(WPrefs.versionL, buffer);
 
 	WPrefs.statusL = WMCreateLabel(WPrefs.banner);
-	WMResizeWidget(WPrefs.statusL, FRAME_WIDTH - 20, 60);
-	WMMoveWidget(WPrefs.statusL, 10, 150);
+	WMResizeWidget(WPrefs.statusL, FRAME_WIDTH - WMScaled(20), WMScaled(60));
+	WMMoveWidget(WPrefs.statusL, WMScaled(10), WMScaled(150));
 	WMSetLabelTextAlignment(WPrefs.statusL, WACenter);
 	WMSetLabelText(WPrefs.statusL, _("Starting..."));
 
@@ -431,6 +431,15 @@ void CreateImages(WMScreen *scr, RContext *rc, RImage *xis, const char *file,
 	{
 		RCombineImagesWithOpaqueness(icon, xis, 180);
 	}
+	/* draw it with the GUI scale factor, like the normal icon */
+	{
+		RImage *scaled = WMScaleImageByFactor(icon);
+
+		if (scaled) {
+			RReleaseImage(icon);
+			icon = scaled;
+		}
+	}
 	*icon_greyed = WMCreatePixmapFromRImage(scr, icon, 127);
 	if (!*icon_greyed)
 	{
@@ -491,8 +500,8 @@ void AddSection(Panel * panel, const char *iconFile)
 	assert(WPrefs.sectionCount < MAX_SECTIONS);
 
 	bPtr = WMCreateCustomButton(WPrefs.buttonF, WBBStateLightMask | WBBStateChangeMask);
-	WMResizeWidget(bPtr, 64, 64);
-	WMMoveWidget(bPtr, WPrefs.sectionCount * 64, 0);
+	WMResizeWidget(bPtr, WMScaled(64), WMScaled(64));
+	WMMoveWidget(bPtr, WPrefs.sectionCount * WMScaled(64), 0);
 	WMSetButtonImagePosition(bPtr, WIPImageOnly);
 	WMSetButtonAction(bPtr, changeSection, panel);
 	WMHangData(bPtr, panel);
@@ -508,7 +517,7 @@ void AddSection(Panel * panel, const char *iconFile)
 
 	WPrefs.sectionCount++;
 
-	WMResizeWidget(WPrefs.buttonF, WPrefs.sectionCount * 64, 64);
+	WMResizeWidget(WPrefs.buttonF, WPrefs.sectionCount * WMScaled(64), WMScaled(64));
 }
 
 void Initialize(WMScreen * scr)

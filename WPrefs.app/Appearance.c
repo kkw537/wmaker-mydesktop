@@ -32,7 +32,9 @@
 #include "TexturePanel.h"
 
 
-static const struct {
+/* the geometry in these tables is in logical pixels, it gets the GUI scale
+ * factor applied by scaleOptionsGeometry() when the panel is created */
+static struct {
 	const char *key;
 	const char *default_value;
 	const char *label;
@@ -368,7 +370,7 @@ static char *hand_xpm[] = {
 	"                      "
 };
 
-static const struct {
+static struct {
 	const char *key;
 	const char *default_value;
 	const char *texture_label;	/* text used when displaying the list of textures */
@@ -411,16 +413,52 @@ static const struct {
 };
 #define EVERYTHING    0xff
 
+static void scaleRect(WMRect *rect)
+{
+	rect->pos.x = WMScaled(rect->pos.x);
+	rect->pos.y = WMScaled(rect->pos.y);
+	rect->size.width = WMScaled(rect->size.width);
+	rect->size.height = WMScaled(rect->size.height);
+}
+
+static void scalePoint(WMPoint *point)
+{
+	point->x = WMScaled(point->x);
+	point->y = WMScaled(point->y);
+}
+
+/* apply the GUI scale factor to the geometry of the preview items */
+static void scaleOptionsGeometry(void)
+{
+	static Bool done = False;
+	int i;
+
+	if (done)
+		return;
+	done = True;
+
+	for (i = 0; i < wlengthof(colorOptions); i++) {
+		scaleRect(&colorOptions[i].preview);
+		scalePoint(&colorOptions[i].hand);
+	}
+	for (i = 0; i < wlengthof(textureOptions); i++) {
+		scaleRect(&textureOptions[i].preview);
+		scalePoint(&textureOptions[i].hand);
+	}
+}
+
 
 enum {
 	RESIZEBAR_BEVEL	= -1,
 	MENU_BEVEL = -2
 };
 
-enum {
-	TEXPREV_WIDTH = 40,
-	TEXPREV_HEIGHT = 24
-};
+/* size of the pixmap with the preview of the appearance */
+#define PREVIEW_WIDTH	WMScaled(240 - 4)
+#define PREVIEW_HEIGHT	WMScaled(215 - 4)
+
+#define TEXPREV_WIDTH	WMScaled(40)
+#define TEXPREV_HEIGHT	WMScaled(24)
 
 enum {
 	FTITLE_COL,
@@ -464,6 +502,11 @@ static void dumpRImage(const char *path, RImage * image)
 	FILE *f;
 	int channels = (image->format == RRGBAFormat ? 4 : 3);
 
+	/* the file format cannot store sizes bigger than 255 (this can happen
+	 * with a big GUI scale factor), the preview will just not be cached */
+	if (image->width > 255 || image->height > 255)
+		return;
+
 	f = fopen(path, "wb");
 	if (!f) {
 		werror("%s", path);
@@ -500,7 +543,9 @@ static void drawResizebarBevel(RImage * img)
 	RColor dark;
 	int width = img->width;
 	int height = img->height;
-	int cwidth = 28;
+	int cwidth = WMScaled(28);
+	int t = WMScaled(1);	/* line thickness */
+	int i;
 
 	light.alpha = 0;
 	light.red = light.green = light.blue = 80;
@@ -508,22 +553,27 @@ static void drawResizebarBevel(RImage * img)
 	dark.alpha = 0;
 	dark.red = dark.green = dark.blue = 40;
 
-	ROperateLine(img, RSubtractOperation, 0, 0, width - 1, 0, &dark);
-	ROperateLine(img, RAddOperation, 0, 1, width - 1, 1, &light);
+	for (i = 0; i < t; i++) {
+		ROperateLine(img, RSubtractOperation, 0, i, width - 1, i, &dark);
+		ROperateLine(img, RAddOperation, 0, t + i, width - 1, t + i, &light);
 
-	ROperateLine(img, RSubtractOperation, cwidth, 2, cwidth, height - 1, &dark);
-	ROperateLine(img, RAddOperation, cwidth + 1, 2, cwidth + 1, height - 1, &light);
+		ROperateLine(img, RSubtractOperation, cwidth + i, 2 * t, cwidth + i, height - 1, &dark);
+		ROperateLine(img, RAddOperation, cwidth + t + i, 2 * t, cwidth + t + i, height - 1, &light);
 
-	ROperateLine(img, RSubtractOperation, width - cwidth - 2, 2, width - cwidth - 2, height - 1, &dark);
-	ROperateLine(img, RAddOperation, width - cwidth - 1, 2, width - cwidth - 1, height - 1, &light);
+		ROperateLine(img, RSubtractOperation, width - cwidth - 2 * t + i, 2 * t,
+			     width - cwidth - 2 * t + i, height - 1, &dark);
+		ROperateLine(img, RAddOperation, width - cwidth - t + i, 2 * t,
+			     width - cwidth - t + i, height - 1, &light);
+	}
 
 }
 
 static void drawMenuBevel(RImage * img)
 {
 	RColor light, dark, mid;
-	int i;
+	int i, j;
 	int iheight = img->height / 4;
+	int t = WMScaled(1);	/* line thickness */
 
 	light.alpha = 0;
 	light.red = light.green = light.blue = 80;
@@ -535,11 +585,14 @@ static void drawMenuBevel(RImage * img)
 	mid.red = mid.green = mid.blue = 40;
 
 	for (i = 1; i < 4; i++) {
-		ROperateLine(img, RSubtractOperation, 0, i * iheight - 2, img->width - 1, i * iheight - 2, &mid);
+		for (j = 0; j < t; j++) {
+			ROperateLine(img, RSubtractOperation, 0, i * iheight - 2 * t + j,
+				     img->width - 1, i * iheight - 2 * t + j, &mid);
 
-		RDrawLine(img, 0, i * iheight - 1, img->width - 1, i * iheight - 1, &dark);
+			RDrawLine(img, 0, i * iheight - t + j, img->width - 1, i * iheight - t + j, &dark);
 
-		ROperateLine(img, RAddOperation, 1, i * iheight, img->width - 2, i * iheight, &light);
+			ROperateLine(img, RAddOperation, t, i * iheight + j, img->width - 1 - t, i * iheight + j, &light);
+		}
 	}
 }
 
@@ -563,8 +616,17 @@ static Pixmap renderTexture(WMScreen * scr, WMPropList * texture, int width, int
 		path = wfindfileinarray(GetObjectForKey("PixmapPath"), str);
 		if (path) {
 			timage = RLoadImage(rc, path, 0);
-			if (!timage)
+			if (!timage) {
 				wwarning(_("could not load file '%s': %s"), path, RMessageForError(RErrorCode));
+			} else {
+				/* draw the image with the GUI scale factor, like wmaker does */
+				RImage *scaled = WMScaleImageByFactor(timage);
+
+				if (scaled) {
+					RReleaseImage(timage);
+					timage = scaled;
+				}
+			}
 			wfree(path);
 		} else {
 			wwarning(_("could not find file '%s' for texture type %s"), str, type);
@@ -826,11 +888,11 @@ static void updatePreviewBox(_Panel * panel, int elements)
 		WMPixmap *p;
 
 		panel->previewNoText = XCreatePixmap(dpy, WMWidgetXID(panel->parent),
-						     240 - 4, 215 - 4, WMScreenDepth(scr));
+						     PREVIEW_WIDTH, PREVIEW_HEIGHT, WMScreenDepth(scr));
 		panel->previewBack = XCreatePixmap(dpy, WMWidgetXID(panel->parent),
-						     240 - 4, 215 - 4, WMScreenDepth(scr));
+						     PREVIEW_WIDTH, PREVIEW_HEIGHT, WMScreenDepth(scr));
 
-		p = WMCreatePixmap(scr, 240 - 4, 215 - 4, WMScreenDepth(scr), False);
+		p = WMCreatePixmap(scr, PREVIEW_WIDTH, PREVIEW_HEIGHT, WMScreenDepth(scr), False);
 		panel->preview = WMGetPixmapXID(p);
 		WMSetLabelImage(panel->prevL, p);
 		WMReleasePixmap(p);
@@ -843,11 +905,11 @@ static void updatePreviewBox(_Panel * panel, int elements)
 		item = WMGetListItem(panel->texLs,
 				     panel->textureIndex[PBACKGROUND]);
 		titem = (TextureListItem *) item->clientData;
-		tmp = renderTexture(scr, titem->prop, 240 - 4, 215 - 4, NULL, 0);
+		tmp = renderTexture(scr, titem->prop, PREVIEW_WIDTH, PREVIEW_HEIGHT, NULL, 0);
 
-		XCopyArea(dpy, tmp, panel->preview, gc, 0, 0, 240 - 4, 215 -4 , 0, 0);
-		XCopyArea(dpy, tmp, panel->previewNoText, gc, 0, 0, 240 - 4, 215 -4 , 0, 0);
-		XCopyArea(dpy, tmp, panel->previewBack, gc, 0, 0, 240 - 4, 215 -4 , 0, 0);
+		XCopyArea(dpy, tmp, panel->preview, gc, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0);
+		XCopyArea(dpy, tmp, panel->previewNoText, gc, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0);
+		XCopyArea(dpy, tmp, panel->previewBack, gc, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0);
 		XFreePixmap(dpy, tmp);
 	}
 
@@ -1129,7 +1191,7 @@ static void extractTexture(WMWidget * w, void *data)
 static void changePage(WMWidget * w, void *data)
 {
 	_Panel *panel = (_Panel *) data;
-	int section;
+	int section = 0;
 	WMScreen *scr = WMWidgetScreen(panel->box);
 	RContext *rc = WMScreenRContext(scr);
 
@@ -1147,7 +1209,7 @@ static void changePage(WMWidget * w, void *data)
 
 		gc = XCreateGC(rc->dpy, WMWidgetXID(panel->parent), 0, NULL);
 		XCopyArea(rc->dpy, panel->previewBack, panel->preview, gc,
-		          textureOptions[panel->oldsection].hand.x, textureOptions[panel->oldsection].hand.y, 22, 22,
+		          textureOptions[panel->oldsection].hand.x, textureOptions[panel->oldsection].hand.y, WMScaled(22), WMScaled(22),
 		          textureOptions[panel->oldsection].hand.x, textureOptions[panel->oldsection].hand.y);
 	}
 	if (w) {
@@ -1293,19 +1355,19 @@ static void paintListItem(WMList * lPtr, int index, Drawable d, char *text, int 
 
 	if (titem->preview)
 		XCopyArea(dpy, titem->preview, d, WMColorGC(black), 0, 0,
-			  TEXPREV_WIDTH, TEXPREV_HEIGHT, x + 5, y + 5);
+			  TEXPREV_WIDTH, TEXPREV_HEIGHT, x + WMScaled(5), y + WMScaled(5));
 
 	tmp = WMGetPopUpButtonSelectedItem(panel->secP);
 	if ((tmp >= 0) && ((1 << tmp) & titem->selectedFor))
-		WMDrawPixmap(panel->onLed, d, x + TEXPREV_WIDTH + 10, y + 6);
+		WMDrawPixmap(panel->onLed, d, x + TEXPREV_WIDTH + WMScaled(10), y + WMScaled(6));
 	else if (titem->selectedFor)
-		WMDrawPixmap(panel->offLed, d, x + TEXPREV_WIDTH + 10, y + 6);
+		WMDrawPixmap(panel->offLed, d, x + TEXPREV_WIDTH + WMScaled(10), y + WMScaled(6));
 
 	WMDrawString(scr, d, black, panel->boldFont,
-		     x + TEXPREV_WIDTH + 22, y + 2, titem->title, strlen(titem->title));
+		     x + TEXPREV_WIDTH + WMScaled(22), y + WMScaled(2), titem->title, strlen(titem->title));
 
 	WMDrawString(scr, d, black, panel->smallFont,
-		     x + TEXPREV_WIDTH + 14, y + 18, titem->texture, strlen(titem->texture));
+		     x + TEXPREV_WIDTH + WMScaled(14), y + WMScaled(18), titem->texture, strlen(titem->texture));
 
 	WMReleaseColor(back);
 	WMReleaseColor(black);
@@ -1331,6 +1393,11 @@ static Pixmap loadRImage(WMScreen * scr, const char *path)
 	}
 	if (d < 3 || d > 4) {
 		wwarning(_("image \"%s\" has an invalid depth of %d, ignoring"), path, d);
+		fclose(f);
+		return None;
+	}
+	/* the preview was cached with another GUI scale factor, it must be rendered again */
+	if (w != TEXPREV_WIDTH || h != TEXPREV_HEIGHT) {
 		fclose(f);
 		return None;
 	}
@@ -1441,7 +1508,7 @@ static void changeColorPage(WMWidget * w, void *data)
 		gc = XCreateGC(rc->dpy, WMWidgetXID(panel->parent), 0, NULL);
 		XCopyArea(rc->dpy, panel->previewBack, panel->preview, gc,
 			  colorOptions[panel->oldcsection].hand.x,
-			  colorOptions[panel->oldcsection].hand.y, 22, 22 ,
+			  colorOptions[panel->oldcsection].hand.y, WMScaled(22), WMScaled(22),
 			  colorOptions[panel->oldcsection].hand.x,
 			  colorOptions[panel->oldcsection].hand.y);
 	}
@@ -1460,18 +1527,110 @@ static void changeColorPage(WMWidget * w, void *data)
 	WMRedisplayWidget(panel->prevL);
 }
 
+/*
+ * Helpers to draw the preview with coordinates in logical pixels: the GUI
+ * scale factor is applied so that it looks like the regular preview drawn
+ * with bigger pixels. Lines are drawn like XDrawLine/XDrawRectangle would
+ * do, but WMScaled(1) pixels thick.
+ */
+static void fillPreviewRect(Display *dpy, Drawable d, GC gc, int x, int y, int w, int h)
+{
+	XFillRectangle(dpy, d, gc, WMScaled(x), WMScaled(y),
+		       WMScaled(x + w) - WMScaled(x), WMScaled(y + h) - WMScaled(y));
+}
+
+static void copyPreviewArea(Display *dpy, Drawable src, Drawable dst, GC gc, int x, int y, int w, int h)
+{
+	XCopyArea(dpy, src, dst, gc, WMScaled(x), WMScaled(y),
+		  WMScaled(x + w) - WMScaled(x), WMScaled(y + h) - WMScaled(y), WMScaled(x), WMScaled(y));
+}
+
+/* only for horizontal or vertical lines */
+static void drawPreviewLine(Display *dpy, Drawable d, GC gc, int x0, int y0, int x1, int y1)
+{
+	fillPreviewRect(dpy, d, gc, WMIN(x0, x1), WMIN(y0, y1), abs(x1 - x0) + 1, abs(y1 - y0) + 1);
+}
+
+static void drawPreviewRectangle(Display *dpy, Drawable d, GC gc, int x, int y, int w, int h)
+{
+	drawPreviewLine(dpy, d, gc, x, y, x + w, y);
+	drawPreviewLine(dpy, d, gc, x, y + h, x + w, y + h);
+	drawPreviewLine(dpy, d, gc, x, y, x, y + h);
+	drawPreviewLine(dpy, d, gc, x + w, y, x + w, y + h);
+}
+
+/* draw a line in the image, the line can only be horizontal, vertical or diagonal */
+static void drawTileLine(RImage *image, int operation, int x0, int y0, int x1, int y1, const RColor *color)
+{
+	int t = WMScaled(1);
+	int dx0, dy0, dx1, dy1;
+	int i;
+
+	if (x0 == x1 || y0 == y1) {
+		int xmin = WMIN(x0, x1), xmax = WMAX(x0, x1);
+		int ymin = WMIN(y0, y1), ymax = WMAX(y0, y1);
+		int y;
+
+		for (y = WMScaled(ymin); y < WMScaled(ymax + 1); y++) {
+			if (operation == RCopyOperation)
+				RDrawLine(image, WMScaled(xmin), y, WMScaled(xmax + 1) - 1, y, color);
+			else
+				ROperateLine(image, operation, WMScaled(xmin), y, WMScaled(xmax + 1) - 1, y, color);
+		}
+		return;
+	}
+
+	/* diagonal: start and end at the outer corners of the scaled pixels, and
+	 * make the line thick by drawing it several times shifted horizontally */
+	dx0 = (x1 > x0) ? WMScaled(x0) : WMScaled(x0 + 1) - 1;
+	dx1 = (x1 > x0) ? WMScaled(x1 + 1) - 1 : WMScaled(x1);
+	dy0 = (y1 > y0) ? WMScaled(y0) : WMScaled(y0 + 1) - 1;
+	dy1 = (y1 > y0) ? WMScaled(y1 + 1) - 1 : WMScaled(y1);
+
+	for (i = 0; i < t; i++) {
+		if (operation == RCopyOperation)
+			RDrawLine(image, dx0 + i, dy0, dx1 + i, dy1, color);
+		else
+			ROperateLine(image, operation, dx0 + i, dy0, dx1 + i, dy1, color);
+	}
+}
+
+/* fill a triangle given in logical pixels; corner tells, for each point, if
+ * it is at the right (bit 0) and/or bottom (bit 1) of its scaled pixel */
+static void fillPreviewTriangle(Display *dpy, Drawable d, GC gc, XPoint *p, const int *corner)
+{
+	int t = WMScaled(1);
+	XPoint q[4];
+	int i;
+
+	for (i = 0; i < 3; i++) {
+		q[i].x = WMScaled(p[i].x) + ((corner[i] & 1) ? t - 1 : 0);
+		q[i].y = WMScaled(p[i].y) + ((corner[i] & 2) ? t - 1 : 0);
+	}
+	q[3] = q[0];
+
+	XFillPolygon(dpy, d, gc, q, 3, Convex, CoordModeOrigin);
+	XDrawLines(dpy, d, gc, q, 4, CoordModeOrigin);
+}
+
 static void
 paintText(WMScreen * scr, Drawable d, WMColor * color, WMFont * font,
 	  int x, int y, int w, int h, WMAlignment align, char *text)
 {
 	int l = strlen(text);
 
+	/* the coordinates are in logical pixels */
+	x = WMScaled(x);
+	y = WMScaled(y);
+	w = WMScaled(w);
+	h = WMScaled(h);
+
 	switch (align) {
 	case WALeft:
-		x += 5;
+		x += WMScaled(5);
 		break;
 	case WARight:
-		x += w - 5 - WMWidthOfString(font, text, l);
+		x += w - WMScaled(5) - WMWidthOfString(font, text, l);
 		break;
 	default:
 	case WACenter:
@@ -1493,118 +1652,118 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 	gc = WMColorGC(panel->colors[FTITLE_COL]);
 
 	if (elements & (1 << FTITLE_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 10, 190, 20, 30, 10);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 10, 190, 20);
 		paintText(scr, d, panel->colors[FTITLE_COL],
 			  panel->boldFont, 30, 10, 190, 20,
 			  panel->titleAlignment, _("Focused Window"));
 	}
 	if (elements & (1 << UTITLE_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 40, 190, 20, 30, 40);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 40, 190, 20);
 		paintText(scr, d, panel->colors[UTITLE_COL],
 			  panel->boldFont, 30, 40, 190, 20,
 			  panel->titleAlignment,
 			  _("Unfocused Window"));
 	}
 	if (elements & (1 << OTITLE_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 70, 190, 20, 30, 70);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 70, 190, 20);
 		paintText(scr, d, panel->colors[OTITLE_COL],
 			  panel->boldFont, 30, 70, 190, 20,
 			  panel->titleAlignment,
 			  _("Owner of Focused Window"));
 	}
 	if (elements & (1 << MTITLE_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 120, 90, 20, 30, 120);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 120, 90, 20);
 		paintText(scr, d, panel->colors[MTITLE_COL],
 			  panel->boldFont, 30, 120, 90, 20, WALeft,
 			  _("Menu Title"));
 	}
 	if (elements & (1 << MITEM_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 140, 90, 20, 30, 140);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 140, 90, 20);
 		paintText(scr, d, panel->colors[MITEM_COL],
 			  panel->normalFont, 30, 140, 90, 20, WALeft,
 			  _("Normal Item"));
-		XCopyArea(dpy, pnot, d, gc, 30, 200, 90, 20, 30, 200);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 200, 90, 20);
 		paintText(scr, d, panel->colors[MITEM_COL],
 			  panel->normalFont, 30, 200, 90, 20, WALeft,
 			  _("Normal Item"));
 	}
 	if (elements & (1 << MDISAB_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 160, 90, 20, 30, 160);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 160, 90, 20);
 		paintText(scr, d, panel->colors[MDISAB_COL],
 			  panel->normalFont, 30, 160, 90, 20, WALeft,
 			  _("Disabled Item"));
 	}
 	if (elements & (1 << MHIGH_COL)) {
-		XFillRectangle(WMScreenDisplay(scr), d,
+		fillPreviewRect(dpy, d,
 			       WMColorGC(panel->colors[MHIGH_COL]),
 			       31, 181, 87, 17);
-		XFillRectangle(WMScreenDisplay(scr), pnot,
+		fillPreviewRect(dpy, pnot,
 			       WMColorGC(panel->colors[MHIGH_COL]),
 			       31, 181, 87, 17);
 		elements |= 1 << MHIGHT_COL;
 	}
 	if (elements & (1 << MHIGHT_COL)) {
-		XCopyArea(dpy, pnot, d, gc, 30, 180, 90, 20, 30, 180);
+		copyPreviewArea(dpy, pnot, d, gc, 30, 180, 90, 20);
 		paintText(scr, d, panel->colors[MHIGHT_COL],
 			  panel->normalFont, 30, 180, 90, 20, WALeft,
 			  _("Highlighted"));
 	}
 	if (elements & (1 << FBORDER_COL)) {
-		XDrawRectangle(dpy, pnot,
+		drawPreviewRectangle(dpy, pnot,
 			       WMColorGC(panel->colors[FBORDER_COL]),
 			       29, 39, 190, 20);
-		XDrawRectangle(dpy, d,
+		drawPreviewRectangle(dpy, d,
 			       WMColorGC(panel->colors[FBORDER_COL]),
 			       29, 39, 190, 20);
-		XDrawRectangle(dpy, pnot,
+		drawPreviewRectangle(dpy, pnot,
 			       WMColorGC(panel->colors[FBORDER_COL]),
 			       29, 69, 190, 20);
-		XDrawRectangle(dpy, d,
+		drawPreviewRectangle(dpy, d,
 			       WMColorGC(panel->colors[FBORDER_COL]),
 			       29, 69, 190, 20);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  30, 100, 30, 109);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  30, 100, 30, 109);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  31, 109, 219, 109);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  31, 109, 219, 109);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  220, 100, 220, 109);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  220, 100, 220, 109);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  29, 120, 29, 220);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  29, 120, 29, 220);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  29, 119, 119, 119);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  29, 119, 119, 119);
-		XDrawLine(dpy, pnot,
+		drawPreviewLine(dpy, pnot,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  119, 120, 119, 220);
-		XDrawLine(dpy, d,
+		drawPreviewLine(dpy, d,
 			  WMColorGC(panel->colors[FBORDER_COL]),
 			  119, 120, 119, 220);
 	}
 
 	if (elements & (1 << FFBORDER_COL)) {
-		XDrawRectangle(dpy, pnot,
+		drawPreviewRectangle(dpy, pnot,
 			       WMColorGC(panel->colors[FFBORDER_COL]),
 			       29, 9, 190, 20);
-		XDrawRectangle(dpy, d,
+		drawPreviewRectangle(dpy, d,
 			       WMColorGC(panel->colors[FFBORDER_COL]),
 			       29, 9, 190, 20);
 	}
@@ -1633,10 +1792,10 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 		RHSVtoRGB(&hsv2, &rgb);
 		dim = WMCreateRGBColor(scr, rgb.red << 8, rgb.green << 8, rgb.blue << 8, False);
 
-		XFillRectangle(dpy, d, WMColorGC(panel->colors[ICONB_COL]), 156, 131, 62, 11);
-		XDrawLine(dpy, d, WMColorGC(light), 155, 130, 155, 142);
-		XDrawLine(dpy, d, WMColorGC(light), 156, 130, 217, 130);
-		XDrawLine(dpy, d, WMColorGC(dim), 218, 130, 218, 142);
+		fillPreviewRect(dpy, d, WMColorGC(panel->colors[ICONB_COL]), 156, 131, 62, 11);
+		drawPreviewLine(dpy, d, WMColorGC(light), 155, 130, 155, 142);
+		drawPreviewLine(dpy, d, WMColorGC(light), 156, 130, 217, 130);
+		drawPreviewLine(dpy, d, WMColorGC(dim), 218, 130, 218, 142);
 
 		paintText(scr, d, panel->colors[ICONT_COL],
 			     panel->smallFont, 155, 130, 64, 13, WALeft,
@@ -1655,11 +1814,13 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 		TextureListItem *titem;
 		WMListItem *item;
 		XPoint p[4];
+		static const int top_right_corners[3] = { 0, 1, 1 };
+		static const int bottom_left_corners[3] = { 0, 2, 3 };
 
 		item = WMGetListItem(panel->texLs, panel->textureIndex[PICON]);
 		titem = (TextureListItem *) item->clientData;
 
-		pix = renderTexture(scr, titem->prop, 64, 64, NULL, titem->ispixmap ? 0 : RBEV_RAISED3);
+		pix = renderTexture(scr, titem->prop, WMScaled(64), WMScaled(64), NULL, titem->ispixmap ? 0 : RBEV_RAISED3);
 		tile = RCreateImageFromDrawable(WMScreenRContext(scr), pix, None);
 
 		black.alpha = 255;
@@ -1672,29 +1833,29 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 		light.red = light.green = light.blue = 80;
 
 		/* top right */
-		ROperateLine(tile, RSubtractOperation, 64 - 1 - 23, 0, 64 - 2, 23 - 1, &dark);
-		RDrawLine(tile, 64 - 1 - 23 - 1, 0, 64 - 1, 23 + 1, &black);
-		ROperateLine(tile, RAddOperation, 64 - 1 - 23, 2, 64 - 3, 23, &light);
+		drawTileLine(tile, RSubtractOperation, 64 - 1 - 23, 0, 64 - 2, 23 - 1, &dark);
+		drawTileLine(tile, RCopyOperation, 64 - 1 - 23 - 1, 0, 64 - 1, 23 + 1, &black);
+		drawTileLine(tile, RAddOperation, 64 - 1 - 23, 2, 64 - 3, 23, &light);
 
 		/* arrow bevel */
-		ROperateLine(tile, RSubtractOperation, 64 - 7 - (23 - 15), 4, 64 - 5, 4, &dark);
-		ROperateLine(tile, RSubtractOperation, 64 - 6 - (23 - 15), 5, 64 - 5, 6 + 23 - 15, &dark);
-		ROperateLine(tile, RAddOperation, 64 - 5, 4, 64 - 5, 6 + 23 - 15, &light);
+		drawTileLine(tile, RSubtractOperation, 64 - 7 - (23 - 15), 4, 64 - 5, 4, &dark);
+		drawTileLine(tile, RSubtractOperation, 64 - 6 - (23 - 15), 5, 64 - 5, 6 + 23 - 15, &dark);
+		drawTileLine(tile, RAddOperation, 64 - 5, 4, 64 - 5, 6 + 23 - 15, &light);
 
 		/* bottom left */
-		ROperateLine(tile, RAddOperation, 2, 64 - 1 - 23 + 2, 23 - 2, 64 - 3, &dark);
-		RDrawLine(tile, 0, 64 - 1 - 23 - 1, 23 + 1, 64 - 1, &black);
-		ROperateLine(tile, RSubtractOperation, 0, 64 - 1 - 23 - 2, 23 + 1, 64 - 2, &light);
+		drawTileLine(tile, RAddOperation, 2, 64 - 1 - 23 + 2, 23 - 2, 64 - 3, &dark);
+		drawTileLine(tile, RCopyOperation, 0, 64 - 1 - 23 - 1, 23 + 1, 64 - 1, &black);
+		drawTileLine(tile, RSubtractOperation, 0, 64 - 1 - 23 - 2, 23 + 1, 64 - 2, &light);
 
 		/* arrow bevel */
-		ROperateLine(tile, RSubtractOperation, 4, 64 - 7 - (23 - 15), 4, 64 - 5, &dark);
-		ROperateLine(tile, RSubtractOperation, 5, 64 - 6 - (23 - 15), 6 + 23 - 15, 64 - 5, &dark);
-		ROperateLine(tile, RAddOperation, 4, 64 - 5, 6 + 23 - 15, 64 - 5, &light);
+		drawTileLine(tile, RSubtractOperation, 4, 64 - 7 - (23 - 15), 4, 64 - 5, &dark);
+		drawTileLine(tile, RSubtractOperation, 5, 64 - 6 - (23 - 15), 6 + 23 - 15, 64 - 5, &dark);
+		drawTileLine(tile, RAddOperation, 4, 64 - 5, 6 + 23 - 15, 64 - 5, &light);
 
 		RConvertImage(WMScreenRContext(scr), tile, &pix);
 		RReleaseImage(tile);
 
-		XCopyArea(dpy, pix, d, gc, 0, 0, 64, 64, 155, 130);
+		XCopyArea(dpy, pix, d, gc, 0, 0, WMScaled(64), WMScaled(64), WMScaled(155), WMScaled(130));
 		XFreePixmap(dpy, pix);
 
 		/* top right arrow */
@@ -1705,8 +1866,7 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 		p[2].x = 155 + 64 - 6;
 		p[2].y = 130 + 4 + 23 - 15;
 
-		XFillPolygon(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, 4, CoordModeOrigin);
+		fillPreviewTriangle(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, top_right_corners);
 
 		/* bottom left arrow */
 		p[0].x = p[3].x = 155 + 5;
@@ -1716,8 +1876,7 @@ static void updateColorPreviewBox(_Panel * panel, int elements)
 		p[2].x = 155 + 4 + 23 - 15;
 		p[2].y = 130 + 64 - 6;
 
-		XFillPolygon(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, 4, CoordModeOrigin);
+		fillPreviewTriangle(dpy, d, WMColorGC(panel->colors[CLIP_COL]), p, bottom_left_corners);
 
 	}
 
@@ -1862,17 +2021,19 @@ static void createPanel(Panel * p)
 	panel->normalFont = WMSystemFontOfSize(scr, 12);
 	panel->boldFont = WMBoldSystemFontOfSize(scr, 12);
 
+	scaleOptionsGeometry();
+
 	panel->onLed = WMCreatePixmapFromXPMData(scr, blueled_xpm);
 	panel->offLed = WMCreatePixmapFromXPMData(scr, blueled2_xpm);
 	panel->hand = WMCreatePixmapFromXPMData(scr, hand_xpm);
 
 	panel->box = WMCreateBox(panel->parent);
-	WMSetViewExpandsToParent(WMWidgetView(panel->box), 2, 2, 2, 2);
+	WMSetViewExpandsToParent(WMWidgetView(panel->box), WMScaled(2), WMScaled(2), WMScaled(2), WMScaled(2));
 
 	/* preview box */
 	panel->prevL = WMCreateLabel(panel->box);
-	WMResizeWidget(panel->prevL, 240, FRAME_HEIGHT - 20);
-	WMMoveWidget(panel->prevL, 15, 10);
+	WMResizeWidget(panel->prevL, WMScaled(240), FRAME_HEIGHT - WMScaled(20));
+	WMMoveWidget(panel->prevL, WMScaled(15), WMScaled(10));
 	WMSetLabelRelief(panel->prevL, WRSunken);
 	WMSetLabelImagePosition(panel->prevL, WIPImageOnly);
 
@@ -1883,8 +2044,8 @@ static void createPanel(Panel * p)
 	tabviewDelegate.data = panel;
 
 	panel->tabv = WMCreateTabView(panel->box);
-	WMResizeWidget(panel->tabv, 245, FRAME_HEIGHT - 20);
-	WMMoveWidget(panel->tabv, 265, 10);
+	WMResizeWidget(panel->tabv, WMScaled(245), FRAME_HEIGHT - WMScaled(20));
+	WMMoveWidget(panel->tabv, WMScaled(265), WMScaled(10));
 	WMSetTabViewDelegate(panel->tabv, &tabviewDelegate);
 
     /*** texture list ***/
@@ -1899,8 +2060,8 @@ static void createPanel(Panel * p)
 	WMAddItemInTabView(panel->tabv, item);
 
 	panel->secP = WMCreatePopUpButton(panel->texF);
-	WMResizeWidget(panel->secP, 228, 20);
-	WMMoveWidget(panel->secP, 7, 7);
+	WMResizeWidget(panel->secP, WMScaled(228), WMScaled(20));
+	WMMoveWidget(panel->secP, WMScaled(7), WMScaled(7));
 
 	for (i = 0; i < wlengthof(textureOptions); i++)
 		WMAddPopUpButtonItem(panel->secP, _(textureOptions[i].popup_label));
@@ -1909,9 +2070,9 @@ static void createPanel(Panel * p)
 	WMSetPopUpButtonAction(panel->secP, changePage, panel);
 
 	panel->texLs = WMCreateList(panel->texF);
-	WMResizeWidget(panel->texLs, 165, 155);
-	WMMoveWidget(panel->texLs, 70, 33);
-	WMSetListUserDrawItemHeight(panel->texLs, 35);
+	WMResizeWidget(panel->texLs, WMScaled(165), WMScaled(155));
+	WMMoveWidget(panel->texLs, WMScaled(70), WMScaled(33));
+	WMSetListUserDrawItemHeight(panel->texLs, WMScaled(35));
 	WMSetListUserDrawProc(panel->texLs, paintListItem);
 	WMHangData(panel->texLs, panel);
 	WMSetListAction(panel->texLs, textureClick, panel);
@@ -1925,8 +2086,8 @@ static void createPanel(Panel * p)
 	font = WMSystemFontOfSize(scr, 10);
 
 	panel->newB = WMCreateCommandButton(panel->texF);
-	WMResizeWidget(panel->newB, 57, 39);
-	WMMoveWidget(panel->newB, 7, 33);
+	WMResizeWidget(panel->newB, WMScaled(57), WMScaled(39));
+	WMMoveWidget(panel->newB, WMScaled(7), WMScaled(33));
 	WMSetButtonFont(panel->newB, font);
 	WMSetButtonImagePosition(panel->newB, WIPAbove);
 	WMSetButtonText(panel->newB, _("New"));
@@ -1936,8 +2097,8 @@ static void createPanel(Panel * p)
 	WMSetBalloonTextForView(_("Create a new texture."), WMWidgetView(panel->newB));
 
 	panel->ripB = WMCreateCommandButton(panel->texF);
-	WMResizeWidget(panel->ripB, 57, 39);
-	WMMoveWidget(panel->ripB, 7, 72);
+	WMResizeWidget(panel->ripB, WMScaled(57), WMScaled(39));
+	WMMoveWidget(panel->ripB, WMScaled(7), WMScaled(72));
 	WMSetButtonFont(panel->ripB, font);
 	WMSetButtonImagePosition(panel->ripB, WIPAbove);
 	WMSetButtonText(panel->ripB, _("Extract..."));
@@ -1949,8 +2110,8 @@ static void createPanel(Panel * p)
 	WMSetButtonEnabled(panel->ripB, False);
 
 	panel->editB = WMCreateCommandButton(panel->texF);
-	WMResizeWidget(panel->editB, 57, 39);
-	WMMoveWidget(panel->editB, 7, 111);
+	WMResizeWidget(panel->editB, WMScaled(57), WMScaled(39));
+	WMMoveWidget(panel->editB, WMScaled(7), WMScaled(111));
 	WMSetButtonFont(panel->editB, font);
 	WMSetButtonImagePosition(panel->editB, WIPAbove);
 	WMSetButtonText(panel->editB, _("Edit"));
@@ -1959,8 +2120,8 @@ static void createPanel(Panel * p)
 	WMSetBalloonTextForView(_("Edit the highlighted texture."), WMWidgetView(panel->editB));
 
 	panel->delB = WMCreateCommandButton(panel->texF);
-	WMResizeWidget(panel->delB, 57, 38);
-	WMMoveWidget(panel->delB, 7, 150);
+	WMResizeWidget(panel->delB, WMScaled(57), WMScaled(38));
+	WMMoveWidget(panel->delB, WMScaled(7), WMScaled(150));
 	WMSetButtonFont(panel->delB, font);
 	WMSetButtonImagePosition(panel->delB, WIPAbove);
 	WMSetButtonText(panel->delB, _("Delete"));
@@ -1984,8 +2145,8 @@ static void createPanel(Panel * p)
 	WMAddItemInTabView(panel->tabv, item);
 
 	panel->colP = WMCreatePopUpButton(panel->colF);
-	WMResizeWidget(panel->colP, 228, 20);
-	WMMoveWidget(panel->colP, 7, 7);
+	WMResizeWidget(panel->colP, WMScaled(228), WMScaled(20));
+	WMMoveWidget(panel->colP, WMScaled(7), WMScaled(7));
 
 	for (i = 0; i < wlengthof(colorOptions); i++)
 		WMAddPopUpButtonItem(panel->colP, _(colorOptions[i].label));
@@ -1995,8 +2156,8 @@ static void createPanel(Panel * p)
 	WMSetPopUpButtonAction(panel->colP, changeColorPage, panel);
 
 	panel->colW = WMCreateColorWell(panel->colF);
-	WMResizeWidget(panel->colW, 65, 50);
-	WMMoveWidget(panel->colW, 30, 75);
+	WMResizeWidget(panel->colW, WMScaled(65), WMScaled(50));
+	WMMoveWidget(panel->colW, WMScaled(30), WMScaled(75));
 	WMAddNotificationObserver(colorWellObserver, panel, WMColorWellDidChangeNotification, panel->colW);
 
 	{ /* Distribute the color samples regularly in the right half */
@@ -2040,8 +2201,8 @@ static void createPanel(Panel * p)
 	WMAddItemInTabView(panel->tabv, item);
 
 	panel->mstyF = WMCreateFrame(panel->optF);
-	WMResizeWidget(panel->mstyF, 215, 85);
-	WMMoveWidget(panel->mstyF, 15, 10);
+	WMResizeWidget(panel->mstyF, WMScaled(215), WMScaled(85));
+	WMMoveWidget(panel->mstyF, WMScaled(15), WMScaled(10));
 	WMSetFrameTitle(panel->mstyF, _("Menu Style"));
 
 	for (i = 0; i < wlengthof(menu_style); i++) {
@@ -2049,8 +2210,8 @@ static void createPanel(Panel * p)
 		char *path;
 
 		panel->mstyB[i] = WMCreateButton(panel->mstyF, WBTOnOff);
-		WMResizeWidget(panel->mstyB[i], 54, 54);
-		WMMoveWidget(panel->mstyB[i], 15 + i * 65, 20);
+		WMResizeWidget(panel->mstyB[i], WMScaled(54), WMScaled(54));
+		WMMoveWidget(panel->mstyB[i], WMScaled(15) + i * WMScaled(65), WMScaled(20));
 		WMSetButtonImagePosition(panel->mstyB[i], WIPImageOnly);
 		WMSetButtonAction(panel->mstyB[i], menuStyleCallback, panel);
 		path = LocateImage(menu_style[i].file_name);
@@ -2071,16 +2232,16 @@ static void createPanel(Panel * p)
 	WMMapSubwidgets(panel->mstyF);
 
 	panel->taliF = WMCreateFrame(panel->optF);
-	WMResizeWidget(panel->taliF, 110, 80);
-	WMMoveWidget(panel->taliF, 15, 100);
+	WMResizeWidget(panel->taliF, WMScaled(110), WMScaled(80));
+	WMMoveWidget(panel->taliF, WMScaled(15), WMScaled(100));
 	WMSetFrameTitle(panel->taliF, _("Title Alignment"));
 
 	for (i = 0; i < wlengthof(wintitle_align); i++) {
 		panel->taliB[i] = WMCreateRadioButton(panel->taliF);
 		WMSetButtonAction(panel->taliB[i], titleAlignCallback, panel);
 		WMSetButtonText(panel->taliB[i], _(wintitle_align[i].label));
-		WMResizeWidget(panel->taliB[i], 90, 18);
-		WMMoveWidget(panel->taliB[i], 10, 15 + 20 * i);
+		WMResizeWidget(panel->taliB[i], WMScaled(90), WMScaled(18));
+		WMMoveWidget(panel->taliB[i], WMScaled(10), WMScaled(15) + WMScaled(20) * i);
 	}
 	WMGroupButtons(panel->taliB[0], panel->taliB[1]);
 	WMGroupButtons(panel->taliB[0], panel->taliB[2]);
@@ -2308,12 +2469,12 @@ static void OpenExtractPanelFor(_Panel *panel)
 	epanel = wmalloc(sizeof(ExtractPanel));
 	epanel->win = WMCreatePanelWithStyleForWindow(panel->parent, "extract",
 						      WMTitledWindowMask | WMClosableWindowMask);
-	WMResizeWidget(epanel->win, 245, 250);
+	WMResizeWidget(epanel->win, WMScaled(245), WMScaled(250));
 	WMSetWindowTitle(epanel->win, _("Extract Texture"));
 
 	epanel->label = WMCreateLabel(epanel->win);
-	WMResizeWidget(epanel->label, 225, 18);
-	WMMoveWidget(epanel->label, 10, 10);
+	WMResizeWidget(epanel->label, WMScaled(225), WMScaled(18));
+	WMMoveWidget(epanel->label, WMScaled(10), WMScaled(10));
 	WMSetLabelTextAlignment(epanel->label, WACenter);
 	WMSetLabelRelief(epanel->label, WRSunken);
 
@@ -2332,17 +2493,17 @@ static void OpenExtractPanelFor(_Panel *panel)
 	WMSetLabelText(epanel->label, _("Textures"));
 
 	epanel->list = WMCreateList(epanel->win);
-	WMResizeWidget(epanel->list, 225, 165);
-	WMMoveWidget(epanel->list, 10, 30);
+	WMResizeWidget(epanel->list, WMScaled(225), WMScaled(165));
+	WMMoveWidget(epanel->list, WMScaled(10), WMScaled(30));
 
 	epanel->closeB = WMCreateCommandButton(epanel->win);
-	WMResizeWidget(epanel->closeB, 74, 24);
-	WMMoveWidget(epanel->closeB, 165, 215);
+	WMResizeWidget(epanel->closeB, WMScaled(74), WMScaled(24));
+	WMMoveWidget(epanel->closeB, WMScaled(165), WMScaled(215));
 	WMSetButtonText(epanel->closeB, _("Close"));
 
 	epanel->extrB = WMCreateCommandButton(epanel->win);
-	WMResizeWidget(epanel->extrB, 74, 24);
-	WMMoveWidget(epanel->extrB, 80, 215);
+	WMResizeWidget(epanel->extrB, WMScaled(74), WMScaled(24));
+	WMMoveWidget(epanel->extrB, WMScaled(80), WMScaled(215));
 	WMSetButtonText(epanel->extrB, _("Extract"));
 
 	WMMapSubwidgets(epanel->win);

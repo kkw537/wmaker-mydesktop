@@ -16,8 +16,8 @@ typedef struct W_Frame {
 
 #define DEFAULT_RELIEF 	WRGroove
 #define DEFAULT_TITLE_POSITION	WTPAtTop
-#define DEFAULT_WIDTH		40
-#define DEFAULT_HEIGHT		40
+#define DEFAULT_WIDTH		WMScaled(40)
+#define DEFAULT_HEIGHT		WMScaled(40)
 
 static void destroyFrame(Frame * fPtr);
 static void paintFrame(Frame * fPtr);
@@ -86,7 +86,7 @@ static void paintFrame(Frame * fPtr)
 	switch (fPtr->flags.titlePosition) {
 	case WTPAboveTop:
 		ty = 0;
-		fy = th + 4;
+		fy = th + WMScaled(4);
 		fh = view->size.height - fy;
 		break;
 
@@ -97,13 +97,13 @@ static void paintFrame(Frame * fPtr)
 		break;
 
 	case WTPBelowTop:
-		ty = 4;
+		ty = WMScaled(4);
 		fy = 0;
 		fh = view->size.height;
 		break;
 
 	case WTPAboveBottom:
-		ty = view->size.height - th - 4;
+		ty = view->size.height - th - WMScaled(4);
 		fy = 0;
 		fh = view->size.height;
 		break;
@@ -117,7 +117,7 @@ static void paintFrame(Frame * fPtr)
 	case WTPBelowBottom:
 		ty = view->size.height - th;
 		fy = 0;
-		fh = view->size.height - th - 4;
+		fh = view->size.height - th - WMScaled(4);
 		break;
 
 	default:

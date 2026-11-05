@@ -39,8 +39,8 @@ typedef struct W_PopUpButton {
 
 #define SCROLL_DELAY		10
 
-#define DEFAULT_WIDTH	60
-#define DEFAULT_HEIGHT 	20
+#define DEFAULT_WIDTH	WMScaled(60)
+#define DEFAULT_HEIGHT 	WMScaled(20)
 #define DEFAULT_CAPTION	""
 
 static void destroyPopUpButton(PopUpButton * bPtr);
@@ -83,7 +83,7 @@ WMPopUpButton *WMCreatePopUpButton(WMWidget * parent)
 
 	bPtr->menuView = W_CreateUnmanagedTopView(scr);
 
-	W_ResizeView(bPtr->menuView, bPtr->view->size.width, 1);
+	W_ResizeView(bPtr->menuView, bPtr->view->size.width, WMScaled(1));
 
 	WMCreateEventHandler(bPtr->menuView, ButtonPressMask | ButtonReleaseMask
 			     | EnterWindowMask | LeaveWindowMask | ButtonMotionMask
@@ -327,7 +327,7 @@ static void paintPopUpButton(PopUpButton * bPtr)
 	W_DrawRelief(scr, pixmap, 0, 0, bPtr->view->size.width, bPtr->view->size.height, WRRaised);
 
 	if (caption) {
-		W_PaintText(bPtr->view, pixmap, scr->normalFont, 6,
+		W_PaintText(bPtr->view, pixmap, scr->normalFont, WMScaled(6),
 			    (bPtr->view->size.height - WMFontHeight(scr->normalFont)) / 2,
 			    bPtr->view->size.width, WALeft,
 			    bPtr->flags.enabled ? scr->black : scr->darkGray, False, caption, strlen(caption));
@@ -337,12 +337,12 @@ static void paintPopUpButton(PopUpButton * bPtr)
 		XCopyArea(scr->display, scr->pullDownIndicator->pixmap,
 			  pixmap, scr->copyGC, 0, 0, scr->pullDownIndicator->width,
 			  scr->pullDownIndicator->height,
-			  bPtr->view->size.width - scr->pullDownIndicator->width - 4,
+			  bPtr->view->size.width - scr->pullDownIndicator->width - WMScaled(4),
 			  (bPtr->view->size.height - scr->pullDownIndicator->height) / 2);
 	} else {
 		int x, y;
 
-		x = bPtr->view->size.width - scr->popUpIndicator->width - 4;
+		x = bPtr->view->size.width - scr->popUpIndicator->width - WMScaled(4);
 		y = (bPtr->view->size.height - scr->popUpIndicator->height) / 2;
 
 		XSetClipOrigin(scr->display, scr->clipGC, x, y);
@@ -397,20 +397,20 @@ static void paintMenuEntry(PopUpButton * bPtr, int index, int highlight)
 	}
 
 	XFillRectangle(scr->display, bPtr->menuView->window, WMColorGC(scr->white),
-		       1, index * itemHeight + 1, width - 3, itemHeight - 3);
+		       WMScaled(1), index * itemHeight + WMScaled(1), width - WMScaled(3), itemHeight - WMScaled(3));
 
 	title = WMGetPopUpButtonItem(bPtr, index);
 
 	W_DrawRelief(scr, bPtr->menuView->window, 0, index * itemHeight, width, itemHeight, WRRaised);
 
-	W_PaintText(bPtr->menuView, bPtr->menuView->window, scr->normalFont, 6,
+	W_PaintText(bPtr->menuView, bPtr->menuView->window, scr->normalFont, WMScaled(6),
 		    index * itemHeight + yo, width, WALeft, scr->black, False, title, strlen(title));
 
 	if (!bPtr->flags.pullsDown && index == bPtr->selectedItemIndex) {
 		XCopyArea(scr->display, scr->popUpIndicator->pixmap,
 			  bPtr->menuView->window, scr->copyGC, 0, 0,
 			  scr->popUpIndicator->width, scr->popUpIndicator->height,
-			  width - scr->popUpIndicator->width - 4,
+			  width - scr->popUpIndicator->width - WMScaled(4),
 			  index * itemHeight + (itemHeight - scr->popUpIndicator->height) / 2);
 	}
 }
@@ -447,14 +447,14 @@ static Pixmap makeMenuPixmap(PopUpButton * bPtr)
 		else
 			color = scr->black;
 
-		W_PaintText(bPtr->menuView, pixmap, scr->normalFont, 6,
+		W_PaintText(bPtr->menuView, pixmap, scr->normalFont, WMScaled(6),
 			    i * itemHeight + yo, width, WALeft, color, False, text, strlen(text));
 
 		if (!bPtr->flags.pullsDown && i == bPtr->selectedItemIndex) {
 			XCopyArea(scr->display, scr->popUpIndicator->pixmap, pixmap,
 				  scr->copyGC, 0, 0, scr->popUpIndicator->width,
 				  scr->popUpIndicator->height,
-				  width - scr->popUpIndicator->width - 4,
+				  width - scr->popUpIndicator->width - WMScaled(4),
 				  i * itemHeight + (itemHeight - scr->popUpIndicator->height) / 2);
 		}
 
@@ -528,18 +528,18 @@ static void autoScroll(void *data)
 	    && bPtr->menuView->pos.y + bPtr->menuView->size.height >= scrHeight - 1) {
 		repeat = 1;
 
-		if (bPtr->menuView->pos.y + bPtr->menuView->size.height - 5 <= scrHeight - 1) {
+		if (bPtr->menuView->pos.y + bPtr->menuView->size.height - WMScaled(5) <= scrHeight - 1) {
 			dy = scrHeight - 1 - (bPtr->menuView->pos.y + bPtr->menuView->size.height);
 		} else
-			dy = -5;
+			dy = -WMScaled(5);
 
 	} else if (bPtr->scrollStartY <= 1 && bPtr->menuView->pos.y < 1) {
 		repeat = 1;
 
-		if (bPtr->menuView->pos.y + 5 > 1)
+		if (bPtr->menuView->pos.y + WMScaled(5) > 1)
 			dy = 1 - bPtr->menuView->pos.y;
 		else
-			dy = 5;
+			dy = WMScaled(5);
 	}
 
 	if (repeat) {

@@ -22,8 +22,8 @@ typedef struct W_Box {
 	unsigned horizontal:1;
 } Box;
 
-#define DEFAULT_WIDTH		40
-#define DEFAULT_HEIGHT		40
+#define DEFAULT_WIDTH		WMScaled(40)
+#define DEFAULT_HEIGHT		WMScaled(40)
 
 static void destroyBox(Box * bPtr);
 

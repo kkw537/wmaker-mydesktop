@@ -263,7 +263,7 @@ void ShowDockAppSettingsPanel(WAppIcon * aicon)
 	WMSetLabelImagePosition(panel->iconLabel, WIPImageOnly);
 
 	panel->nameLabel = WMCreateLabel(panel->win);
-	font = WMBoldSystemFontOfSize(scr->wmscreen, WMScaleY(14));
+	font = WMBoldSystemFontOfSize(scr->wmscreen, WMUnscaled(WMScaleY(14)));
 	WMResizeWidget(panel->nameLabel, WMScaleX(190), WMScaleY(18));
 	WMMoveWidget(panel->nameLabel, 2 * WMScaleX(10) + iconSize, WMScaleY(10) + ((iconSize - WMFontHeight(font)) / 2));
 	WMSetLabelTextAlignment(panel->nameLabel, WALeft);
@@ -368,7 +368,7 @@ void ShowDockAppSettingsPanel(WAppIcon * aicon)
 		panel->cancelBtn = WMCreateCommandButton(hbox);
 		WMSetButtonText(panel->cancelBtn, _("Cancel"));
 		WMSetButtonAction(panel->cancelBtn, panelBtnCallback, panel);
-		WMAddBoxSubviewAtEnd(hbox, WMWidgetView(panel->cancelBtn), False, True, WMScaleX(80), WMScaleX(80), 5);
+		WMAddBoxSubviewAtEnd(hbox, WMWidgetView(panel->cancelBtn), False, True, WMScaleX(80), WMScaleX(80), WMScaleX(5));
 
 		WMMapSubwidgets(hbox);
 	}

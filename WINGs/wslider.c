@@ -76,13 +76,13 @@ WMSlider *WMCreateSlider(WMWidget * parent)
 	WMCreateEventHandler(sPtr->view, ButtonPressMask | ButtonReleaseMask
 			     | EnterWindowMask | LeaveWindowMask | ButtonMotionMask, handleActionEvents, sPtr);
 
-	W_ResizeView(sPtr->view, 100, 16);
+	W_ResizeView(sPtr->view, WMScaled(100), WMScaled(16));
 	sPtr->flags.vertical = 0;
 	sPtr->minValue = 0;
 	sPtr->maxValue = 100;
 	sPtr->value = 50;
 
-	sPtr->knobThickness = 20;
+	sPtr->knobThickness = WMScaled(20);
 
 	sPtr->flags.continuous = 1;
 
@@ -200,51 +200,51 @@ static void makeKnobPixmap(Slider * sPtr)
 	int w, h;
 
 	if (sPtr->flags.vertical) {
-		w = sPtr->view->size.width - 2;
+		w = sPtr->view->size.width - WMScaled(2);
 		h = sPtr->knobThickness;
 	} else {
 		w = sPtr->knobThickness;
-		h = sPtr->view->size.height - 2;
+		h = sPtr->view->size.height - WMScaled(2);
 	}
 
 	pix = XCreatePixmap(scr->display, sPtr->view->window, w, h, scr->depth);
 	XFillRectangle(scr->display, pix, WMColorGC(scr->gray), 0, 0, w, h);
 
-	if (sPtr->knobThickness < 10) {
+	if (sPtr->knobThickness < WMScaled(10)) {
 		W_DrawRelief(scr, pix, 0, 0, w, h, WRRaised);
 	} else if (sPtr->flags.vertical) {
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 0, 0, 0, h - 3);
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 1, 0, 1, h - 3);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w - 2, 1, w - 2, h / 2 - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w - 2, h / 2, w - 2, h - 2);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), 0, 0, 0, h - WMScaled(3));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), WMScaled(1), 0, WMScaled(1), h - WMScaled(3));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w - WMScaled(2), WMScaled(1), w - WMScaled(2), h / 2 - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w - WMScaled(2), h / 2, w - WMScaled(2), h - WMScaled(2));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 0, 0, w - 2, 0);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), 1, h / 2 - 2, w - 3, h / 2 - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 0, h / 2 - 1, w - 3, h / 2 - 1);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), 0, 0, w - WMScaled(2), 0);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), WMScaled(1), h / 2 - WMScaled(2), w - WMScaled(3), h / 2 - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), 0, h / 2 - WMScaled(1), w - WMScaled(3), h / 2 - WMScaled(1));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->black), w - 1, 0, w - 1, h - 2);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->black), w - WMScaled(1), 0, w - WMScaled(1), h - WMScaled(2));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), 0, h - 3, w - 2, h - 3);
-		XDrawLine(scr->display, pix, WMColorGC(scr->black), 0, h - 2, w - 1, h - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), 0, h - 1, w - 1, h - 1);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), 0, h - WMScaled(3), w - WMScaled(2), h - WMScaled(3));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->black), 0, h - WMScaled(2), w - WMScaled(1), h - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), 0, h - WMScaled(1), w - WMScaled(1), h - WMScaled(1));
 	} else {
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 0, 0, w - 3, 0);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), 0, 0, w - WMScaled(3), 0);
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 0, 0, 0, h - 2);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), 0, 0, 0, h - WMScaled(2));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), 1, 0, 1, h - 3);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w / 2 - 2, 1, w / 2 - 2, h - 3);
-		XDrawLine(scr->display, pix, WMColorGC(scr->white), w / 2 - 1, 0, w / 2 - 1, h - 3);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), WMScaled(1), 0, WMScaled(1), h - WMScaled(3));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w / 2 - WMScaled(2), WMScaled(1), w / 2 - WMScaled(2), h - WMScaled(3));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->white), w / 2 - WMScaled(1), 0, w / 2 - WMScaled(1), h - WMScaled(3));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w - 3, 0, w - 3, h - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->black), w - 2, 0, w - 2, h - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w - 1, 0, w - 1, h - 1);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w - WMScaled(3), 0, w - WMScaled(3), h - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->black), w - WMScaled(2), 0, w - WMScaled(2), h - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w - WMScaled(1), 0, w - WMScaled(1), h - WMScaled(1));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->black), 1, h - 1, w / 2 + 1, h - 1);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), 1, h - 2, w / 2 - 2, h - 2);
-		XDrawLine(scr->display, pix, WMColorGC(scr->darkGray), w / 2, h - 2, w - 3, h - 2);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->black), WMScaled(1), h - WMScaled(1), w / 2 + WMScaled(1), h - WMScaled(1));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), WMScaled(1), h - WMScaled(2), w / 2 - WMScaled(2), h - WMScaled(2));
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->darkGray), w / 2, h - WMScaled(2), w - WMScaled(3), h - WMScaled(2));
 
-		XDrawLine(scr->display, pix, WMColorGC(scr->black), 0, h - 1, w - 2, h - 1);
+		W_DrawScaledLine(scr, pix, WMColorGC(scr->black), 0, h - WMScaled(1), w - WMScaled(2), h - WMScaled(1));
 	}
 
 	if (sPtr->knobPixmap)
@@ -303,29 +303,29 @@ static void paintSlider(Slider * sPtr)
 		WMSize size = WMGetPixmapSize(sPtr->backPixmap);
 
 		XCopyArea(scr->display, WMGetPixmapXID(sPtr->backPixmap),
-			  buffer, scr->copyGC, 0, 0, size.width, size.height, 1, 1);
+			  buffer, scr->copyGC, 0, 0, size.width, size.height, WMScaled(1), WMScaled(1));
 	} else {
 		XFillRectangle(scr->display, buffer, lgc, 0, 0, size.width, size.height);
 		XFillRectangle(scr->display, buffer, scr->stippleGC, 0, 0, size.width, size.height);
 	}
 
 	if (sPtr->flags.vertical) {
-		pos = (size.height - 2 - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV) + 1;
+		pos = (size.height - WMScaled(2) - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV) + WMScaled(1);
 		/* draw knob */
 		XCopyArea(scr->display, sPtr->knobPixmap, buffer,
-			  scr->copyGC, 0, 0, size.width - 2, sPtr->knobThickness, 1, pos);
+			  scr->copyGC, 0, 0, size.width - WMScaled(2), sPtr->knobThickness, WMScaled(1), pos);
 	} else {
-		pos = (size.width - 2 - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV) + 1;
+		pos = (size.width - WMScaled(2) - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV) + WMScaled(1);
 		/* draw knob */
 		XCopyArea(scr->display, sPtr->knobPixmap, buffer,
-			  scr->copyGC, 0, 0, sPtr->knobThickness, size.height, pos, 1);
+			  scr->copyGC, 0, 0, sPtr->knobThickness, size.height, pos, WMScaled(1));
 	}
 
-	XDrawLine(scr->display, buffer, bgc, 0, 0, 0, size.height - 1);
-	XDrawLine(scr->display, buffer, bgc, 0, 0, size.width, 0);
+	W_DrawScaledLine(scr, buffer, bgc, 0, 0, 0, size.height - WMScaled(1));
+	W_DrawScaledLine(scr, buffer, bgc, 0, 0, size.width, 0);
 
-	XDrawLine(scr->display, buffer, wgc, size.width - 1, 0, size.width - 1, size.height - 1);
-	XDrawLine(scr->display, buffer, wgc, 0, size.height - 1, size.width - 1, size.height - 1);
+	W_DrawScaledLine(scr, buffer, wgc, size.width - WMScaled(1), 0, size.width - WMScaled(1), size.height - WMScaled(1));
+	W_DrawScaledLine(scr, buffer, wgc, 0, size.height - WMScaled(1), size.width - WMScaled(1), size.height - WMScaled(1));
 
 	XCopyArea(scr->display, buffer, sPtr->view->window, scr->copyGC, 0, 0, size.width, size.height, 0, 0);
 	XFreePixmap(scr->display, buffer);
@@ -363,7 +363,7 @@ static int getSliderPart(Slider * sPtr, int x, int y)
 
 	if (sPtr->flags.vertical) {
 		p = y;
-		pos = (size.height - 2 - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV);
+		pos = (size.height - WMScaled(2) - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV);
 		if (p < pos)
 			return INCR_PART;
 		if (p > pos + sPtr->knobThickness)
@@ -371,7 +371,7 @@ static int getSliderPart(Slider * sPtr, int x, int y)
 		return KNOB_PART;
 	} else {
 		p = x;
-		pos = (size.width - 2 - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV);
+		pos = (size.width - WMScaled(2) - sPtr->knobThickness) * (POSV - MINV) / (MAXV - MINV);
 		if (p < pos)
 			return DECR_PART;
 		if (p > pos + sPtr->knobThickness)
@@ -387,10 +387,10 @@ static int valueForMousePoint(Slider * sPtr, int x, int y)
 
 	if (sPtr->flags.vertical) {
 		f = (y - sPtr->knobThickness / 2) * (MAXV - MINV)
-		    / ((int)size.height - 2 - sPtr->knobThickness);
+		    / ((int)size.height - WMScaled(2) - sPtr->knobThickness);
 	} else {
 		f = (x - sPtr->knobThickness / 2) * (MAXV - MINV)
-		    / ((int)size.width - 2 - sPtr->knobThickness);
+		    / ((int)size.width - WMScaled(2) - sPtr->knobThickness);
 	}
 
 	f += sPtr->minValue;

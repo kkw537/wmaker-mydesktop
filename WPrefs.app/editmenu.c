@@ -195,17 +195,25 @@ static void paintEditMenuItem(WEditMenuItem * iPtr)
 
 	W_DrawRelief(scr, win, 0, 0, w + 1, h, WRRaised);
 
-	WMDrawString(scr, win, color, font, 5, 3, iPtr->label, strlen(iPtr->label));
+	WMDrawString(scr, win, color, font, WMScaled(5), WMScaled(3), iPtr->label, strlen(iPtr->label));
 
 	if (iPtr->pixmap) {
 		WMSize size = WMGetPixmapSize(iPtr->pixmap);
 
-		WMDrawPixmap(iPtr->pixmap, win, w - size.width - 5, (h - size.height) / 2);
+		WMDrawPixmap(iPtr->pixmap, win, w - size.width - WMScaled(5), (h - size.height) / 2);
 	} else if (iPtr->submenu) {
-		/* draw the cascade indicator */
-		XDrawLine(scr->display, win, WMColorGC(scr->darkGray), w - 11, 6, w - 6, h / 2 - 1);
-		XDrawLine(scr->display, win, WMColorGC(scr->white), w - 11, h - 8, w - 6, h / 2 - 1);
-		XDrawLine(scr->display, win, WMColorGC(scr->black), w - 12, 6, w - 12, h - 8);
+		/* draw the cascade indicator, with WMScaled(1) thick lines */
+		int t = WMScaled(1);
+		int i;
+
+		for (i = 0; i < t; i++) {
+			XDrawLine(scr->display, win, WMColorGC(scr->darkGray),
+				  w - WMScaled(11) + i, WMScaled(6), w - WMScaled(6) + i, h / 2 - t);
+			XDrawLine(scr->display, win, WMColorGC(scr->white),
+				  w - WMScaled(11) + i, h - WMScaled(8), w - WMScaled(6) + i, h / 2 - t);
+		}
+		XFillRectangle(scr->display, win, WMColorGC(scr->black), w - WMScaled(12), WMScaled(6),
+			       t, h - WMScaled(8) - WMScaled(6) + t);
 	}
 }
 
@@ -411,8 +419,8 @@ static WEditMenu *makeEditMenu(WMScreen * scr, WMWidget * parent, const char *ti
 		mPtr->flags.isTitled = 1;
 	}
 
-	mPtr->itemHeight = WMFontHeight(scr->normalFont) + 6;
-	mPtr->titleHeight = WMFontHeight(scr->boldFont) + 8;
+	mPtr->itemHeight = WMFontHeight(scr->normalFont) + WMScaled(6);
+	mPtr->titleHeight = WMFontHeight(scr->boldFont) + WMScaled(8);
 
 	updateMenuContents(mPtr);
 
@@ -591,8 +599,8 @@ void WTearOffEditMenu(WEditMenu * menu, WEditMenu * submenu)
 	item = (WEditMenuItem *) WMGetFromArray(submenu->items, 0);
 
 	submenu->closeB = WMCreateCommandButton(item);
-	WMResizeWidget(submenu->closeB, 15, 15);
-	WMMoveWidget(submenu->closeB, W_VIEW(submenu)->size.width - 20, 3);
+	WMResizeWidget(submenu->closeB, WMScaled(15), WMScaled(15));
+	WMMoveWidget(submenu->closeB, W_VIEW(submenu)->size.width - WMScaled(20), WMScaled(3));
 	WMRealizeWidget(submenu->closeB);
 	WMSetButtonText(submenu->closeB, "X");
 	WMSetButtonAction(submenu->closeB, closeMenuAction, submenu);
@@ -669,7 +677,7 @@ static void updateMenuContents(WEditMenu * mPtr)
 	int w;
 	int i;
 	int iheight = mPtr->itemHeight;
-	int offs = 1;
+	int offs = WMScaled(1);	/* width of the menu border */
 	WMArrayIterator iter;
 	WEditMenuItem *item;
 
@@ -691,8 +699,8 @@ static void updateMenuContents(WEditMenu * mPtr)
 		i = 1;
 	}
 
-	newW += iheight + 10;
-	newH--;
+	newW += iheight + WMScaled(10);
+	newH -= offs;
 
 	if (mPtr->minSize.width)
 		newW = WMAX(newW, mPtr->minSize.width);
@@ -704,13 +712,13 @@ static void updateMenuContents(WEditMenu * mPtr)
 	if (mPtr->maxSize.height)
 		newH = WMIN(newH, mPtr->maxSize.height);
 
-	if (W_VIEW(mPtr)->size.width == newW && mPtr->view->size.height == newH + 1)
+	if (W_VIEW(mPtr)->size.width == newW && mPtr->view->size.height == newH + offs)
 		return;
 
-	W_ResizeView(mPtr->view, newW, newH + 1);
+	W_ResizeView(mPtr->view, newW, newH + offs);
 
 	if (mPtr->closeB)
-		WMMoveWidget(mPtr->closeB, newW - 20, 3);
+		WMMoveWidget(mPtr->closeB, newW - WMScaled(20), WMScaled(3));
 
 	newW -= 2 * offs;
 
@@ -1005,7 +1013,7 @@ static void handleDragOver(WEditMenu *menu, WMView *view, WEditMenuItem *item, i
 
 	XTranslateCoordinates(scr->display, W_VIEW_DRAWABLE(menu->view), scr->rootWin, 0, 0, &mx, &my, &blaw);
 
-	offs = menu->flags.standalone ? 0 : 1;
+	offs = menu->flags.standalone ? 0 : WMScaled(1);
 
 	W_MoveView(view, mx + offs, y);
 	if (view->size.width != menu->view->size.width) {
@@ -1319,8 +1327,8 @@ static void handleItemClick(XEvent * event, void *data)
 
 	case MotionNotify:
 		if (menu->flags.isDragging) {
-			if (abs(event->xbutton.x_root - menu->dragX) > 5
-			    || abs(event->xbutton.y_root - menu->dragY) > 5) {
+			if (abs(event->xbutton.x_root - menu->dragX) > WMScaled(5)
+			    || abs(event->xbutton.y_root - menu->dragY) > WMScaled(5)) {
 				menu->flags.isDragging = 0;
 				dragItem(menu, item, event->xbutton.state & ControlMask);
 			}

@@ -220,7 +220,8 @@ void slide_windows(Window wins[], int n, int from_x, int from_y, int to_x, int t
 	};
 
 	slide_slowdown = apars[(int)wPreferences.icon_slide_speed].slowdown;
-	slide_steps = apars[(int)wPreferences.icon_slide_speed].steps;
+	/* minimum step, in pixels */
+	slide_steps = WMScaled(apars[(int)wPreferences.icon_slide_speed].steps);
 	slide_delay = apars[(int)wPreferences.icon_slide_speed].delay;
 
 	dx_int = to_x - from_x;
