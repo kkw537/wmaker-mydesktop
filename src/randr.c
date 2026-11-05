@@ -26,6 +26,7 @@
 #include <X11/Xlib.h>
 
 #include "randr.h"
+#include "animation.h"
 #include "window.h"
 #include "framewin.h"
 #include "xinerama.h"
@@ -615,6 +616,9 @@ void wRandRHandleNotify(WScreen *scr, XEvent *event)
 
     if (event->type == (w_global.xext.randr.event_base + RRScreenChangeNotify))
         XRRUpdateConfiguration(event);
+
+    /* a monitor may have changed its refresh rate */
+    wAnimationResetFrameRate();
 
     /* Debounce: cancel any pending timer, then restart it */
     if (scr->randr_debounce_timer) {
