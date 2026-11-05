@@ -3,20 +3,47 @@ icondatadir = $(pkgdatadir)/Icons
 
 
 icondata_DATA = \
+	Ant.xpm\
+	Antennae.xpm\
+	Bee48x48.xpm\
+	Beer.xpm\
+	Bird.xpm\
 	BitchX.tiff\
 	BitchX.xpm\
+	bomb2.xpm\
+	Book.xpm\
+	Bookshelf.xpm\
+	Brain.xpm\
+	BulletHole.xpm\
+	CashRegister.xpm\
 	clip.tiff\
 	clip.xpm\
+	Clipboard.xpm\
+	Cola.xpm\
+	ColorGNU.xpm\
+	Correspondence.dir.xpm\
+	CrystalSkull.dir.xpm\
+	Daemon.xpm\
 	defaultAppIcon.tiff\
 	defaultAppIcon.xpm\
 	defaultterm.tiff\
 	defaultterm.xpm\
+	Detergent.dir.xpm\
+	DoomII.xpm\
 	draw.tiff\
 	draw.xpm\
+	Draw.xpm\
 	Drawer.xpm\
 	Drawer.tiff\
 	Ear.png\
+	EscherCube.xpm\
+	EscherTriangle.xpm\
+	Fish5.dir.xpm\
+	Football.xpm\
+	FootballUS.xpm\
 	Ftp.png\
+	Gear.xpm\
+	Ghost.xpm\
 	GNUstep3D.tiff\
 	GNUstep3D.xpm\
 	GNUstepGlow.tiff\
@@ -26,45 +53,79 @@ icondata_DATA = \
 	GNUterm.tiff\
 	GNUterm.xpm\
 	GreenWilber.png\
+	HandOpen.xpm\
+	HandPointing.xpm\
+	HandPointingLeft.xpm\
+	HandPunch.xpm\
+	HandReach.xpm\
+	HeroSandwich.dir.xpm\
+	HP-16C-48.xpm\
 	ICQ.png\
+	inspect.xpm\
 	Jabber.png\
+	LadyBug48x48.xpm\
 	linuxterm.tiff\
 	linuxterm.xpm\
 	Magnify.tiff\
 	Magnify.xpm\
+	Microphone.xpm\
 	mixer.tiff\
 	mixer.xpm\
+	monitor.xpm\
 	Mouth.png\
 	Mozilla.png\
+	Netscape.xpm\
+	NewsAgent.xpm\
 	notepad.tiff\
 	notepad.xpm\
+	Padlock.xpm\
+	Paint.xpm\
+	paint.xpm\
 	pdf.tiff\
 	pdf.xpm\
+	PDF.xpm\
 	Pencil.png\
 	Pen.png\
+	Pencils.24.xpm\
+	Penguin.xpm\
 	ps.tiff\
 	ps.xpm\
+	Radio.xpm\
 	README\
 	Real.png\
 	real.tiff\
 	real.xpm\
+	Reference.xpm\
+	Rumi.xpm\
 	sgiterm.tiff\
 	sgiterm.xpm\
 	Shell.png\
+	Snail.xpm\
 	Speaker.png\
 	staroffice2.tiff\
 	staroffice2.xpm\
+	T2-Film.xpm\
+	TagIcon.xpm\
+	TapeIcon1.xpm\
 	TerminalGNUstep.tiff\
 	TerminalGNUstep.xpm\
 	TerminalLinux.tiff\
 	TerminalLinux.xpm\
 	Terminal.tiff\
 	Terminal.xpm\
+	tile.black.xpm\
+	tile.snow.xpm\
+	tile.xpm\
+	tile2.xpm\
 	timer.tiff\
 	timer.xpm\
+	TrueDie48.xpm\
+	WheelbarrowFull.xpm\
 	wilber.tiff\
 	wilber.xpm\
 	Wine.png\
+	WordEditor.xpm\
+	Wrench-12bit.xpm\
 	write.tiff\
 	write.xpm\
 	XChat.png\
