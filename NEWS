@@ -222,6 +222,16 @@ Clicking the button cycles through up to four keyboard layouts
 this feature.
 
 
+Icons from the WindowMaker-extra package
+----------------------------------------
+
+The 62 icons of the WindowMaker-extra 0.1 data package (Ant, Beer, Book,
+Daemon, Gear, Penguin, Snail, ...) are now installed with Window Maker in
+its Icons directory, so they can be picked in the icon chooser without
+installing that package. Its themes are not included. Its xv.xpm, which
+differs from the one of Window Maker, is installed as xv-extra.xpm.
+
+
 -- 0.96.0
 
 Hot Corners feature
