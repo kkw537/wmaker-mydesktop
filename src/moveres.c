@@ -82,6 +82,131 @@ static Bool checkMouseSamplingRate(XEvent * ev)
 }
 
 /*
+ * The X server does not do save-unders, so the spot the geometry display
+ * moves away from must be redrawn by the windows under it. During an
+ * outline move or resize the server is grabbed and they can't, and a window
+ * without a background (e.g. an OpenGL terminal like kitty) keeps showing
+ * the display there, which leaves a trail of copies of it. Nothing else
+ * draws on the screen while it is grabbed: keep what the display covers and
+ * put it back where the display moves away from.
+ */
+static struct {
+	WScreen *scr;		/* not NULL while it is kept */
+	GC gc;
+	Pixmap pixmap;		/* what the display covers, None if unknown */
+	int x, y;		/* where the display is */
+	int workspace;
+} geometryUnder;
+
+static void keepGeometryDisplayUnder(WScreen * scr, Bool keep)
+{
+	if (geometryUnder.scr) {
+		if (geometryUnder.pixmap != None)
+			XFreePixmap(dpy, geometryUnder.pixmap);
+		XFreeGC(dpy, geometryUnder.gc);
+		geometryUnder.scr = NULL;
+	}
+
+	if (keep) {
+		XGCValues gcv;
+
+		/* copy from and to the screen, over the windows on it */
+		gcv.subwindow_mode = IncludeInferiors;
+		gcv.graphics_exposures = False;
+		geometryUnder.gc = XCreateGC(dpy, scr->root_win, GCSubwindowMode | GCGraphicsExposures, &gcv);
+		geometryUnder.pixmap = None;
+		geometryUnder.scr = scr;
+	}
+}
+
+static void moveGeometryDisplay(WScreen * scr, int x, int y)
+{
+	unsigned int w = WMWidgetWidth(scr->gview);
+	unsigned int h = WMWidgetHeight(scr->gview);
+	Bool mapped = WMWidgetIsMapped(scr->gview);
+	Pixmap under;
+
+	if (geometryUnder.scr != scr) {
+		WMMoveWidget(scr->gview, x, y);
+		return;
+	}
+
+	if (mapped && geometryUnder.pixmap != None
+	    && geometryUnder.x == x && geometryUnder.y == y)
+		return;
+
+	if (mapped && (geometryUnder.pixmap == None || geometryUnder.workspace != scr->current_workspace)) {
+		/* what the display covers is not known (anymore) */
+		if (geometryUnder.pixmap != None)
+			XFreePixmap(dpy, geometryUnder.pixmap);
+		geometryUnder.pixmap = None;
+		WMMoveWidget(scr->gview, x, y);
+		return;
+	}
+
+	under = XCreatePixmap(dpy, scr->root_win, w, h, scr->depth);
+	XCopyArea(dpy, scr->root_win, under, geometryUnder.gc, x, y, w, h, 0, 0);
+
+	if (mapped) {
+		XRectangle rect;
+		Region vacated, covered;
+
+		/* where the new position overlaps the old one the screen shows
+		 * the display itself: take what it covers there from the old copy */
+		XCopyArea(dpy, geometryUnder.pixmap, under, geometryUnder.gc, 0, 0, w, h,
+			  geometryUnder.x - x, geometryUnder.y - y);
+
+		WMMoveWidget(scr->gview, x, y);
+
+		/* put back what it covered where it moved away from */
+		vacated = XCreateRegion();
+		covered = XCreateRegion();
+		rect.x = geometryUnder.x;
+		rect.y = geometryUnder.y;
+		rect.width = w;
+		rect.height = h;
+		XUnionRectWithRegion(&rect, vacated, vacated);
+		rect.x = x;
+		rect.y = y;
+		XUnionRectWithRegion(&rect, covered, covered);
+		XSubtractRegion(vacated, covered, vacated);
+
+		XSetRegion(dpy, geometryUnder.gc, vacated);
+		XCopyArea(dpy, geometryUnder.pixmap, scr->root_win, geometryUnder.gc, 0, 0, w, h,
+			  geometryUnder.x, geometryUnder.y);
+		XSetClipMask(dpy, geometryUnder.gc, None);
+
+		XDestroyRegion(vacated);
+		XDestroyRegion(covered);
+		XFreePixmap(dpy, geometryUnder.pixmap);
+	} else {
+		WMMoveWidget(scr->gview, x, y);
+	}
+
+	geometryUnder.pixmap = under;
+	geometryUnder.x = x;
+	geometryUnder.y = y;
+	geometryUnder.workspace = scr->current_workspace;
+}
+
+static void unmapGeometryDisplay(WScreen * scr)
+{
+	Bool mapped = WMWidgetIsMapped(scr->gview);
+
+	WMUnmapWidget(scr->gview);
+
+	if (mapped && geometryUnder.scr == scr && geometryUnder.pixmap != None
+	    && geometryUnder.workspace == scr->current_workspace)
+		XCopyArea(dpy, geometryUnder.pixmap, scr->root_win, geometryUnder.gc, 0, 0,
+			  WMWidgetWidth(scr->gview), WMWidgetHeight(scr->gview),
+			  geometryUnder.x, geometryUnder.y);
+
+	if (geometryUnder.pixmap != None)
+		XFreePixmap(dpy, geometryUnder.pixmap);
+	geometryUnder.pixmap = None;
+}
+
+/*
  *----------------------------------------------------------------------
  * moveGeometryDisplayCentered
  *
@@ -130,7 +255,7 @@ static void moveGeometryDisplayCentered(WScreen * scr, int x, int y)
 	else if (y > (y2 - h))
 		y = y2 - h;
 
-	WMMoveWidget(scr->gview, x, y);
+	moveGeometryDisplay(scr, x, y);
 }
 
 static void showPosition(WWindow * wwin, int x, int y)
@@ -170,7 +295,7 @@ static void cyclePositionDisplay(WWindow * wwin, int x, int y, int w, int h)
 	}
 
 	if (wPreferences.move_display == WDIS_NONE) {
-		WMUnmapWidget(scr->gview);
+		unmapGeometryDisplay(scr);
 	} else {
 		if (wPreferences.move_display == WDIS_CENTER) {
 			rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
@@ -374,7 +499,7 @@ static void cycleGeometryDisplay(WWindow * wwin, int x, int y, int w, int h, int
 	wPreferences.size_display %= NUM_DISPLAYS;
 
 	if (wPreferences.size_display == WDIS_NEW || wPreferences.size_display == WDIS_NONE) {
-		WMUnmapWidget(scr->gview);
+		unmapGeometryDisplay(scr);
 	} else {
 		if (wPreferences.size_display == WDIS_CENTER) {
 			rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
@@ -1744,6 +1869,9 @@ int wMouseMoveWindow(WWindow * wwin, XEvent * ev)
 
 	initMoveData(wwin, &moveData);
 
+	/* the server is grabbed during an outline move */
+	keepGeometryDisplayUnder(scr, !opaqueMove);
+
 	moveData.mouseX = ev->xmotion.x_root;
 	moveData.mouseY = ev->xmotion.y_root;
 
@@ -2005,6 +2133,8 @@ int wMouseMoveWindow(WWindow * wwin, XEvent * ev)
 
 	freeMoveData(&moveData);
 
+	keepGeometryDisplayUnder(scr, False);
+
 	if (started && wPreferences.auto_arrange_icons && wXineramaHeads(scr) > 1 &&
 	    head != wGetHeadForWindow(wwin)) {
 		wArrangeIcons(scr, True);
@@ -2122,6 +2252,10 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 
 	started = 0;
 	wUnselectWindows(scr);
+
+	/* the server is grabbed during an outline resize */
+	keepGeometryDisplayUnder(scr, !opaqueResize);
+
 	rx1 = fx;
 	rx2 = fx + fw - 1;
 	ry1 = fy;
@@ -2338,6 +2472,7 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 				wwin->moveresize.active = 0;
 			}
 
+			keepGeometryDisplayUnder(scr, False);
 			return;
 
 		default:
