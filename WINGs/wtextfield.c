@@ -86,8 +86,8 @@ typedef struct W_TextField {
 #define WM_EMACSKEY_BS    XK_h
 #define WM_EMACSKEY_DEL   XK_d
 
-#define DEFAULT_WIDTH		60
-#define DEFAULT_HEIGHT		20
+#define DEFAULT_WIDTH		WMScaled(60)
+#define DEFAULT_HEIGHT		WMScaled(20)
 #define DEFAULT_BORDERED	True
 #define DEFAULT_ALIGNMENT	WALeft
 
@@ -324,7 +324,7 @@ WMTextField *WMCreateTextField(WMWidget * parent)
 	tPtr->flags.bordered = DEFAULT_BORDERED;
 	tPtr->flags.beveled = True;
 	tPtr->flags.alignment = DEFAULT_ALIGNMENT;
-	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, 1);
+	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, WMScaled(1));
 
 	W_ResizeView(tPtr->view, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 
@@ -613,7 +613,7 @@ void WMSetTextFieldFont(WMTextField * tPtr, WMFont * font)
 		WMReleaseFont(tPtr->font);
 	tPtr->font = WMRetainFont(font);
 
-	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, 1);
+	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, WMScaled(1));
 
 	if (tPtr->view->flags.realized) {
 		paintTextField(tPtr);
@@ -632,7 +632,7 @@ static void didResizeTextField(W_ViewDelegate * self, WMView * view)
 	/* Parameter not used, but tell the compiler that it is ok */
 	(void) self;
 
-	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, 1);
+	tPtr->offsetWidth = WMAX((tPtr->view->size.height - WMFontHeight(tPtr->font)) / 2, WMScaled(1));
 
 	tPtr->usableWidth = tPtr->view->size.width - 2 * tPtr->offsetWidth;
 }
@@ -665,12 +665,12 @@ static void paintCursor(TextField * tPtr)
 	case WARight:
 		textWidth = WMWidthOfString(tPtr->font, text, tPtr->textLen);
 		if (textWidth < tPtr->usableWidth)
-			cx += tPtr->offsetWidth + tPtr->usableWidth - textWidth + 1;
+			cx += tPtr->offsetWidth + tPtr->usableWidth - textWidth + WMScaled(1);
 		else
-			cx += tPtr->offsetWidth + 1;
+			cx += tPtr->offsetWidth + WMScaled(1);
 		break;
 	case WALeft:
-		cx += tPtr->offsetWidth + 1;
+		cx += tPtr->offsetWidth + WMScaled(1);
 		break;
 	case WAJustified:
 		/* not supported */
@@ -689,8 +689,8 @@ static void paintCursor(TextField * tPtr)
 	   printf("%d %d\n",cx,tPtr->cursorPosition);
 	 */
 
-	XDrawLine(screen->display, tPtr->view->window, screen->xorGC,
-		  cx, tPtr->offsetWidth, cx, tPtr->view->size.height - tPtr->offsetWidth - 1);
+	XFillRectangle(screen->display, tPtr->view->window, screen->xorGC,
+		       cx, tPtr->offsetWidth, WMScaled(1), tPtr->view->size.height - 2 * tPtr->offsetWidth);
 
 	W_SetPreeditPositon(tPtr->view, cx, 0);
 
@@ -708,11 +708,15 @@ static void drawRelief(WMView * view, Bool beveled)
 	GC dgc;
 	int width = view->size.width;
 	int height = view->size.height;
+	int t = WMScaled(1);	/* line thickness */
 
 	dgc = WMColorGC(scr->darkGray);
 
 	if (!beveled) {
-		XDrawRectangle(dpy, view->window, dgc, 0, 0, width - 1, height - 1);
+		XFillRectangle(dpy, view->window, dgc, 0, 0, width, t);
+		XFillRectangle(dpy, view->window, dgc, 0, height - t, width, t);
+		XFillRectangle(dpy, view->window, dgc, 0, 0, t, height);
+		XFillRectangle(dpy, view->window, dgc, width - t, 0, t, height);
 
 		return;
 	}
@@ -720,18 +724,18 @@ static void drawRelief(WMView * view, Bool beveled)
 	lgc = WMColorGC(scr->gray);
 
 	/* top left */
-	XDrawLine(dpy, view->window, dgc, 0, 0, width - 1, 0);
-	XDrawLine(dpy, view->window, dgc, 0, 1, width - 2, 1);
+	XFillRectangle(dpy, view->window, dgc, 0, 0, width, t);
+	XFillRectangle(dpy, view->window, dgc, 0, t, width - t, t);
 
-	XDrawLine(dpy, view->window, dgc, 0, 0, 0, height - 2);
-	XDrawLine(dpy, view->window, dgc, 1, 0, 1, height - 3);
+	XFillRectangle(dpy, view->window, dgc, 0, 0, t, height - t);
+	XFillRectangle(dpy, view->window, dgc, t, 0, t, height - 2 * t);
 
 	/* bottom right */
-	XDrawLine(dpy, view->window, wgc, 0, height - 1, width - 1, height - 1);
-	XDrawLine(dpy, view->window, lgc, 1, height - 2, width - 2, height - 2);
+	XFillRectangle(dpy, view->window, wgc, 0, height - t, width, t);
+	XFillRectangle(dpy, view->window, lgc, t, height - 2 * t, width - 2 * t, t);
 
-	XDrawLine(dpy, view->window, wgc, width - 1, 0, width - 1, height - 1);
-	XDrawLine(dpy, view->window, lgc, width - 2, 1, width - 2, height - 3);
+	XFillRectangle(dpy, view->window, wgc, width - t, 0, t, height);
+	XFillRectangle(dpy, view->window, lgc, width - 2 * t, t, t, height - 3 * t);
 }
 
 static void paintTextField(TextField * tPtr)
@@ -753,7 +757,7 @@ static void paintTextField(TextField * tPtr)
 	if (!tPtr->flags.bordered) {
 		bd = 0;
 	} else {
-		bd = 2;
+		bd = WMScaled(2);
 	}
 
 	if (tPtr->flags.secure) {
@@ -779,7 +783,7 @@ static void paintTextField(TextField * tPtr)
 		ty = tPtr->offsetWidth;
 		switch (tPtr->flags.alignment) {
 		case WALeft:
-			tx = tPtr->offsetWidth + 1;
+			tx = tPtr->offsetWidth + WMScaled(1);
 			if (tw < tPtr->usableWidth)
 				XFillRectangle(screen->display, drawbuffer,
 					       WMColorGC(screen->white),
@@ -795,7 +799,7 @@ static void paintTextField(TextField * tPtr)
 
 		default:
 		case WARight:
-			tx = tPtr->offsetWidth + tPtr->usableWidth - tw - 1;
+			tx = tPtr->offsetWidth + tPtr->usableWidth - tw - WMScaled(1);
 			if (tw < tPtr->usableWidth)
 				XClearArea(screen->display, view->window, bd, bd,
 					   totalWidth - tw, view->size.height - 2 * bd, False);
@@ -1246,7 +1250,7 @@ static int pointToCursorPosition(TextField * tPtr, int x)
 	int a, b, pos, prev, tw;
 
 	if (tPtr->flags.bordered)
-		x -= 2;
+		x -= WMScaled(2);
 
 	if (WMWidthOfString(tPtr->font, &(tPtr->text[tPtr->viewPosition]),
 			    tPtr->textLen - tPtr->viewPosition) <= x)

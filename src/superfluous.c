@@ -39,6 +39,7 @@
 #include "xinerama.h"
 #include "stacking.h"
 
+/* ICON_KABOOM_PIECE_SIZE is in logical pixels */
 #define PIECES ((64/ICON_KABOOM_PIECE_SIZE)*(64/ICON_KABOOM_PIECE_SIZE))
 #define KAB_PRECISION		4
 #define BOUNCE_HZ		25
@@ -55,11 +56,13 @@ void DoKaboom(WScreen * scr, Window win, int x, int y)
 	int i, j, k;
 	int sw = scr->scr_width, sh = scr->scr_height;
 	int px[PIECES];
-	short py[PIECES];
-	char pvx[PIECES], pvy[PIECES];
+	int py[PIECES];
+	int pvx[PIECES], pvy[PIECES];
 	/* in MkLinux/PPC gcc seems to think that char is unsigned? */
 	signed char ax[PIECES], ay[PIECES];
 	Pixmap tmp;
+	/* size of the pieces, with the GUI scale factor applied */
+	const int piece_size = WMScaled(ICON_KABOOM_PIECE_SIZE);
 
 	XSetClipMask(dpy, scr->copy_gc, None);
 	tmp = XCreatePixmap(dpy, scr->root_win, wPreferences.icon_size, wPreferences.icon_size, scr->depth);
@@ -79,15 +82,15 @@ void DoKaboom(WScreen * scr, Window win, int x, int y)
 		XDestroyImage(image);
 	}
 
-	for (i = 0, k = 0; i < wPreferences.icon_size / ICON_KABOOM_PIECE_SIZE && k < PIECES; i++) {
-		for (j = 0; j < wPreferences.icon_size / ICON_KABOOM_PIECE_SIZE && k < PIECES; j++) {
+	for (i = 0, k = 0; i < wPreferences.icon_size / piece_size && k < PIECES; i++) {
+		for (j = 0; j < wPreferences.icon_size / piece_size && k < PIECES; j++) {
 			if (rand() % 2) {
 				ax[k] = i;
 				ay[k] = j;
-				px[k] = (x + i * ICON_KABOOM_PIECE_SIZE) << KAB_PRECISION;
-				py[k] = y + j * ICON_KABOOM_PIECE_SIZE;
-				pvx[k] = rand() % (1 << (KAB_PRECISION + 3)) - (1 << (KAB_PRECISION + 3)) / 2;
-				pvy[k] = -15 - rand() % 7;
+				px[k] = (x + i * piece_size) << KAB_PRECISION;
+				py[k] = y + j * piece_size;
+				pvx[k] = WMScaled(rand() % (1 << (KAB_PRECISION + 3)) - (1 << (KAB_PRECISION + 3)) / 2);
+				pvy[k] = WMScaled(-15 - rand() % 7);
 				k++;
 			} else {
 				ax[k] = -1;
@@ -111,18 +114,18 @@ void DoKaboom(WScreen * scr, Window win, int x, int y)
 			if (ax[i] >= 0) {
 				int _px = px[i] >> KAB_PRECISION;
 				XClearArea(dpy, scr->root_win, _px, py[i],
-					   ICON_KABOOM_PIECE_SIZE, ICON_KABOOM_PIECE_SIZE, False);
+					   piece_size, piece_size, False);
 				px[i] += pvx[i];
 				py[i] += pvy[i];
 				_px = px[i] >> KAB_PRECISION;
-				pvy[i]++;
+				pvy[i] += WMScaled(1);
 				if (_px < -wPreferences.icon_size || _px > sw || py[i] >= sh) {
 					ax[i] = -1;
 					k--;
 				} else {
 					XCopyArea(dpy, tmp, scr->root_win, scr->copy_gc,
-						  ax[i] * ICON_KABOOM_PIECE_SIZE, ay[i] * ICON_KABOOM_PIECE_SIZE,
-						  ICON_KABOOM_PIECE_SIZE, ICON_KABOOM_PIECE_SIZE, _px, py[i]);
+						  ax[i] * piece_size, ay[i] * piece_size,
+						  piece_size, piece_size, _px, py[i]);
 				}
 			}
 		}
@@ -167,8 +170,8 @@ void DoWindowBirth(WWindow *wwin)
 	int center_x, center_y;
 	int width = wwin->frame->core->width;
 	int height = wwin->frame->core->height;
-	int w = WMIN(width, 20);
-	int h = WMIN(height, 20);
+	int w = WMIN(width, WMScaled(20));
+	int h = WMIN(height, WMScaled(20));
 	WScreen *scr = wwin->screen_ptr;
 
 	center_x = wwin->frame_x + (width - w) / 2;
@@ -214,6 +217,8 @@ reinit:
 				goto reinit;
 			} else ++data->count;
 			offset = h - x*x;
+			/* the bounce is computed in logical pixels */
+			offset *= WMGetScaleFactor();
 
 			switch (data->dir) {
 			case 0: /* left, bounce to right */
@@ -257,7 +262,7 @@ static int bounceDirection(WAppIcon *aicon)
 
 	rr.pos.x = aicon->x_pos;
 	rr.pos.y = aicon->y_pos;
-	rr.size.width = rr.size.height = 64;
+	rr.size.width = rr.size.height = WMScaled(64);
 
 	sr = wGetRectForHead(scr, wGetHeadForRect(scr, rr));
 

@@ -71,7 +71,7 @@ static short int border_space;
 static short int icon_tile_size;
 static short int label_height;
 
-#define SCREEN_BORDER_SPACING 2*20
+#define SCREEN_BORDER_SPACING (2 * WMScaled(20))
 
 #define ICON_SELECTED (1<<1)
 #define ICON_DIM (1<<2)
@@ -466,7 +466,7 @@ WSwitchPanel *wInitSwitchPanel(WScreen *scr, WWindow *curwin, Bool class_only)
 
 	panel->white = WMWhiteColor(scr->wmscreen);
 	panel->gray = WMGrayColor(scr->wmscreen);
-	panel->font = WMBoldSystemFontOfSize(scr->wmscreen, WMScaleY(12));
+	panel->font = WMBoldSystemFontOfSize(scr->wmscreen, WMUnscaled(WMScaleY(12)));
 	panel->icons = WMCreateArray(count);
 	panel->images = WMCreateArray(count);
 
@@ -480,14 +480,14 @@ WSwitchPanel *wInitSwitchPanel(WScreen *scr, WWindow *curwin, Bool class_only)
 
 		panel->label = WMCreateLabel(panel->win);
 		WMResizeWidget(panel->label, width, label_height);
-		WMMoveWidget(panel->label, border_space, border_space + icon_tile_size+ 5);
+		WMMoveWidget(panel->label, border_space, border_space + icon_tile_size + WMScaled(5));
 		WMSetLabelRelief(panel->label, WRSimple);
 		WMSetWidgetBackgroundColor(panel->label, darkGray);
 		WMSetLabelFont(panel->label, panel->font);
 		WMSetLabelTextColor(panel->label, panel->white);
 
 		WMReleaseColor(darkGray);
-		height += 5;
+		height += WMScaled(5);
 	}
 
 	WMResizeWidget(panel->win, width + 2 * border_space, height + 2 * border_space);

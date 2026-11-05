@@ -34,8 +34,8 @@ typedef struct W_SplitView {
 
 } W_SplitView;
 
-#define DIVIDER_THICKNESS   8
-#define MIN_SUBVIEW_SIZE    4
+#define DIVIDER_THICKNESS   WMScaled(8)
+#define MIN_SUBVIEW_SIZE    WMScaled(4)
 #define MAX_SUBVIEW_SIZE    -1
 
 /* TODO: rewrite --Dan */

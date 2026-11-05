@@ -78,11 +78,11 @@ static WMDragDestinationProcs _DragDestinationProcs = {
 	NULL
 };
 
-#define DEFAULT_WIDTH		60
-#define DEFAULT_HEIGHT		30
+#define DEFAULT_WIDTH		WMScaled(60)
+#define DEFAULT_HEIGHT		WMScaled(30)
 
-#define MIN_WIDTH	16
-#define MIN_HEIGHT	8
+#define MIN_WIDTH	WMScaled(16)
+#define MIN_HEIGHT	WMScaled(8)
 
 static void colorChangedObserver(void *data, WMNotification * notification)
 {
@@ -235,7 +235,8 @@ static void paintColorWell(ColorWell * cPtr)
 
 	if (cPtr->color)
 		WMPaintColorSwatch(cPtr->color, cPtr->colorView->window,
-				   2, 2, cPtr->colorView->size.width - 4, cPtr->colorView->size.height - 4);
+				   WMScaled(2), WMScaled(2), cPtr->colorView->size.width - WMScaled(4),
+				   cPtr->colorView->size.height - WMScaled(4));
 }
 
 static void handleEvents(XEvent * event, void *data)
@@ -297,14 +298,15 @@ static WMPixmap *makeDragPixmap(WMColorWell * cPtr)
 {
 	WMScreen *scr = cPtr->view->screen;
 	Pixmap pix;
+	int size = WMScaled(16);
 
-	pix = XCreatePixmap(scr->display, W_DRAWABLE(scr), 16, 16, scr->depth);
+	pix = XCreatePixmap(scr->display, W_DRAWABLE(scr), size, size, scr->depth);
 
-	XFillRectangle(scr->display, pix, WMColorGC(cPtr->color), 0, 0, 15, 15);
+	XFillRectangle(scr->display, pix, WMColorGC(cPtr->color), 0, 0, size, size);
 
-	XDrawRectangle(scr->display, pix, WMColorGC(scr->black), 0, 0, 15, 15);
+	W_DrawRelief(scr, pix, 0, 0, size, size, WRSimple);
 
-	return WMCreatePixmapFromXPixmaps(scr, pix, None, 16, 16, scr->depth);
+	return WMCreatePixmapFromXPixmaps(scr, pix, None, size, size, scr->depth);
 }
 
 static void handleDragEvents(XEvent * event, void *data)

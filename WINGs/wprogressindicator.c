@@ -18,8 +18,8 @@ typedef struct W_ProgressIndicator {
 	void *clientData;
 } ProgressIndicator;
 
-#define DEFAULT_PROGRESS_INDICATOR_WIDTH	276
-#define DEFAULT_PROGRESS_INDICATOR_HEIGHT	16
+#define DEFAULT_PROGRESS_INDICATOR_WIDTH	WMScaled(276)
+#define DEFAULT_PROGRESS_INDICATOR_HEIGHT	WMScaled(16)
 
 /* define if only the ticks within the progress region should be displayed */
 #undef SHOW_PROGRESS_TICKS_ONLY
@@ -159,13 +159,14 @@ static void paintProgressIndicator(ProgressIndicator * pPtr)
 	int perc, w, h;
 	double unit, i;
 	Pixmap buffer;
+	int t = WMScaled(1);	/* line thickness */
 
 	bgc = WMColorGC(scr->black);
 	wgc = WMColorGC(scr->white);
 	lgc = WMColorGC(scr->gray);
 	dgc = WMColorGC(scr->darkGray);
 
-	unit = (double)(size.width - 3.0) / 100;
+	unit = (double)(size.width - 3 * t) / 100;
 
 	buffer = XCreatePixmap(scr->display, pPtr->view->window, size.width, size.height, scr->depth);
 
@@ -175,25 +176,25 @@ static void paintProgressIndicator(ProgressIndicator * pPtr)
 	perc = (pPtr->value - pPtr->minValue) * 100 / (pPtr->maxValue - pPtr->minValue);
 
 	w = (int)((double)(perc * unit));
-	h = size.height - 2;
+	h = size.height - 2 * t;
 
-	if (w > (size.width - 3))
-		w = size.width - 3;
+	if (w > (size.width - 3 * t))
+		w = size.width - 3 * t;
 
 	if (w > 0) {
-		XFillRectangle(scr->display, buffer, lgc, 2, 1, w, h);
-		XFillRectangle(scr->display, buffer, scr->stippleGC, 2, 1, w, h);
-		W_DrawRelief(scr, buffer, 2, 1, w, h, WRFlat);
+		XFillRectangle(scr->display, buffer, lgc, 2 * t, t, w, h);
+		XFillRectangle(scr->display, buffer, scr->stippleGC, 2 * t, t, w, h);
+		W_DrawRelief(scr, buffer, 2 * t, t, w, h, WRFlat);
 
 		/* Draw Progress Marks */
 		i = (5.0 * unit);
 
 #ifdef SHOW_PROGRESS_TICKS_ONLY
-		while ((int)i < w + 5) {
+		while ((int)i < w + 5 * t) {
 #else
-		while ((int)i < (size.width - 3)) {
+		while ((int)i < (size.width - 3 * t)) {
 #endif
-			XDrawLine(scr->display, buffer, dgc, (int)i + 2, h - 1, i + 2, h - 3);
+			XFillRectangle(scr->display, buffer, dgc, (int)i + 2 * t, h - 3 * t, t, 3 * t);
 
 			i += (5.0 * unit);
 
@@ -202,22 +203,22 @@ static void paintProgressIndicator(ProgressIndicator * pPtr)
 				break;
 #endif
 
-			XDrawLine(scr->display, buffer, dgc, (int)i + 2, h - 1, i + 2, h - 6);
+			XFillRectangle(scr->display, buffer, dgc, (int)i + 2 * t, h - 6 * t, t, 6 * t);
 
 			i += (5.0 * unit);
 		}
 	}
 
-	XDrawLine(scr->display, buffer, bgc, w + 2, 1, w + 2, h + 1);
-	XDrawLine(scr->display, buffer, lgc, 2, h, w + 2, h);
+	XFillRectangle(scr->display, buffer, bgc, w + 2 * t, t, t, h + t);
+	XFillRectangle(scr->display, buffer, lgc, 2 * t, h, w + t, t);
 
-	XDrawLine(scr->display, buffer, dgc, 0, 0, 0, size.height - 1);
-	XDrawLine(scr->display, buffer, dgc, 0, 0, size.width, 0);
-	XDrawLine(scr->display, buffer, bgc, 1, 1, 1, size.height - 1);
-	XDrawLine(scr->display, buffer, bgc, 1, 1, size.width - 1, 1);
+	XFillRectangle(scr->display, buffer, dgc, 0, 0, t, size.height);
+	XFillRectangle(scr->display, buffer, dgc, 0, 0, size.width, t);
+	XFillRectangle(scr->display, buffer, bgc, t, t, t, size.height - t);
+	XFillRectangle(scr->display, buffer, bgc, t, t, size.width - t, t);
 
-	XDrawLine(scr->display, buffer, wgc, size.width - 1, 0, size.width - 1, size.height - 1);
-	XDrawLine(scr->display, buffer, wgc, 0, size.height - 1, size.width - 1, size.height - 1);
+	XFillRectangle(scr->display, buffer, wgc, size.width - t, 0, t, size.height);
+	XFillRectangle(scr->display, buffer, wgc, 0, size.height - t, size.width, t);
 
 	XCopyArea(scr->display, buffer, pPtr->view->window, scr->copyGC, 0, 0, size.width, size.height, 0, 0);
 

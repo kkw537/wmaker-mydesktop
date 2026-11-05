@@ -47,7 +47,7 @@
 
 #define MOD_MASK wPreferences.modifier_mask
 
-#define MENU_SCROLL_STEP  menuScrollParameters[(int)wPreferences.menu_scroll_speed].steps
+#define MENU_SCROLL_STEP  WMScaled(menuScrollParameters[(int)wPreferences.menu_scroll_speed].steps)
 #define MENU_SCROLL_DELAY menuScrollParameters[(int)wPreferences.menu_scroll_speed].delay
 
 #define MENUW(m)	((m)->frame->core->width+2*(m)->frame->screen_ptr->frame_border_width)
@@ -402,7 +402,7 @@ static Pixmap renderTexture(WMenu * menu)
 	if (wPreferences.menu_style == MS_NORMAL) {
 		img = wTextureRenderImage(texture, menu->menu->width, menu->entry_height, WREL_MENUENTRY);
 	} else {
-		img = wTextureRenderImage(texture, menu->menu->width, menu->menu->height + 1, WREL_MENUENTRY);
+		img = wTextureRenderImage(texture, menu->menu->width, menu->menu->height + WMScaled(1), WREL_MENUENTRY);
 	}
 	if (!img) {
 		wwarning(_("could not render texture: %s"), RMessageForError(RErrorCode));
@@ -421,14 +421,14 @@ static Pixmap renderTexture(WMenu * menu)
 		mid.red = mid.green = mid.blue = 40;
 
 		for (i = 1; i < menu->entry_no; i++) {
-			ROperateLine(img, RSubtractOperation, 0, i * menu->entry_height - 2,
-				     menu->menu->width - 1, i * menu->entry_height - 2, &mid);
+			wOperateScaledLine(img, RSubtractOperation, 0, i * menu->entry_height - WMScaled(2),
+				     menu->menu->width - WMScaled(1), i * menu->entry_height - WMScaled(2), &mid);
 
-			RDrawLine(img, 0, i * menu->entry_height - 1,
-				  menu->menu->width - 1, i * menu->entry_height - 1, &dark);
+			wDrawScaledImageLine(img, 0, i * menu->entry_height - WMScaled(1),
+				  menu->menu->width - WMScaled(1), i * menu->entry_height - WMScaled(1), &dark);
 
-			ROperateLine(img, RAddOperation, 0, i * menu->entry_height,
-				     menu->menu->width - 1, i * menu->entry_height, &light);
+			wOperateScaledLine(img, RAddOperation, 0, i * menu->entry_height,
+				     menu->menu->width - WMScaled(1), i * menu->entry_height, &light);
 		}
 	}
 	if (!RConvertImage(scr->rcontext, img, &pix)) {
@@ -486,12 +486,12 @@ void wMenuRealize(WMenu * menu)
 	if (menu->flags.titled) {
 		twidth = WMWidthOfString(scr->menu_title_font, menu->frame->title, strlen(menu->frame->title));
 		theight = menu->frame->top_width;
-		twidth += theight + (wPreferences.new_style == TS_NEW ? 16 : 8);
+		twidth += theight + WMScaled(wPreferences.new_style == TS_NEW ? 16 : 8);
 	} else {
 		twidth = 0;
 		theight = 0;
 	}
-	eheight = WMFontHeight(scr->menu_entry_font) + 6 + wPreferences.menu_text_clearance * 2;
+	eheight = WMFontHeight(scr->menu_entry_font) + WMScaled(6) + wPreferences.menu_text_clearance * 2;
 	menu->entry_height = eheight;
 	mrwidth = 0;
 	mwidth = 0;
@@ -500,10 +500,10 @@ void wMenuRealize(WMenu * menu)
 
 		/* search widest text */
 		text = menu->entries[i]->text;
-		width = WMWidthOfString(scr->menu_entry_font, text, strlen(text)) + 10;
+		width = WMWidthOfString(scr->menu_entry_font, text, strlen(text)) + WMScaled(10);
 
 		if (wPreferences.window_list_app_icons && menu->entries[i]->icon) {
-			width += menu->entries[i]->icon->width + 4;
+			width += menu->entries[i]->icon->width + WMScaled(4);
 		}
 
 		if (menu->entries[i]->flags.indicator) {
@@ -517,11 +517,11 @@ void wMenuRealize(WMenu * menu)
 		text = menu->entries[i]->rtext;
 		if (text)
 			rwidth = WMWidthOfString(scr->menu_entry_font, text, strlen(text))
-			    + 10;
+			    + WMScaled(10);
 		else if (menu->entries[i]->cascade >= 0)
-			rwidth = 16;
+			rwidth = WMScaled(16);
 		else
-			rwidth = 4;
+			rwidth = WMScaled(4);
 
 		if (rwidth > mrwidth)
 			mrwidth = rwidth;
@@ -531,9 +531,9 @@ void wMenuRealize(WMenu * menu)
 	if (mwidth < twidth)
 		mwidth = twidth;
 
-	wCoreConfigure(menu->menu, 0, theight, mwidth, menu->entry_no * eheight - 1);
+	wCoreConfigure(menu->menu, 0, theight, mwidth, menu->entry_no * eheight - WMScaled(1));
 
-	wFrameWindowResize(menu->frame, mwidth, menu->entry_no * eheight - 1
+	wFrameWindowResize(menu->frame, mwidth, menu->entry_no * eheight - WMScaled(1)
 			   + menu->frame->top_width + menu->frame->bottom_width);
 
 	updateTexture(menu);
@@ -627,37 +627,39 @@ static void drawFrame(WScreen * scr, Drawable win, int y, int w, int h, int type
 {
 	XSegment segs[2];
 	int i;
+	int s1 = WMScaled(1);
+	int s2 = WMScaled(2);
 
 	i = 0;
-	segs[i].x1 = segs[i].x2 = w - 1;
+	segs[i].x1 = segs[i].x2 = w - s1;
 	segs[i].y1 = y;
-	segs[i].y2 = y + h - 1;
+	segs[i].y2 = y + h - s1;
 	i++;
 	if (type != F_TOP && type != F_NONE) {
-		segs[i].x1 = 1;
-		segs[i].y1 = segs[i].y2 = y + h - 2;
-		segs[i].x2 = w - 1;
+		segs[i].x1 = s1;
+		segs[i].y1 = segs[i].y2 = y + h - s2;
+		segs[i].x2 = w - s1;
 		i++;
 	}
-	XDrawSegments(dpy, win, scr->menu_item_auxtexture->dim_gc, segs, i);
+	wDrawScaledSegments(win, scr->menu_item_auxtexture->dim_gc, segs, i);
 
 	i = 0;
 	segs[i].x1 = 0;
 	segs[i].y1 = y;
 	segs[i].x2 = 0;
-	segs[i].y2 = y + h - 1;
+	segs[i].y2 = y + h - s1;
 	i++;
 	if (type != F_BOTTOM && type != F_NONE) {
 		segs[i].x1 = 0;
 		segs[i].y1 = y;
-		segs[i].x2 = w - 1;
+		segs[i].x2 = w - s1;
 		segs[i].y2 = y;
 		i++;
 	}
-	XDrawSegments(dpy, win, scr->menu_item_auxtexture->light_gc, segs, i);
+	wDrawScaledSegments(win, scr->menu_item_auxtexture->light_gc, segs, i);
 
 	if (type != F_TOP && type != F_NONE)
-		XDrawLine(dpy, win, scr->menu_item_auxtexture->dark_gc, 0, y + h - 1, w - 1, y + h - 1);
+		wDrawScaledLine(win, scr->menu_item_auxtexture->dark_gc, 0, y + h - s1, w - s1, y + h - s1);
 }
 
 static void paintEntry(WMenu * menu, int index, int selected)
@@ -693,12 +695,13 @@ static void paintEntry(WMenu * menu, int index, int selected)
 
 	/* paint background */
 	if (selected) {
-		XFillRectangle(dpy, win, WMColorGC(scr->select_color), 1, y + 1, w - 2, h - 3);
+		XFillRectangle(dpy, win, WMColorGC(scr->select_color), WMScaled(1), y + WMScaled(1),
+			       w - WMScaled(2), h - WMScaled(3));
 		if (scr->menu_item_texture->any.type == WTEX_SOLID)
 			drawFrame(scr, win, y, w, h, type);
 	} else {
 		if (scr->menu_item_texture->any.type == WTEX_SOLID) {
-			XClearArea(dpy, win, 0, y + 1, w - 1, h - 3, False);
+			XClearArea(dpy, win, 0, y + WMScaled(1), w - WMScaled(1), h - WMScaled(3), False);
 			/* draw the frame */
 			drawFrame(scr, win, y, w, h, type);
 		} else {
@@ -717,9 +720,9 @@ static void paintEntry(WMenu * menu, int index, int selected)
 		color = scr->mtext_color;
 	}
 	/* draw text */
-	x = 5;
+	x = WMScaled(5);
 	if (entry->flags.indicator)
-		x += MENU_INDICATOR_SPACE + 2;
+		x += MENU_INDICATOR_SPACE + WMScaled(2);
 
 	if (wPreferences.window_list_app_icons && entry->icon && entry->icon->image != None) {
 		int ix = x;
@@ -738,17 +741,17 @@ static void paintEntry(WMenu * menu, int index, int selected)
 		XSetClipMask(dpy, scr->copy_gc, None);
 		XSetClipOrigin(dpy, scr->copy_gc, 0, 0);
 
-		x += entry->icon->width + 4;
+		x += entry->icon->width + WMScaled(4);
 	}
 
 	WMDrawString(scr->wmscreen, win, color, scr->menu_entry_font,
-		     x, 3 + y + wPreferences.menu_text_clearance, entry->text, strlen(entry->text));
+		     x, WMScaled(3) + y + wPreferences.menu_text_clearance, entry->text, strlen(entry->text));
 
 	if (entry->cascade >= 0) {
 		/* draw the cascade indicator */
-		XDrawLine(dpy, win, dim, w - 11, y + 6, w - 6, y + h / 2 - 1);
-		XDrawLine(dpy, win, light, w - 11, y + h - 8, w - 6, y + h / 2 - 1);
-		XDrawLine(dpy, win, dark, w - 12, y + 6, w - 12, y + h - 8);
+		wDrawScaledLine(win, dim, w - WMScaled(11), y + WMScaled(6), w - WMScaled(6), y + h / 2 - WMScaled(1));
+		wDrawScaledLine(win, light, w - WMScaled(11), y + h - WMScaled(8), w - WMScaled(6), y + h / 2 - WMScaled(1));
+		wDrawScaledLine(win, dark, w - WMScaled(12), y + WMScaled(6), w - WMScaled(12), y + h - WMScaled(8));
 	}
 
 	/* draw indicator */
@@ -817,7 +820,7 @@ static void paintEntry(WMenu * menu, int index, int selected)
 			iw = indicator->width;
 			ih = indicator->height;
 			XSetClipMask(dpy, scr->copy_gc, indicator->mask);
-			XSetClipOrigin(dpy, scr->copy_gc, 5, y + (h - ih) / 2);
+			XSetClipOrigin(dpy, scr->copy_gc, WMScaled(5), y + (h - ih) / 2);
 			if (selected) {
 				if (entry->flags.enabled) {
 					XSetForeground(dpy, scr->copy_gc, WMColorPixel(scr->select_text_color));
@@ -831,7 +834,7 @@ static void paintEntry(WMenu * menu, int index, int selected)
 					XSetForeground(dpy, scr->copy_gc, WMColorPixel(scr->dtext_color));
 				}
 			}
-			XFillRectangle(dpy, win, scr->copy_gc, 5, y + (h - ih) / 2, iw, ih);
+			XFillRectangle(dpy, win, scr->copy_gc, WMScaled(5), y + (h - ih) / 2, iw, ih);
 			/*
 			 XCopyArea(dpy, indicator->image, win, scr->copy_gc, 0, 0,
 			 iw, ih, 5, y+(h-ih)/2);
@@ -845,8 +848,8 @@ static void paintEntry(WMenu * menu, int index, int selected)
 	if (entry->rtext && entry->cascade < 0) {
 		tw = WMWidthOfString(scr->menu_entry_font, entry->rtext, strlen(entry->rtext));
 
-		WMDrawString(scr->wmscreen, win, color, scr->menu_entry_font, w - 6 - tw,
-			     y + 3 + wPreferences.menu_text_clearance, entry->rtext, strlen(entry->rtext));
+		WMDrawString(scr->wmscreen, win, color, scr->menu_entry_font, w - WMScaled(6) - tw,
+			     y + WMScaled(3) + wPreferences.menu_text_clearance, entry->rtext, strlen(entry->rtext));
 	}
 }
 
@@ -882,13 +885,13 @@ static void makeVisible(WMenu * menu)
 	if (x1 < rect.pos.x) {
 		new_x = rect.pos.x;
 	} else if (x2 >= rect.pos.x + rect.size.width) {
-		new_x = rect.pos.x + rect.size.width - MENUW(menu) - 1;
+		new_x = rect.pos.x + rect.size.width - MENUW(menu) - WMScaled(1);
 	}
 
 	if (y1 < rect.pos.y) {
 		new_y = rect.pos.y;
 	} else if (y2 >= rect.pos.y + rect.size.height) {
-		new_y = rect.pos.y + rect.size.height - menu->entry_height - 1;
+		new_y = rect.pos.y + rect.size.height - menu->entry_height - WMScaled(1);
 	}
 
 	new_y = new_y - menu->frame->top_width - menu->selected_entry * menu->entry_height;
@@ -943,7 +946,7 @@ static int keyboardMenu(WMenu * menu)
 		new_y = rect.pos.y + rect.size.height - menu->frame->top_width;
 
 	if (menu->frame_x + MENUW(menu) >= rect.pos.x + rect.size.width)
-		new_x = rect.pos.x + rect.size.width - MENUW(menu) - 1;
+		new_x = rect.pos.x + rect.size.width - MENUW(menu) - WMScaled(1);
 
 	move_menus(menu, new_x, new_y);
 
@@ -1187,7 +1190,7 @@ void wMenuUnmap(WMenu * menu)
 
 	if (menu->flags.shaded) {
 		wFrameWindowResize(menu->frame, menu->frame->core->width, menu->frame->top_width +
-				   menu->entry_height*menu->entry_no + menu->frame->bottom_width - 1);
+				   menu->entry_height*menu->entry_no + menu->frame->bottom_width - WMScaled(1));
 		menu->flags.shaded = 0;
 	}
 
@@ -1500,13 +1503,14 @@ static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 
 	getPointerPosition(scr, &xroot, &yroot);
 
-	if (xroot <= (rect.pos.x + 1) && menuX1 < rect.pos.x) {
+	if (xroot <= (rect.pos.x + WMScaled(1)) && menuX1 < rect.pos.x) {
 		/* scroll to the right */
 		*hamount = WMIN(MENU_SCROLL_STEP, abs(menuX1));
 
-	} else if (xroot >= (rect.pos.x + rect.size.width - 2) && menuX2 > (rect.pos.x + rect.size.width - 1)) {
+	} else if (xroot >= (rect.pos.x + rect.size.width - WMScaled(2)) &&
+		   menuX2 > (rect.pos.x + rect.size.width - WMScaled(1))) {
 		/* scroll to the left */
-		*hamount = WMIN(MENU_SCROLL_STEP, abs(menuX2 - rect.pos.x - (int)rect.size.width - 1));
+		*hamount = WMIN(MENU_SCROLL_STEP, abs(menuX2 - rect.pos.x - (int)rect.size.width - WMScaled(1)));
 
 		if (*hamount == 0)
 			*hamount = 1;
@@ -1514,13 +1518,14 @@ static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 		*hamount = -*hamount;
 	}
 
-	if (yroot <= (rect.pos.y + 1) && menuY1 < rect.pos.y) {
+	if (yroot <= (rect.pos.y + WMScaled(1)) && menuY1 < rect.pos.y) {
 		/* scroll down */
 		*vamount = WMIN(MENU_SCROLL_STEP, abs(menuY1));
 
-	} else if (yroot >= (rect.pos.y + rect.size.height - 2) && menuY2 > (rect.pos.y + rect.size.height - 1)) {
+	} else if (yroot >= (rect.pos.y + rect.size.height - WMScaled(2)) &&
+		   menuY2 > (rect.pos.y + rect.size.height - WMScaled(1))) {
 		/* scroll up */
-		*vamount = WMIN(MENU_SCROLL_STEP, abs(menuY2 - rect.pos.y - (int)rect.size.height - 2));
+		*vamount = WMIN(MENU_SCROLL_STEP, abs(menuY2 - rect.pos.y - (int)rect.size.height - WMScaled(2)));
 
 		*vamount = -*vamount;
 	}
@@ -1587,7 +1592,7 @@ static void scrollMenuCallback(void *data)
 	}
 }
 
-#define MENU_SCROLL_BORDER   5
+#define MENU_SCROLL_BORDER   WMScaled(5)
 
 static int isPointNearBorder(WMenu * menu, int x, int y)
 {
@@ -1678,8 +1683,8 @@ void wMenuScroll(WMenu *menu)
 			}
 
 			rect = wGetRectForHead(scr, wGetHeadForPoint(scr, wmkpoint(x, y)));
-			on_x_edge = x <= rect.pos.x + 1 || x >= rect.pos.x + rect.size.width - 2;
-			on_y_edge = y <= rect.pos.y + 1 || y >= rect.pos.y + rect.size.height - 2;
+			on_x_edge = x <= rect.pos.x + WMScaled(1) || x >= rect.pos.x + rect.size.width - WMScaled(2);
+			on_y_edge = y <= rect.pos.y + WMScaled(1) || y >= rect.pos.y + rect.size.height - WMScaled(2);
 			on_border = on_x_edge || on_y_edge;
 
 			if (!on_border && !jump_back) {
@@ -2185,10 +2190,10 @@ static void menuTitleDoubleClick(WCoreWindow * sender, void *data, XEvent * even
 	} else {
 		if (menu->flags.shaded) {
 			wFrameWindowResize(menu->frame, menu->frame->core->width, menu->frame->top_width +
-					   menu->entry_height*menu->entry_no + menu->frame->bottom_width - 1);
+					   menu->entry_height*menu->entry_no + menu->frame->bottom_width - WMScaled(1));
 			menu->flags.shaded = 0;
 		} else {
-			wFrameWindowResize(menu->frame, menu->frame->core->width, menu->frame->top_width - 1);
+			wFrameWindowResize(menu->frame, menu->frame->core->width, menu->frame->top_width - WMScaled(1));
 			menu->flags.shaded = 1;
 		}
 	}

@@ -176,6 +176,13 @@ void wTexturePaintTitlebar(struct WWindow *wwin, WTexture *texture, Pixmap *tdat
 
 #define FREE_PIXMAP(p) if ((p)!=None) XFreePixmap(dpy, (p)), (p)=None
 
+/* drawing of lines with the GUI scale factor applied to their thickness */
+void wDrawScaledLine(Drawable d, GC gc, int x1, int y1, int x2, int y2);
+void wDrawScaledSegments(Drawable d, GC gc, XSegment *segs, int nsegs);
+void wDrawScaledRectangle(Drawable d, GC gc, int x, int y, int width, int height);
+void wOperateScaledLine(RImage *image, int operation, int x1, int y1, int x2, int y2, const RColor *color);
+void wDrawScaledImageLine(RImage *image, int x1, int y1, int x2, int y2, const RColor *color);
+
 void wDrawBevel(Drawable d, unsigned width, unsigned height,
                 WTexSolid *texture, int relief);
 

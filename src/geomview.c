@@ -76,7 +76,7 @@ WGeometryView *WCreateGeometryView(WMScreen * scr)
 
 	WMSetWidgetBackgroundColor(gview, gview->bgColor);
 
-	W_ResizeView(gview->view, gview->textSize.width + 8, gview->textSize.height + 6);
+	W_ResizeView(gview->view, gview->textSize.width + WMScaled(8), gview->textSize.height + WMScaled(6));
 
 	return gview;
 }

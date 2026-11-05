@@ -120,13 +120,13 @@ static void moveGeometryDisplayCentered(WScreen * scr, int x, int y)
 		}
 	}
 
-	if (x < x1 + 1)
-		x = x1 + 1;
+	if (x < x1 + WMScaled(1))
+		x = x1 + WMScaled(1);
 	else if (x > (x2 - w))
 		x = x2 - w;
 
-	if (y < y1 + 1)
-		y = y1 + 1;
+	if (y < y1 + WMScaled(1))
+		y = y1 + WMScaled(1);
 	else if (y > (y2 - h))
 		y = y2 - h;
 
@@ -178,7 +178,7 @@ static void cyclePositionDisplay(WWindow * wwin, int x, int y, int w, int h)
 						    rect.pos.y + rect.size.height / 2);
 		} else if (wPreferences.move_display == WDIS_TOPLEFT) {
 			rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
-			moveGeometryDisplayCentered(scr, rect.pos.x + 1, rect.pos.y + 1);
+			moveGeometryDisplayCentered(scr, rect.pos.x + WMScaled(1), rect.pos.y + WMScaled(1));
 		} else if (wPreferences.move_display == WDIS_FRAME_CENTER) {
 			moveGeometryDisplayCentered(scr, x + w / 2, y + h / 2);
 		}
@@ -199,7 +199,7 @@ static void mapPositionDisplay(WWindow * wwin, int x, int y, int w, int h)
 					    rect.pos.y + rect.size.height / 2);
 	} else if (wPreferences.move_display == WDIS_TOPLEFT) {
 		rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
-		moveGeometryDisplayCentered(scr, rect.pos.x + 1, rect.pos.y + 1);
+		moveGeometryDisplayCentered(scr, rect.pos.x + WMScaled(1), rect.pos.y + WMScaled(1));
 	} else if (wPreferences.move_display == WDIS_FRAME_CENTER) {
 		moveGeometryDisplayCentered(scr, x + w / 2, y + h / 2);
 	}
@@ -219,8 +219,8 @@ static void showGeometry(WWindow * wwin, int x1, int y1, int x2, int y2, int dir
 
 	/* This seems necessary for some odd reason (too lazy to write x1-1 and
 	 * x2-1 everywhere below in the code). But why only for x? */
-	x1--;
-	x2--;
+	x1 -= WMScaled(1);
+	x2 -= WMScaled(1);
 
 	if (HAS_BORDER_WITH_SELECT(wwin)) {
 		x1 += scr->frame_border_width;
@@ -241,35 +241,35 @@ static void showGeometry(WWindow * wwin, int x1, int y1, int x2, int y2, int dir
 		/* vertical geometry */
 		if (((direction & LEFT) && (x2 < scr->scr_width - fw)) || (x1 < fw)) {
 			x = x2;
-			s = -15;
+			s = -WMScaled(15);
 		} else {
 			x = x1;
-			s = 15;
+			s = WMScaled(15);
 		}
 		my = (ty + by) / 2;
 
 		/* top arrow & end bar */
-		segment[0].x1 = x - (s + 6);
+		segment[0].x1 = x - (s + WMScaled(6));
 		segment[0].y1 = ty;
-		segment[0].x2 = x - (s - 10);
+		segment[0].x2 = x - (s - WMScaled(10));
 		segment[0].y2 = ty;
 
 		/* arrowhead */
-		segment[1].x1 = x - (s - 2);
-		segment[1].y1 = ty + 1;
-		segment[1].x2 = x - (s - 5);
-		segment[1].y2 = ty + 7;
+		segment[1].x1 = x - (s - WMScaled(2));
+		segment[1].y1 = ty + WMScaled(1);
+		segment[1].x2 = x - (s - WMScaled(5));
+		segment[1].y2 = ty + WMScaled(7);
 
-		segment[2].x1 = x - (s - 2);
-		segment[2].y1 = ty + 1;
-		segment[2].x2 = x - (s + 1);
-		segment[2].y2 = ty + 7;
+		segment[2].x1 = x - (s - WMScaled(2));
+		segment[2].y1 = ty + WMScaled(1);
+		segment[2].x2 = x - (s + WMScaled(1));
+		segment[2].y2 = ty + WMScaled(7);
 
 		/* line */
-		segment[3].x1 = x - (s - 2);
-		segment[3].y1 = ty + 1;
-		segment[3].x2 = x - (s - 2);
-		segment[3].y2 = my - fh / 2 - 1;
+		segment[3].x1 = x - (s - WMScaled(2));
+		segment[3].y1 = ty + WMScaled(1);
+		segment[3].x2 = x - (s - WMScaled(2));
+		segment[3].y2 = my - fh / 2 - WMScaled(1);
 
 		XDrawSegments(dpy, root, gc, segment, 4);
 
@@ -278,15 +278,15 @@ static void showGeometry(WWindow * wwin, int x1, int y1, int x2, int y2, int dir
 		segment[0].y2 = by;
 
 		/* arrowhead */
-		segment[1].y1 = by - 1;
-		segment[1].y2 = by - 7;
+		segment[1].y1 = by - WMScaled(1);
+		segment[1].y2 = by - WMScaled(7);
 
-		segment[2].y1 = by - 1;
-		segment[2].y2 = by - 7;
+		segment[2].y1 = by - WMScaled(1);
+		segment[2].y2 = by - WMScaled(7);
 
 		/* line */
-		segment[3].y1 = my + fh / 2 + 2;
-		segment[3].y2 = by - 1;
+		segment[3].y1 = my + fh / 2 + WMScaled(2);
+		segment[3].y2 = by - WMScaled(1);
 
 		XDrawSegments(dpy, root, gc, segment, 4);
 
@@ -296,16 +296,16 @@ static void showGeometry(WWindow * wwin, int x1, int y1, int x2, int y2, int dir
 
 		/* Display the height. */
 		XSetFont(dpy, gc, scr->tech_draw_font->fid);
-		XDrawString(dpy, root, gc, x - s + 3 - fw / 2, my + scr->tech_draw_font->ascent - fh / 2 + 1, num,
+		XDrawString(dpy, root, gc, x - s + WMScaled(3) - fw / 2, my + scr->tech_draw_font->ascent - fh / 2 + WMScaled(1), num,
 			    strlen(num));
 
 		/* horizontal geometry */
-		if (y1 < 15) {
+		if (y1 < WMScaled(15)) {
 			y = y2;
-			s = -15;
+			s = -WMScaled(15);
 		} else {
 			y = y1;
-			s = 15;
+			s = WMScaled(15);
 		}
 		mx = x1 + (x2 - x1) / 2;
 		snprintf(num, sizeof(num), "%i", (x2 - x1 - wwin->normal_hints->base_width) /
@@ -314,48 +314,48 @@ static void showGeometry(WWindow * wwin, int x1, int y1, int x2, int y2, int dir
 
 		/* left arrow & end bar */
 		segment[0].x1 = x1;
-		segment[0].y1 = y - (s + 6);
+		segment[0].y1 = y - (s + WMScaled(6));
 		segment[0].x2 = x1;
-		segment[0].y2 = y - (s - 10);
+		segment[0].y2 = y - (s - WMScaled(10));
 
 		/* arrowhead */
-		segment[1].x1 = x1 + 7;
-		segment[1].y1 = y - (s + 1);
-		segment[1].x2 = x1 + 1;
-		segment[1].y2 = y - (s - 2);
+		segment[1].x1 = x1 + WMScaled(7);
+		segment[1].y1 = y - (s + WMScaled(1));
+		segment[1].x2 = x1 + WMScaled(1);
+		segment[1].y2 = y - (s - WMScaled(2));
 
-		segment[2].x1 = x1 + 1;
-		segment[2].y1 = y - (s - 2);
-		segment[2].x2 = x1 + 7;
-		segment[2].y2 = y - (s - 5);
+		segment[2].x1 = x1 + WMScaled(1);
+		segment[2].y1 = y - (s - WMScaled(2));
+		segment[2].x2 = x1 + WMScaled(7);
+		segment[2].y2 = y - (s - WMScaled(5));
 
 		/* line */
-		segment[3].x1 = x1 + 1;
-		segment[3].y1 = y - (s - 2);
-		segment[3].x2 = mx - fw / 2 - 2;
-		segment[3].y2 = y - (s - 2);
+		segment[3].x1 = x1 + WMScaled(1);
+		segment[3].y1 = y - (s - WMScaled(2));
+		segment[3].x2 = mx - fw / 2 - WMScaled(2);
+		segment[3].y2 = y - (s - WMScaled(2));
 
 		XDrawSegments(dpy, root, gc, segment, 4);
 
 		/* right arrow & end bar */
-		segment[0].x1 = x2 + 1;
-		segment[0].x2 = x2 + 1;
+		segment[0].x1 = x2 + WMScaled(1);
+		segment[0].x2 = x2 + WMScaled(1);
 
 		/* arrowhead */
-		segment[1].x1 = x2 - 6;
+		segment[1].x1 = x2 - WMScaled(6);
 		segment[1].x2 = x2;
 
 		segment[2].x1 = x2;
-		segment[2].x2 = x2 - 6;
+		segment[2].x2 = x2 - WMScaled(6);
 
 		/* line */
-		segment[3].x1 = mx + fw / 2 + 2;
+		segment[3].x1 = mx + fw / 2 + WMScaled(2);
 		segment[3].x2 = x2;
 
 		XDrawSegments(dpy, root, gc, segment, 4);
 
 		/* Display the width. */
-		XDrawString(dpy, root, gc, mx - fw / 2 + 1, y - s + scr->tech_draw_font->ascent - fh / 2 + 1, num,
+		XDrawString(dpy, root, gc, mx - fw / 2 + WMScaled(1), y - s + scr->tech_draw_font->ascent - fh / 2 + WMScaled(1), num,
 			    strlen(num));
 	} else {
 		WSetGeometryViewShownSize(scr->gview, (x2 - x1 - wwin->normal_hints->base_width)
@@ -382,7 +382,7 @@ static void cycleGeometryDisplay(WWindow * wwin, int x, int y, int w, int h, int
 						    rect.pos.y + rect.size.height / 2);
 		} else if (wPreferences.size_display == WDIS_TOPLEFT) {
 			rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
-			moveGeometryDisplayCentered(scr, rect.pos.x + 1, rect.pos.y + 1);
+			moveGeometryDisplayCentered(scr, rect.pos.x + WMScaled(1), rect.pos.y + WMScaled(1));
 		} else if (wPreferences.size_display == WDIS_FRAME_CENTER) {
 			moveGeometryDisplayCentered(scr, x + w / 2, y + h / 2);
 		}
@@ -405,7 +405,7 @@ static void mapGeometryDisplay(WWindow * wwin, int x, int y, int w, int h)
 					    rect.pos.y + rect.size.height / 2);
 	} else if (wPreferences.size_display == WDIS_TOPLEFT) {
 		rect = wGetRectForHead(scr, wGetHeadForWindow(wwin));
-		moveGeometryDisplayCentered(scr, rect.pos.x + 1, rect.pos.y + 1);
+		moveGeometryDisplayCentered(scr, rect.pos.x + WMScaled(1), rect.pos.y + WMScaled(1));
 	} else if (wPreferences.size_display == WDIS_FRAME_CENTER) {
 		moveGeometryDisplayCentered(scr, x + w / 2, y + h / 2);
 	}
@@ -431,15 +431,15 @@ static void doWindowMove(WWindow * wwin, WMArray * array, int dx, int dy)
 #if 1				/* XXX: with xinerama patch was #if 0, check this */
 			/* don't let windows become unreachable */
 
-			if (x + (int)tmpw->frame->core->width < 20)
-				x = 20 - (int)tmpw->frame->core->width;
-			else if (x + 20 > scr->scr_width)
-				x = scr->scr_width - 20;
+			if (x + (int)tmpw->frame->core->width < WMScaled(20))
+				x = WMScaled(20) - (int)tmpw->frame->core->width;
+			else if (x + WMScaled(20) > scr->scr_width)
+				x = scr->scr_width - WMScaled(20);
 
-			if (y + (int)tmpw->frame->core->height < 20)
-				y = 20 - (int)tmpw->frame->core->height;
-			else if (y + 20 > scr->scr_height)
-				y = scr->scr_height - 20;
+			if (y + (int)tmpw->frame->core->height < WMScaled(20))
+				y = WMScaled(20) - (int)tmpw->frame->core->height;
+			else if (y + WMScaled(20) > scr->scr_height)
+				y = scr->scr_height - WMScaled(20);
 #else
 			wScreenBringInside(scr, &x, &y,
 					   (int)tmpw->frame->core->width, (int)tmpw->frame->core->height);
@@ -457,6 +457,7 @@ static void drawTransparentFrame(WWindow * wwin, int x, int y, int width, int he
 	int h = 0;
 	int bottom = 0;
 	int fb = 0;
+	int t, o;
 
 	if (HAS_BORDER_WITH_SELECT(wwin))
 		fb = wwin->screen_ptr->frame_border_width;
@@ -476,13 +477,19 @@ static void drawTransparentFrame(WWindow * wwin, int x, int y, int width, int he
 		   (e.g. interactive placement), frame does not point to anything. */
 		bottom = RESIZEBAR_HEIGHT;
 	}
-	XDrawRectangle(dpy, root, gc, x, y, width - 1 + 2 * fb, height - 1 + 2 * fb);
+	/* The lines are DEF_FRAME_THICKNESS wide, and X centers wide lines on
+	 * their path: shift them to draw them inside the frame */
+	t = DEF_FRAME_THICKNESS;
+	o = t / 2;
+
+	XDrawRectangle(dpy, root, gc, x + o, y + o, width - t + 2 * fb, height - t + 2 * fb);
 
 	if (h > 0) {
-		XDrawLine(dpy, root, gc, x, y + fb + h - 1, x + 2 * fb + width, y + fb + h - 1);
+		XDrawLine(dpy, root, gc, x, y + fb + h - t + o, x + 2 * fb + width, y + fb + h - t + o);
 	}
 	if (bottom > 0) {
-		XDrawLine(dpy, root, gc, x, y + fb + height - bottom, x + 2 * fb + width, y + fb + height - bottom);
+		XDrawLine(dpy, root, gc, x, y + fb + height - bottom + o, x + 2 * fb + width,
+			  y + fb + height - bottom + o);
 	}
 }
 
@@ -509,15 +516,15 @@ static void drawFrames(WWindow * wwin, WMArray * array, int dx, int dy)
 
 			/* don't let windows become unreachable */
 #if 1				/* XXX: was 0 in XINERAMA patch, check */
-			if (x + (int)tmpw->frame->core->width < 20)
-				x = 20 - (int)tmpw->frame->core->width;
-			else if (x + 20 > scr_width)
-				x = scr_width - 20;
+			if (x + (int)tmpw->frame->core->width < WMScaled(20))
+				x = WMScaled(20) - (int)tmpw->frame->core->width;
+			else if (x + WMScaled(20) > scr_width)
+				x = scr_width - WMScaled(20);
 
-			if (y + (int)tmpw->frame->core->height < 20)
-				y = 20 - (int)tmpw->frame->core->height;
-			else if (y + 20 > scr_height)
-				y = scr_height - 20;
+			if (y + (int)tmpw->frame->core->height < WMScaled(20))
+				y = WMScaled(20) - (int)tmpw->frame->core->height;
+			else if (y + WMScaled(20) > scr_height)
+				y = scr_height - WMScaled(20);
 
 #else
 			wScreenBringInside(wwin->screen_ptr, &x, &y,
@@ -550,9 +557,9 @@ static void crossWorkspace(WScreen * scr, WWindow * wwin, int opaque_move, int n
 	wwin->flags.changing_workspace = 0;
 
 	if (rewind)
-		XWarpPointer(dpy, None, None, 0, 0, 0, 0, scr->scr_width - 20, 0);
+		XWarpPointer(dpy, None, None, 0, 0, 0, 0, scr->scr_width - WMScaled(20), 0);
 	else
-		XWarpPointer(dpy, None, None, 0, 0, 0, 0, -(scr->scr_width - 20), 0);
+		XWarpPointer(dpy, None, None, 0, 0, 0, 0, -(scr->scr_width - WMScaled(20)), 0);
 
 	flushMotion();
 
@@ -847,7 +854,7 @@ static Bool checkWorkspaceChange(WWindow * wwin, MoveData * data, Bool opaqueMov
 	WScreen *scr = wwin->screen_ptr;
 	Bool changed = False;
 
-	if (data->mouseX <= 1) {
+	if (data->mouseX <= WMScaled(1)) {
 		if (scr->current_workspace > 0) {
 			crossWorkspace(scr, wwin, opaqueMove, scr->current_workspace - 1, True);
 			changed = True;
@@ -857,7 +864,7 @@ static Bool checkWorkspaceChange(WWindow * wwin, MoveData * data, Bool opaqueMov
 			changed = True;
 			data->rubCount = 0;
 		}
-	} else if (data->mouseX >= scr->scr_width - 2) {
+	} else if (data->mouseX >= scr->scr_width - WMScaled(2)) {
 		if (scr->current_workspace == scr->workspace_count - 1) {
 			if (wPreferences.ws_cycle || scr->workspace_count == MAX_WORKSPACES) {
 				crossWorkspace(scr, wwin, opaqueMove, 0, False);
@@ -1486,12 +1493,12 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 					if (ctrlmode) {
 						if (moment != UP)
 							h = wh;
-						h -= kspeed;
+						h -= WMScaled(kspeed);
 						moment = UP;
 						if (h < 1)
 							h = 1;
 					} else
-						off_y -= kspeed;
+						off_y -= WMScaled(kspeed);
 					break;
 				case XK_Down:
 #ifdef XK_KP_Down
@@ -1501,10 +1508,10 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 					if (ctrlmode) {
 						if (moment != DOWN)
 							h = wh;
-						h += kspeed;
+						h += WMScaled(kspeed);
 						moment = DOWN;
 					} else
-						off_y += kspeed;
+						off_y += WMScaled(kspeed);
 					break;
 				case XK_Left:
 #ifdef XK_KP_Left
@@ -1514,12 +1521,12 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 					if (ctrlmode) {
 						if (moment != LEFT)
 							w = ww;
-						w -= kspeed;
+						w -= WMScaled(kspeed);
 						if (w < 1)
 							w = 1;
 						moment = LEFT;
 					} else
-						off_x -= kspeed;
+						off_x -= WMScaled(kspeed);
 					break;
 				case XK_Right:
 #ifdef XK_KP_Right
@@ -1529,10 +1536,10 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 					if (ctrlmode) {
 						if (moment != RIGHT)
 							w = ww;
-						w += kspeed;
+						w += WMScaled(kspeed);
 						moment = RIGHT;
 					} else
-						off_x += kspeed;
+						off_x += WMScaled(kspeed);
 					break;
 				}
 
@@ -1543,14 +1550,14 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 				wh += vert_border;
 
 				if (wPreferences.ws_cycle) {
-					if (src_x + off_x + ww < 20) {
+					if (src_x + off_x + ww < WMScaled(20)) {
 						if (!scr->current_workspace)
 							wWorkspaceChange(scr, scr->workspace_count - 1);
 						else
 							wWorkspaceChange(scr, scr->current_workspace - 1);
 
 						off_x += scr_width;
-					} else if (src_x + off_x + 20 > scr_width) {
+					} else if (src_x + off_x + WMScaled(20) > scr_width) {
 						if (scr->current_workspace == scr->workspace_count - 1)
 							wWorkspaceChange(scr, 0);
 						else
@@ -1559,16 +1566,16 @@ int wKeyboardMoveResizeWindow(WWindow * wwin)
 						off_x -= scr_width;
 					}
 				} else {
-					if (src_x + off_x + ww < 20)
-						off_x = 20 - ww - src_x;
-					else if (src_x + off_x + 20 > scr_width)
-						off_x = scr_width - 20 - src_x;
+					if (src_x + off_x + ww < WMScaled(20))
+						off_x = WMScaled(20) - ww - src_x;
+					else if (src_x + off_x + WMScaled(20) > scr_width)
+						off_x = scr_width - WMScaled(20) - src_x;
 				}
 
-				if (src_y + off_y + wh < 20) {
-					off_y = 20 - wh - src_y;
-				} else if (src_y + off_y + 20 > scr_height) {
-					off_y = scr_height - 20 - src_y;
+				if (src_y + off_y + wh < WMScaled(20)) {
+					off_y = WMScaled(20) - wh - src_y;
+				} else if (src_y + off_y + WMScaled(20) > scr_height) {
+					off_y = scr_height - WMScaled(20) - src_y;
 				}
 			}
 			break;
@@ -2014,7 +2021,7 @@ int wMouseMoveWindow(WWindow * wwin, XEvent * ev)
 
 static int getResizeDirection(WWindow * wwin, int x, int y, int dy, int flags)
 {
-	int w = wwin->frame->core->width - 1;
+	int w = wwin->frame->core->width - WMScaled(1);
 	int cw = wwin->frame->resizebar_corner_width;
 	int dir;
 

@@ -37,7 +37,7 @@
 
 
 static const int WORKSPACE_MAP_RATIO  = 10;
-static const int WORKSPACE_SEPARATOR_WIDTH = 12;
+#define WORKSPACE_SEPARATOR_WIDTH WMScaled(12)
 static const int mini_workspace_per_line = 5;
 
 /*
@@ -378,7 +378,7 @@ static WWorkspaceMap *create_workspace_map(WScreen *scr, W_WorkspaceMap *wsmap_a
 
 	wsmap = wmalloc(sizeof(*wsmap));
 
-	wsmap->border_width = 5;
+	wsmap->border_width = WMScaled(5);
 	wsmap->edge = edge;
 	wsmap->mini_workspace_width = scr->scr_width / WORKSPACE_MAP_RATIO;
 	wsmap->mini_workspace_height = scr->scr_height / WORKSPACE_MAP_RATIO;
@@ -536,7 +536,7 @@ static void handle_event(WWorkspaceMap *wsmap, W_WorkspaceMap *wsmap_array)
 			wmscr = wsmap->scr->wmscreen;
 			black = WMBlackColor(wmscr);
 			const char *text = "?";
-			WMFont *bold = WMBoldSystemFontOfSize(wmscr, wsmap->mini_workspace_width / 3);
+			WMFont *bold = WMBoldSystemFontOfSize(wmscr, WMUnscaled(wsmap->mini_workspace_width / 3));
 			int x = (wsmap->mini_workspace_width / 2) - (WMWidthOfString(bold, text, strlen(text)) / 2);
 			int y = (wsmap->mini_workspace_height / 2) - (WMFontHeight(bold) / 2);
 			WMPixmap *icon = dummy_background_pixmap(wsmap);

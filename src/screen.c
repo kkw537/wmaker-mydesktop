@@ -388,7 +388,14 @@ static void allocGCs(WScreen * scr)
 	XColor color;
 	int gcm;
 
-	scr->stipple_bitmap = XCreateBitmapFromData(dpy, scr->w_win, STIPPLE_DATA, STIPPLE_WIDTH, STIPPLE_HEIGHT);
+	{
+		/* the stipple is drawn with the GUI scale factor applied */
+		int swidth, sheight;
+		char *bits = wScaleBitmapData(STIPPLE_DATA, STIPPLE_WIDTH, STIPPLE_HEIGHT, &swidth, &sheight);
+
+		scr->stipple_bitmap = XCreateBitmapFromData(dpy, scr->w_win, bits, swidth, sheight);
+		wfree(bits);
+	}
 
 	gcv.stipple = scr->stipple_bitmap;
 	gcv.foreground = scr->white_pixel;
@@ -401,11 +408,11 @@ static void allocGCs(WScreen * scr)
 	gcv.function = GXcopy;
 	gcv.foreground = scr->white_pixel;
 	gcv.background = scr->black_pixel;
-	gcv.line_width = 1;
+	gcv.line_width = WMScaled(1);
 	gcv.line_style = LineDoubleDash;
 	gcv.fill_style = FillSolid;
 	gcv.dash_offset = 0;
-	gcv.dashes = 4;
+	gcv.dashes = WMScaled(4);
 	gcv.graphics_exposures = False;
 
 	gcm = GCFunction | GCGraphicsExposures;
@@ -451,7 +458,7 @@ static void allocGCs(WScreen * scr)
 
 	gcv.function = GXxor;
 	gcv.subwindow_mode = IncludeInferiors;
-	gcv.line_width = 1;
+	gcv.line_width = WMScaled(1);
 	gcv.cap_style = CapRound;
 	gcv.graphics_exposures = False;
 	gcm = GCForeground | GCFunction | GCSubwindowMode | GCLineWidth | GCCapStyle | GCGraphicsExposures;
@@ -520,7 +527,7 @@ static void createPixmaps(WScreen * scr)
 
 void create_logo_image(WScreen *scr)
 {
-	RImage *image = get_icon_image(scr, "Logo", "WMPanel", 128);
+	RImage *image = get_icon_image(scr, "Logo", "WMPanel", WMScaled(128));
 
 	if (!image) {
 		wwarning(_("could not load logo image for panels: %s"), RMessageForError(RErrorCode));
@@ -781,8 +788,8 @@ WScreen *wScreenInit(int screen_number)
 	/* set icon sizes we can accept from clients */
 	icon_size[0].min_width = 8;
 	icon_size[0].min_height = 8;
-	icon_size[0].max_width = wPreferences.icon_size - 4;
-	icon_size[0].max_height = wPreferences.icon_size - 4;
+	icon_size[0].max_width = wPreferences.icon_size - WMScaled(4);
+	icon_size[0].max_height = wPreferences.icon_size - WMScaled(4);
 	icon_size[0].width_inc = 1;
 	icon_size[0].height_inc = 1;
 	XSetIconSizes(dpy, scr->root_win, icon_size, 1);
@@ -803,7 +810,13 @@ WScreen *wScreenInit(int screen_number)
 
 	scr->info_text_font = WMBoldSystemFontOfSize(scr->wmscreen, 12);
 
-	scr->tech_draw_font = XLoadQueryFont(dpy, "-adobe-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*");
+	{
+		/* core X font: apply the GUI scale factor to its pixel size here */
+		char fname[80];
+
+		snprintf(fname, sizeof(fname), "-adobe-helvetica-bold-r-*-*-%d-*-*-*-*-*-*-*", WMScaled(12));
+		scr->tech_draw_font = XLoadQueryFont(dpy, fname);
+	}
 	if (!scr->tech_draw_font)
 		scr->tech_draw_font = XLoadQueryFont(dpy, "fixed");
 

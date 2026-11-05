@@ -45,13 +45,13 @@ typedef struct W_Browser {
 	} flags;
 } Browser;
 
-#define COLUMN_SPACING 	4
-#define TITLE_SPACING 2
+#define COLUMN_SPACING 	WMScaled(4)
+#define TITLE_SPACING WMScaled(2)
 
-#define DEFAULT_WIDTH                 305
-#define DEFAULT_HEIGHT                200
+#define DEFAULT_WIDTH                 WMScaled(305)
+#define DEFAULT_HEIGHT                WMScaled(200)
 #define DEFAULT_HAS_SCROLLER          True
-#define DEFAULT_TITLE_HEIGHT          20
+#define DEFAULT_TITLE_HEIGHT          WMScaled(20)
 #define DEFAULT_IS_TITLED             True
 #define DEFAULT_MAX_VISIBLE_COLUMNS   2
 #define DEFAULT_SEPARATOR             "/"
@@ -240,7 +240,7 @@ static void drawTitleOfColumn(WMBrowser * bPtr, int column)
 
 	if (column < bPtr->usedColumnCount && bPtr->titles[column]) {
 		int titleLen = strlen(bPtr->titles[column]);
-		int widthC = bPtr->columnSize.width - 8;
+		int widthC = bPtr->columnSize.width - WMScaled(8);
 
 		if (WMWidthOfString(scr->boldFont, bPtr->titles[column], titleLen)
 		    > widthC) {
@@ -449,11 +449,11 @@ static void willResizeBrowser(W_ViewDelegate * self, WMView * view, unsigned int
 	}
 
 	if (bPtr->flags.hasScroller) {
-		bPtr->columnSize.height -= SCROLLER_WIDTH + 4;
+		bPtr->columnSize.height -= SCROLLER_WIDTH + WMScaled(4);
 
 		if (bPtr->scroller) {
-			WMResizeWidget(bPtr->scroller, *width - 2, 1);
-			WMMoveWidget(bPtr->scroller, 1, *height - SCROLLER_WIDTH - 1);
+			WMResizeWidget(bPtr->scroller, *width - WMScaled(2), WMScaled(1));
+			WMMoveWidget(bPtr->scroller, WMScaled(1), *height - SCROLLER_WIDTH - WMScaled(1));
 		}
 	}
 
@@ -492,26 +492,26 @@ static void paintItem(WMList * lPtr, int index, Drawable d, char *text, int stat
 		int widthC, textLen;
 
 		/* Avoid overlaping... */
-		widthC = (state & WLDSIsBranch) ? width - 20 : width - 8;
+		widthC = (state & WLDSIsBranch) ? width - WMScaled(20) : width - WMScaled(8);
 		textLen = strlen(text);
 		if (WMWidthOfString(font, text, textLen) > widthC) {
 			char *textBuf = createTruncatedString(font, text, &textLen, widthC);
-			W_PaintText(view, d, font, x + 4, y, widthC, WALeft, scr->black, False, textBuf, textLen);
+			W_PaintText(view, d, font, x + WMScaled(4), y, widthC, WALeft, scr->black, False, textBuf, textLen);
 			wfree(textBuf);
 		} else {
-			W_PaintText(view, d, font, x + 4, y, widthC, WALeft, scr->black, False, text, textLen);
+			W_PaintText(view, d, font, x + WMScaled(4), y, widthC, WALeft, scr->black, False, text, textLen);
 		}
 	}
 
 	if (state & WLDSIsBranch) {
 		WMColor *lineColor = ((state & WLDSSelected) ? scr->gray : scr->white);
 
-		XDrawLine(display, d, WMColorGC(scr->darkGray), x + width - 11, y + 3,
-			  x + width - 6, y + height / 2);
-		XDrawLine(display, d, WMColorGC(lineColor), x + width - 11, y + height - 5,
-			  x + width - 6, y + height / 2);
-		XDrawLine(display, d, WMColorGC(scr->black), x + width - 12, y + 3,
-			  x + width - 12, y + height - 5);
+		W_DrawScaledLine(scr, d, WMColorGC(scr->darkGray), x + width - WMScaled(11), y + WMScaled(3),
+				 x + width - WMScaled(6), y + height / 2);
+		W_DrawScaledLine(scr, d, WMColorGC(lineColor), x + width - WMScaled(11), y + height - WMScaled(5),
+				 x + width - WMScaled(6), y + height / 2);
+		W_DrawScaledLine(scr, d, WMColorGC(scr->black), x + width - WMScaled(12), y + WMScaled(3),
+				 x + width - WMScaled(12), y + height - WMScaled(5));
 	}
 }
 
@@ -590,12 +590,12 @@ static void setupScroller(WMBrowser * bPtr)
 	WMScroller *sPtr;
 	int y;
 
-	y = bPtr->view->size.height - SCROLLER_WIDTH - 1;
+	y = bPtr->view->size.height - SCROLLER_WIDTH - WMScaled(1);
 
 	sPtr = WMCreateScroller(bPtr);
 	WMSetScrollerAction(sPtr, scrollCallback, bPtr);
-	WMMoveWidget(sPtr, 1, y);
-	WMResizeWidget(sPtr, bPtr->view->size.width - 2, SCROLLER_WIDTH);
+	WMMoveWidget(sPtr, WMScaled(1), y);
+	WMResizeWidget(sPtr, bPtr->view->size.width - WMScaled(2), SCROLLER_WIDTH);
 
 	bPtr->scroller = sPtr;
 
@@ -841,7 +841,7 @@ static void paintBrowser(WMBrowser * bPtr)
 		return;
 
 	W_DrawRelief(bPtr->view->screen, bPtr->view->window, 0,
-		     bPtr->view->size.height - SCROLLER_WIDTH - 2, bPtr->view->size.width, 22, WRSunken);
+		     bPtr->view->size.height - SCROLLER_WIDTH - WMScaled(2), bPtr->view->size.width, WMScaled(22), WRSunken);
 
 	if (bPtr->flags.isTitled) {
 		for (i = 0; i < bPtr->maxVisibleColumns; i++) {

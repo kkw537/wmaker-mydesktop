@@ -23,8 +23,8 @@ typedef struct W_Label {
 	} flags;
 } Label;
 
-#define DEFAULT_WIDTH		60
-#define DEFAULT_HEIGHT		14
+#define DEFAULT_WIDTH		WMScaled(60)
+#define DEFAULT_HEIGHT		WMScaled(14)
 #define DEFAULT_ALIGNMENT	WALeft
 #define DEFAULT_RELIEF		WRFlat
 #define DEFAULT_IMAGE_POSITION	WIPNoImage

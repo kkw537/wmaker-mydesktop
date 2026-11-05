@@ -767,7 +767,7 @@ static void drawIconProc(WMList * lPtr, int index, Drawable d, char *text, int s
 	color.blue = WMBlueComponentOfColor(back) >> 8;
 	color.alpha = WMGetColorAlpha(back) >> 8;
 
-	pixmap = WMCreateScaledBlendedPixmapFromFile(wmscr, file, &color, width - 2, height - 2);
+	pixmap = WMCreateScaledBlendedPixmapFromFile(wmscr, file, &color, width - WMScaled(2), height - WMScaled(2));
 	wfree(file);
 
 	if (!pixmap) {
@@ -779,15 +779,16 @@ static void drawIconProc(WMList * lPtr, int index, Drawable d, char *text, int s
 
 	XSetClipMask(dpy, gc, None);
 	/*XDrawRectangle(dpy, d, WMColorGC(white), x+5, y+5, width-10, 54); */
-	XDrawLine(dpy, d, WMColorGC(scr->white), x, y + height - 1, x + width, y + height - 1);
+	XFillRectangle(dpy, d, WMColorGC(scr->white), x, y + height - WMScaled(1), width + 1, WMScaled(1));
 
 	size = WMGetPixmapSize(pixmap);
 
 	XSetClipMask(dpy, copygc, WMGetPixmapMaskXID(pixmap));
-	XSetClipOrigin(dpy, copygc, x + (width - size.width) / 2, y + 2);
+	XSetClipOrigin(dpy, copygc, x + (width - size.width) / 2, y + WMScaled(2));
 	XCopyArea(dpy, WMGetPixmapXID(pixmap), d, copygc, 0, 0,
-		  size.width > 100 ? 100 : size.width, size.height > 64 ? 64 : size.height,
-		  x + (width - size.width) / 2, y + 2);
+		  size.width > WMScaled(100) ? WMScaled(100) : size.width,
+		  size.height > WMScaled(64) ? WMScaled(64) : size.height,
+		  x + (width - size.width) / 2, y + WMScaled(2));
 
 	{
 		int i, j;
@@ -797,10 +798,10 @@ static void drawIconProc(WMList * lPtr, int index, Drawable d, char *text, int s
 		int ofx, ofy;
 
 		ofx = x + (width - twidth) / 2;
-		ofy = y + 64 - fheight;
+		ofy = y + WMScaled(64) - fheight;
 
-		for (i = -1; i < 2; i++)
-			for (j = -1; j < 2; j++)
+		for (i = -WMScaled(1); i <= WMScaled(1); i++)
+			for (j = -WMScaled(1); j <= WMScaled(1); j++)
 				WMDrawString(wmscr, d, scr->white, panel->normalfont,
 					     ofx + i, ofy + j, text, tlen);
 
@@ -826,7 +827,7 @@ static void buttonCallback(void *self, void *clientData)
 	} else if (bPtr == panel->previewButton) {
 	/**** Previewer ****/
 		WMSetButtonEnabled(bPtr, False);
-		WMSetListUserDrawItemHeight(panel->iconList, 68);
+		WMSetListUserDrawItemHeight(panel->iconList, WMScaled(68));
 		WMSetListUserDrawProc(panel->iconList, drawIconProc);
 		WMRedisplayWidget(panel->iconList);
 		/* for draw proc to access screen/gc */
@@ -944,8 +945,8 @@ Bool wIconChooserDialog(WScreen *scr, char **file, const char *instance, const c
 
 	WMCreateEventHandler(WMWidgetView(panel->win), KeyPressMask | KeyReleaseMask, keyPressHandler, panel);
 
-	boldFont = WMBoldSystemFontOfSize(scr->wmscreen, WMScaleY(12));
-	panel->normalfont = WMSystemFontOfSize(WMWidgetScreen(panel->win), WMScaleY(12));
+	boldFont = WMBoldSystemFontOfSize(scr->wmscreen, WMUnscaled(WMScaleY(12)));
+	panel->normalfont = WMSystemFontOfSize(WMWidgetScreen(panel->win), WMUnscaled(WMScaleY(12)));
 
 	panel->dirLabel = WMCreateLabel(panel->win);
 	WMResizeWidget(panel->dirLabel, WMScaleX(200), WMScaleY(20));
@@ -1349,7 +1350,7 @@ void wShowInfoPanel(WScreen *scr)
 
 	snprintf(buffer, sizeof(buffer), COPYRIGHT_TEXT, current_year);
 	WMSetLabelText(panel->copyrL, buffer);
-	font = WMSystemFontOfSize(scr->wmscreen, WMScaleY(11));
+	font = WMSystemFontOfSize(scr->wmscreen, WMUnscaled(WMScaleY(11)));
 	if (font) {
 		WMSetLabelFont(panel->copyrL, font);
 		WMReleaseFont(font);
@@ -1477,7 +1478,7 @@ void wShowInfoPanel(WScreen *scr)
 #endif
 	WMMoveWidget(panel->infoL, WMScaleX(15), WMScaleY(115));
 	WMSetLabelText(panel->infoL, strbuf);
-	font = WMSystemFontOfSize(scr->wmscreen, WMScaleY(11));
+	font = WMSystemFontOfSize(scr->wmscreen, WMUnscaled(WMScaleY(11)));
 	if (font) {
 		WMSetLabelFont(panel->infoL, font);
 		WMReleaseFont(font);
@@ -1707,8 +1708,8 @@ static WMPixmap *getWindowMakerIconImage(WMScreen *scr)
 	return pix;
 }
 
-#define PWIDTH	295
-#define PHEIGHT	345
+#define PWIDTH	WMScaled(295)
+#define PHEIGHT	WMScaled(345)
 
 int wShowCrashingDialogPanel(int whatSig)
 {
@@ -1743,15 +1744,15 @@ int wShowCrashingDialogPanel(int whatSig)
 	logo = getWindowMakerIconImage(scr);
 	if (logo) {
 		panel->iconL = WMCreateLabel(panel->win);
-		WMResizeWidget(panel->iconL, 64, 64);
-		WMMoveWidget(panel->iconL, 10, 10);
+		WMResizeWidget(panel->iconL, WMScaled(64), WMScaled(64));
+		WMMoveWidget(panel->iconL, WMScaled(10), WMScaled(10));
 		WMSetLabelImagePosition(panel->iconL, WIPImageOnly);
 		WMSetLabelImage(panel->iconL, logo);
 	}
 
 	panel->nameL = WMCreateLabel(panel->win);
-	WMResizeWidget(panel->nameL, 200, 30);
-	WMMoveWidget(panel->nameL, 80, 25);
+	WMResizeWidget(panel->nameL, WMScaled(200), WMScaled(30));
+	WMMoveWidget(panel->nameL, WMScaled(80), WMScaled(25));
 	WMSetLabelTextAlignment(panel->nameL, WALeft);
 	font = WMBoldSystemFontOfSize(scr, 24);
 	WMSetLabelFont(panel->nameL, font);
@@ -1759,19 +1760,19 @@ int wShowCrashingDialogPanel(int whatSig)
 	WMSetLabelText(panel->nameL, _("Fatal error"));
 
 	panel->sepF = WMCreateFrame(panel->win);
-	WMResizeWidget(panel->sepF, PWIDTH + 4, 2);
-	WMMoveWidget(panel->sepF, -2, 80);
+	WMResizeWidget(panel->sepF, PWIDTH + WMScaled(4), WMScaled(2));
+	WMMoveWidget(panel->sepF, -WMScaled(2), WMScaled(80));
 
 	panel->noteL = WMCreateLabel(panel->win);
-	WMResizeWidget(panel->noteL, PWIDTH - 20, 40);
-	WMMoveWidget(panel->noteL, 10, 90);
+	WMResizeWidget(panel->noteL, PWIDTH - WMScaled(20), WMScaled(40));
+	WMMoveWidget(panel->noteL, WMScaled(10), WMScaled(90));
 	WMSetLabelTextAlignment(panel->noteL, WAJustified);
 	snprintf(buf, sizeof(buf), _("Window Maker received signal %i."), whatSig);
 	WMSetLabelText(panel->noteL, buf);
 
 	panel->note2L = WMCreateLabel(panel->win);
-	WMResizeWidget(panel->note2L, PWIDTH - 20, 100);
-	WMMoveWidget(panel->note2L, 10, 130);
+	WMResizeWidget(panel->note2L, PWIDTH - WMScaled(20), WMScaled(100));
+	WMMoveWidget(panel->note2L, WMScaled(10), WMScaled(130));
 	WMSetLabelTextAlignment(panel->note2L, WALeft);
 	snprintf(buf, sizeof(buf), /* Comment for the PO file: the %s is an email address */
 	         _(" This fatal error occurred probably due to a bug."
@@ -1781,13 +1782,13 @@ int wShowCrashingDialogPanel(int whatSig)
 	WMSetLabelWraps(panel->note2L, True);
 
 	panel->whatF = WMCreateFrame(panel->win);
-	WMResizeWidget(panel->whatF, PWIDTH - 20, 50);
-	WMMoveWidget(panel->whatF, 10, 240);
+	WMResizeWidget(panel->whatF, PWIDTH - WMScaled(20), WMScaled(50));
+	WMMoveWidget(panel->whatF, WMScaled(10), WMScaled(240));
 	WMSetFrameTitle(panel->whatF, _("What do you want to do now?"));
 
 	panel->whatP = WMCreatePopUpButton(panel->whatF);
-	WMResizeWidget(panel->whatP, PWIDTH - 20 - 70, 20);
-	WMMoveWidget(panel->whatP, 35, 20);
+	WMResizeWidget(panel->whatP, PWIDTH - WMScaled(20) - WMScaled(70), WMScaled(20));
+	WMMoveWidget(panel->whatP, WMScaled(35), WMScaled(20));
 	WMSetPopUpButtonPullsDown(panel->whatP, False);
 	WMSetPopUpButtonText(panel->whatP, _("Select action"));
 	WMAddPopUpButtonItem(panel->whatP, _("Abort and leave a core file"));
@@ -1800,8 +1801,8 @@ int wShowCrashingDialogPanel(int whatSig)
 	WMMapSubwidgets(panel->whatF);
 
 	panel->okB = WMCreateCommandButton(panel->win);
-	WMResizeWidget(panel->okB, 80, 26);
-	WMMoveWidget(panel->okB, 205, 309);
+	WMResizeWidget(panel->okB, WMScaled(80), WMScaled(26));
+	WMMoveWidget(panel->okB, WMScaled(205), WMScaled(309));
 	WMSetButtonText(panel->okB, _("OK"));
 	WMSetButtonImage(panel->okB, WMGetSystemPixmap(scr, WSIReturnArrow));
 	WMSetButtonAltImage(panel->okB, WMGetSystemPixmap(scr, WSIHighlightedReturnArrow));

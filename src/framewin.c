@@ -151,9 +151,9 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 	if (wPreferences.new_style == TS_NEW) {
 		bsize = theight;
 	} else if (wPreferences.new_style == TS_OLD) {
-		bsize = theight - 7;
+		bsize = theight - WMScaled(7);
 	} else {
-		bsize = theight - 8;
+		bsize = theight - WMScaled(8);
 	}
 
 	if (fwin->titlebar) {
@@ -178,19 +178,19 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 #endif
 
 				if (fwin->right_button)
-					wCoreConfigure(fwin->right_button, width - bsize + 1, 0, bsize, bsize);
+					wCoreConfigure(fwin->right_button, width - bsize + WMScaled(1), 0, bsize, bsize);
 
 			} else {	/* !new_style */
 				if (fwin->left_button)
-					wCoreConfigure(fwin->left_button, 3, (theight - bsize) / 2, bsize, bsize);
+					wCoreConfigure(fwin->left_button, WMScaled(3), (theight - bsize) / 2, bsize, bsize);
 #ifdef XKB_BUTTON_HINT
 				if (fwin->language_button)
-					wCoreConfigure(fwin->language_button, 6 + bsize, (theight - bsize) / 2,
+					wCoreConfigure(fwin->language_button, WMScaled(6) + bsize, (theight - bsize) / 2,
 						       bsize, bsize);
 #endif
 
 				if (fwin->right_button)
-					wCoreConfigure(fwin->right_button, width - bsize - 3,
+					wCoreConfigure(fwin->right_button, width - bsize - WMScaled(3),
 						       (theight - bsize) / 2, bsize, bsize);
 			}
 			updateTitlebar(fwin);
@@ -232,7 +232,7 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 			fwin->top_width = theight;
 
 			fwin->flags.titlebar = 1;
-			fwin->titlebar = wCoreCreate(fwin->core, 0, 0, width + 1, theight);
+			fwin->titlebar = wCoreCreate(fwin->core, 0, 0, width + WMScaled(1), theight);
 
 			if (flags & WFF_LEFT_BUTTON) {
 				fwin->flags.left_button = 1;
@@ -246,7 +246,7 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 
 				} else if (wPreferences.new_style == TS_OLD) {
 					fwin->left_button =
-					    wCoreCreate(fwin->titlebar, 3, (theight - bsize) / 2, bsize, bsize);
+					    wCoreCreate(fwin->titlebar, WMScaled(3), (theight - bsize) / 2, bsize, bsize);
 
 					XSetWindowBackground(dpy, fwin->left_button->window,
 							     scr->widget_texture->normal.pixel);
@@ -258,7 +258,7 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 
 				} else {
 					fwin->left_button =
-					    wCoreCreate(fwin->titlebar, 3, (theight-bsize)/2,
+					    wCoreCreate(fwin->titlebar, WMScaled(3), (theight-bsize)/2,
 								    bsize, bsize);
 
 					XSetWindowBackground(dpy, fwin->left_button->window,
@@ -283,7 +283,7 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 						XMapRaised(dpy, fwin->language_button->window);
 				} else {
 					fwin->language_button =
-					    wCoreCreate(fwin->titlebar, bsize + 6, (theight - bsize) / 2,
+					    wCoreCreate(fwin->titlebar, bsize + WMScaled(6), (theight - bsize) / 2,
 							bsize, bsize);
 
 					XSetWindowBackground(dpy, fwin->language_button->window,
@@ -301,16 +301,16 @@ void wFrameWindowUpdateBorders(WFrameWindow * fwin, int flags)
 				fwin->flags.right_button = 1;
 				if (wPreferences.new_style == TS_NEW) {
 					fwin->right_button =
-					    wCoreCreate(fwin->core, width - bsize + 1, 0, bsize, bsize);
+					    wCoreCreate(fwin->core, width - bsize + WMScaled(1), 0, bsize, bsize);
 				} else if (wPreferences.new_style == TS_OLD) {
 					fwin->right_button =
-					    wCoreCreate(fwin->titlebar, width - bsize - 3,
+					    wCoreCreate(fwin->titlebar, width - bsize - WMScaled(3),
 							(theight - bsize) / 2, bsize, bsize);
 					XSetWindowBackground(dpy, fwin->right_button->window,
 							     scr->widget_texture->normal.pixel);
 				} else {
 					fwin->right_button =
-					    wCoreCreate(fwin->titlebar, width-bsize-3,
+					    wCoreCreate(fwin->titlebar, width-bsize-WMScaled(3),
 							(theight-bsize)/2, bsize, bsize);
 					XSetWindowBackground(dpy, fwin->right_button->window,
 							     scr->widget_texture->dark.pixel);
@@ -506,7 +506,7 @@ static void updateTitlebar(WFrameWindow * fwin)
 		theight = *fwin->title_min_height;
 
 	x = 0;
-	w = fwin->core->width + 1;
+	w = fwin->core->width + WMScaled(1);
 
 	if (wPreferences.new_style == TS_NEW) {
 		if (fwin->flags.hide_left_button || !fwin->left_button || fwin->flags.lbutton_dont_fit) {
@@ -536,17 +536,17 @@ static void updateTitlebar(WFrameWindow * fwin)
 	}
 #ifdef XKB_BUTTON_HINT
 	else {
-		int bsize = theight - 7;
+		int bsize = theight - WMScaled(7);
 		if (wPreferences.new_style == TS_NEXT)
-			bsize -= 1;
+			bsize -= WMScaled(1);
 		if (fwin->flags.hide_left_button || !fwin->left_button || fwin->flags.lbutton_dont_fit) {
 			if (fwin->language_button)
-				wCoreConfigure(fwin->language_button, 3, (theight - bsize) / 2,
+				wCoreConfigure(fwin->language_button, WMScaled(3), (theight - bsize) / 2,
 					       fwin->language_button->width, fwin->language_button->width);
 		} else {
 			if (fwin->language_button)
 				wCoreConfigure(fwin->language_button,
-					       6 + fwin->left_button->width, (theight - bsize) / 2,
+					       WMScaled(6) + fwin->left_button->width, (theight - bsize) / 2,
 					       fwin->language_button->width, fwin->language_button->width);
 		}
 	}
@@ -745,6 +745,7 @@ renderResizebarTexture(WScreen * scr, WTexture * texture, int width, int height,
 	RImage *img;
 	RColor light;
 	RColor dark;
+	int s1, s2;
 
 	*pmap = None;
 
@@ -760,21 +761,24 @@ renderResizebarTexture(WScreen * scr, WTexture * texture, int width, int height,
 	dark.alpha = 0;
 	dark.red = dark.green = dark.blue = 40;
 
-	ROperateLine(img, RSubtractOperation, 0, 0, width - 1, 0, &dark);
-	ROperateLine(img, RAddOperation, 0, 1, width - 1, 1, &light);
+	s1 = WMScaled(1);
+	s2 = WMScaled(2);
 
-	ROperateLine(img, RSubtractOperation, cwidth, 2, cwidth, height - 1, &dark);
-	ROperateLine(img, RAddOperation, cwidth + 1, 2, cwidth + 1, height - 1, &light);
+	wOperateScaledLine(img, RSubtractOperation, 0, 0, width - s1, 0, &dark);
+	wOperateScaledLine(img, RAddOperation, 0, s1, width - s1, s1, &light);
 
-	if (width > 1)
-		ROperateLine(img, RSubtractOperation, width - cwidth - 2, 2,
-			     width - cwidth - 2, height - 1, &dark);
-	ROperateLine(img, RAddOperation, width - cwidth - 1, 2, width - cwidth - 1, height - 1, &light);
+	wOperateScaledLine(img, RSubtractOperation, cwidth, s2, cwidth, height - s1, &dark);
+	wOperateScaledLine(img, RAddOperation, cwidth + s1, s2, cwidth + s1, height - s1, &light);
+
+	if (width > s1)
+		wOperateScaledLine(img, RSubtractOperation, width - cwidth - s2, s2,
+			     width - cwidth - s2, height - s1, &dark);
+	wOperateScaledLine(img, RAddOperation, width - cwidth - s1, s2, width - cwidth - s1, height - s1, &light);
 
 #ifdef SHADOW_RESIZEBAR
-	ROperateLine(img, RAddOperation, 0, 1, 0, height - 1, &light);
-	ROperateLine(img, RSubtractOperation, width - 1, 1, width - 1, height - 1, &dark);
-	ROperateLine(img, RSubtractOperation, 0, height - 1, width - 1, height - 1, &dark);
+	wOperateScaledLine(img, RAddOperation, 0, s1, 0, height - s1, &light);
+	wOperateScaledLine(img, RSubtractOperation, width - s1, s1, width - s1, height - s1, &dark);
+	wOperateScaledLine(img, RSubtractOperation, 0, height - s1, width - s1, height - s1, &dark);
 #endif				/* SHADOW_RESIZEBAR */
 
 	if (!RConvertImage(scr->rcontext, img, pmap))
@@ -873,7 +877,7 @@ static void remakeTexture(WFrameWindow * fwin, int state)
 			right = fwin->right_button && !fwin->flags.hide_right_button
 			    && !fwin->flags.rbutton_dont_fit;
 
-			width = fwin->core->width + 1;
+			width = fwin->core->width + WMScaled(1);
 
 #ifdef XKB_BUTTON_HINT
 			renderTexture(fwin->screen_ptr, fwin->title_texture[state],
@@ -976,6 +980,7 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 		Window win;
 		int w, h;
 		int cw;
+		int s1, s2;
 		GC light_gc, dim_gc;
 		WTexSolid *texture = (WTexSolid *) fwin->resizebar_texture[0];
 
@@ -986,33 +991,36 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 		dim_gc = texture->dim_gc;
 		win = fwin->resizebar->window;
 
-		XDrawLine(dpy, win, dim_gc, 0, 0, w, 0);
-		XDrawLine(dpy, win, light_gc, 0, 1, w, 1);
+		s1 = WMScaled(1);
+		s2 = WMScaled(2);
 
-		XDrawLine(dpy, win, dim_gc, cw, 2, cw, h);
-		XDrawLine(dpy, win, light_gc, cw + 1, 2, cw + 1, h);
+		wDrawScaledLine(win, dim_gc, 0, 0, w, 0);
+		wDrawScaledLine(win, light_gc, 0, s1, w, s1);
 
-		XDrawLine(dpy, win, dim_gc, w - cw - 2, 2, w - cw - 2, h);
-		XDrawLine(dpy, win, light_gc, w - cw - 1, 2, w - cw - 1, h);
+		wDrawScaledLine(win, dim_gc, cw, s2, cw, h);
+		wDrawScaledLine(win, light_gc, cw + s1, s2, cw + s1, h);
+
+		wDrawScaledLine(win, dim_gc, w - cw - s2, s2, w - cw - s2, h);
+		wDrawScaledLine(win, light_gc, w - cw - s1, s2, w - cw - s1, h);
 
 #ifdef SHADOW_RESIZEBAR
-		XDrawLine(dpy, win, light_gc, 0, 1, 0, h - 1);
-		XDrawLine(dpy, win, dim_gc, w - 1, 2, w - 1, h - 1);
-		XDrawLine(dpy, win, dim_gc, 1, h - 1, cw, h - 1);
-		XDrawLine(dpy, win, dim_gc, cw + 2, h - 1, w - cw - 2, h - 1);
-		XDrawLine(dpy, win, dim_gc, w - cw, h - 1, w - 1, h - 1);
+		wDrawScaledLine(win, light_gc, 0, s1, 0, h - s1);
+		wDrawScaledLine(win, dim_gc, w - s1, s2, w - s1, h - s1);
+		wDrawScaledLine(win, dim_gc, s1, h - s1, cw, h - s1);
+		wDrawScaledLine(win, dim_gc, cw + s2, h - s1, w - cw - s2, h - s1);
+		wDrawScaledLine(win, dim_gc, w - cw, h - s1, w - s1, h - s1);
 #endif				/* SHADOW_RESIZEBAR */
 	}
 
 	if (fwin->titlebar && !fwin->flags.repaint_only_resizebar) {
 		int x, y, w, h;
-		int lofs = 6, rofs = 6;
+		int lofs = WMScaled(6), rofs = WMScaled(6);
 		int titlelen;
 		int allButtons = 1;
 
 		if (wPreferences.new_style != TS_NEW) {
 			if (fwin->left_button && !fwin->flags.hide_left_button && !fwin->flags.lbutton_dont_fit)
-				lofs += fwin->left_button->width + 3;
+				lofs += fwin->left_button->width + WMScaled(3);
 			else
 				allButtons = 0;
 
@@ -1025,7 +1033,7 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 #endif
 
 			if (fwin->right_button && !fwin->flags.hide_right_button && !fwin->flags.rbutton_dont_fit)
-				rofs += fwin->right_button->width + 3;
+				rofs += fwin->right_button->width + WMScaled(3);
 			else
 				allButtons = 0;
 		}
@@ -1075,23 +1083,23 @@ void wFrameWindowPaint(WFrameWindow * fwin)
 			 * starting from x = -1 not from 0 as requested. Observed with
 			 * capital A letter on the bold 'trebuchet ms' font. -Dan
 			 */
-			buf = XCreatePixmap(dpy, fwin->titlebar->window, w + 2, h, scr->w_depth);
+			buf = XCreatePixmap(dpy, fwin->titlebar->window, w + WMScaled(2), h, scr->w_depth);
 
 			XSetClipMask(dpy, scr->copy_gc, None);
 
 			if (fwin->title_texture[state]->any.type != WTEX_SOLID) {
 				XCopyArea(dpy, fwin->title_back[state], buf, scr->copy_gc,
-					  x - 1, y, w + 2, h, 0, 0);
+					  x - WMScaled(1), y, w + WMScaled(2), h, 0, 0);
 			} else {
 				XSetForeground(dpy, scr->copy_gc, fwin->title_texture[state]->solid.normal.pixel);
-				XFillRectangle(dpy, buf, scr->copy_gc, 0, 0, w + 2, h);
+				XFillRectangle(dpy, buf, scr->copy_gc, 0, 0, w + WMScaled(2), h);
 			}
 
 			/*XDrawRectangle(dpy, buf, WMColorGC(scr->white),1,0,w,h-1); */
 			WMDrawString(scr->wmscreen, buf, fwin->title_color[state],
-				     *fwin->font, 1, 0, title, titlelen);
+				     *fwin->font, WMScaled(1), 0, title, titlelen);
 
-			XCopyArea(dpy, buf, fwin->titlebar->window, scr->copy_gc, 0, 0, w + 2, h, x - 1, y);
+			XCopyArea(dpy, buf, fwin->titlebar->window, scr->copy_gc, 0, 0, w + WMScaled(2), h, x - WMScaled(1), y);
 
 			XFreePixmap(dpy, buf);
 
@@ -1177,11 +1185,11 @@ static void reconfigure(WFrameWindow * fwin, int x, int y, int width, int height
 		if (wPreferences.new_style == TS_NEW) {
 			if (fwin->right_button)
 				XMoveWindow(dpy, fwin->right_button->window,
-					    width - fwin->right_button->width + 1, 0);
+					    width - fwin->right_button->width + WMScaled(1), 0);
 		} else {
 			if (fwin->right_button)
 				XMoveWindow(dpy, fwin->right_button->window,
-					    width - fwin->right_button->width - 3,
+					    width - fwin->right_button->width - WMScaled(3),
 					    (fwin->titlebar->height - fwin->right_button->height) / 2);
 		}
 		updateTitlebar(fwin);
@@ -1264,7 +1272,7 @@ void wFrameWindowUpdateLanguageButton(WFrameWindow * fwin)
 	WCoreWindow *button = fwin->language_button;
 	GC gc = scr->copy_gc;
 	int i, text_width, text_height;
-	int border_thickness = 3;
+	int border_thickness = WMScaled(3);
 	int key_width, key_height;
 	int group_index;
 	Pixmap tmp[2];		/* focused, unfocused */
@@ -1281,7 +1289,7 @@ void wFrameWindowUpdateLanguageButton(WFrameWindow * fwin)
 
 	/* Calculate text dimensions */
 	int small_px = WMFontHeight(*fwin->font) * 55 / 100;
-	WMFont *small = WMBoldSystemFontOfSize(scr->wmscreen, small_px);
+	WMFont *small = WMBoldSystemFontOfSize(scr->wmscreen, WMUnscaled(small_px));
 	text_width = WMWidthOfString(small, fwin->language_label, strlen(fwin->language_label));
 	text_height = WMFontHeight(small);
 
@@ -1323,7 +1331,7 @@ void wFrameWindowUpdateLanguageButton(WFrameWindow * fwin)
 		for (i = 0; i < 2; i++) {
 			if (fwin->title_texture[i]->any.type != WTEX_SOLID && fwin->title_back[i] != None) {
 				XCopyArea(dpy, fwin->languagebutton_back[i], tmp[i], scr->copy_gc,
-						  0, 0, button->width, button->height, -1, -1);
+						  0, 0, button->width, button->height, -WMScaled(1), -WMScaled(1));
 			} else {
 				unsigned long bg_pixel = fwin->title_texture[i]->solid.normal.pixel;
 				XSetForeground(dpy, gc, bg_pixel);
@@ -1406,21 +1414,21 @@ static void checkTitleSize(WFrameWindow * fwin)
 		fwin->flags.incomplete_title = 1;
 		return;
 	} else {
-		width = fwin->titlebar->width - 6 - 6;
+		width = fwin->titlebar->width - WMScaled(6) - WMScaled(6);
 	}
 
 	if (wPreferences.new_style != TS_NEW) {
 		if (fwin->left_button && !fwin->flags.hide_left_button && !fwin->flags.lbutton_dont_fit)
-			width -= fwin->left_button->width + 3;
+			width -= fwin->left_button->width + WMScaled(3);
 
 #ifdef XKB_BUTTON_HINT
 		if (fwin->language_button && !fwin->flags.hide_language_button
 		    && !fwin->flags.languagebutton_dont_fit)
-			width -= fwin->language_button->width + 3;
+			width -= fwin->language_button->width + WMScaled(3);
 #endif
 
 		if (fwin->right_button && !fwin->flags.hide_right_button && !fwin->flags.rbutton_dont_fit)
-			width -= fwin->right_button->width + 3;
+			width -= fwin->right_button->width + WMScaled(3);
 	}
 
 	if (WMWidthOfString(*fwin->font, fwin->title, strlen(fwin->title)) > width)
@@ -1454,19 +1462,23 @@ static void paintButton(WCoreWindow * button, WTexture * texture, unsigned long 
 		else
 			XSetForeground(dpy, copy_gc, scr->white_pixel);
 
-		d = 1;
+		d = WMScaled(1);
 		if (wPreferences.new_style == TS_NEW) {
-			XFillRectangle(dpy, button->window, copy_gc, 0, 0, button->width - 1, button->height - 1);
+			XFillRectangle(dpy, button->window, copy_gc, 0, 0,
+				       button->width - WMScaled(1), button->height - WMScaled(1));
 			XSetForeground(dpy, copy_gc, scr->black_pixel);
-			XDrawRectangle(dpy, button->window, copy_gc, 0, 0, button->width - 1, button->height - 1);
+			wDrawScaledRectangle(button->window, copy_gc, 0, 0,
+					     button->width - WMScaled(1), button->height - WMScaled(1));
 		} else if (wPreferences.new_style == TS_OLD) {
 			XFillRectangle(dpy, button->window, copy_gc, 0, 0, button->width, button->height);
 			XSetForeground(dpy, copy_gc, scr->black_pixel);
-			XDrawRectangle(dpy, button->window, copy_gc, 0, 0, button->width, button->height);
+			wDrawScaledRectangle(button->window, copy_gc, 0, 0, button->width, button->height);
 		} else {
-			XFillRectangle(dpy, button->window, copy_gc, 0, 0, button->width-3, button->height-3);
+			XFillRectangle(dpy, button->window, copy_gc, 0, 0,
+				       button->width - WMScaled(3), button->height - WMScaled(3));
 			XSetForeground(dpy, copy_gc, scr->black_pixel);
-			XDrawRectangle(dpy, button->window, copy_gc, 0, 0, button->width-3, button->height-3);
+			wDrawScaledRectangle(button->window, copy_gc, 0, 0,
+					     button->width - WMScaled(3), button->height - WMScaled(3));
 		}
 	} else {
 		XClearWindow(dpy, button->window);

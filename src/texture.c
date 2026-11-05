@@ -543,10 +543,98 @@ static void bevelImage(RImage * image, int relief)
 	}
 }
 
+/*
+ * Helpers to draw the lines of the user interface with the GUI scale factor
+ * (GSScaleFactor) applied to their thickness.
+ *
+ * The coordinates are given in device pixels, the same way they would be
+ * given to XDrawLine() and friends but with the offsets already scaled
+ * (ie: "width - WMScaled(2)" instead of "width - 2"): the line then grows
+ * WMScaled(1) pixels to the right/bottom of these coordinates, so that the
+ * result looks exactly like the 1 pixel line drawn with bigger pixels.
+ */
+void wDrawScaledLine(Drawable d, GC gc, int x1, int y1, int x2, int y2)
+{
+	int t = WMScaled(1);
+	int i, j;
+
+	if (t == 1) {
+		XDrawLine(dpy, d, gc, x1, y1, x2, y2);
+		return;
+	}
+
+	if (y1 == y2) {
+		XFillRectangle(dpy, d, gc, WMIN(x1, x2), y1, abs(x2 - x1) + t, t);
+	} else if (x1 == x2) {
+		XFillRectangle(dpy, d, gc, x1, WMIN(y1, y2), t, abs(y2 - y1) + t);
+	} else {
+		for (i = 0; i < t; i++)
+			for (j = 0; j < t; j++)
+				XDrawLine(dpy, d, gc, x1 + i, y1 + j, x2 + i, y2 + j);
+	}
+}
+
+void wDrawScaledSegments(Drawable d, GC gc, XSegment *segs, int nsegs)
+{
+	int i;
+
+	for (i = 0; i < nsegs; i++)
+		wDrawScaledLine(d, gc, segs[i].x1, segs[i].y1, segs[i].x2, segs[i].y2);
+}
+
+/* same as XDrawRectangle(), see wDrawScaledLine() */
+void wDrawScaledRectangle(Drawable d, GC gc, int x, int y, int width, int height)
+{
+	int t = WMScaled(1);
+
+	if (t == 1) {
+		XDrawRectangle(dpy, d, gc, x, y, width, height);
+		return;
+	}
+
+	XFillRectangle(dpy, d, gc, x, y, width + t, t);
+	XFillRectangle(dpy, d, gc, x, y + height, width + t, t);
+	XFillRectangle(dpy, d, gc, x, y, t, height + t);
+	XFillRectangle(dpy, d, gc, x + width, y, t, height + t);
+}
+
+/* same as ROperateLine() and RDrawLine(), see wDrawScaledLine() */
+void wOperateScaledLine(RImage *image, int operation, int x1, int y1, int x2, int y2, const RColor *color)
+{
+	int t = WMScaled(1);
+	int i;
+
+	for (i = 0; i < t; i++) {
+		if (y1 == y2)
+			ROperateLine(image, operation, WMIN(x1, x2), y1 + i, WMAX(x1, x2) + t - 1, y2 + i, color);
+		else if (x1 == x2)
+			ROperateLine(image, operation, x1 + i, WMIN(y1, y2), x2 + i, WMAX(y1, y2) + t - 1, color);
+		else
+			ROperateLine(image, operation, x1 + i, y1, x2 + i, y2, color);
+	}
+}
+
+void wDrawScaledImageLine(RImage *image, int x1, int y1, int x2, int y2, const RColor *color)
+{
+	int t = WMScaled(1);
+	int i;
+
+	for (i = 0; i < t; i++) {
+		if (y1 == y2)
+			RDrawLine(image, WMIN(x1, x2), y1 + i, WMAX(x1, x2) + t - 1, y2 + i, color);
+		else if (x1 == x2)
+			RDrawLine(image, x1 + i, WMIN(y1, y2), x2 + i, WMAX(y1, y2) + t - 1, color);
+		else
+			RDrawLine(image, x1 + i, y1, x2 + i, y2, color);
+	}
+}
+
 void wDrawBevel(Drawable d, unsigned width, unsigned height, WTexSolid * texture, int relief)
 {
 	GC light, dim, dark;
 	XSegment segs[4];
+	int s1 = WMScaled(1);
+	int s2 = WMScaled(2);
 
 	if (relief == WREL_FLAT)
 		return;
@@ -558,46 +646,46 @@ void wDrawBevel(Drawable d, unsigned width, unsigned height, WTexSolid * texture
 	case WREL_MENUENTRY:
 	case WREL_RAISED:
 	case WREL_ICON:
-		segs[0].x1 = 1;
-		segs[0].x2 = width - 2;
-		segs[0].y2 = segs[0].y1 = height - 2;
-		segs[1].x1 = width - 2;
-		segs[1].y1 = 1;
-		segs[1].x2 = width - 2;
-		segs[1].y2 = height - 2;
+		segs[0].x1 = s1;
+		segs[0].x2 = width - s2;
+		segs[0].y2 = segs[0].y1 = height - s2;
+		segs[1].x1 = width - s2;
+		segs[1].y1 = s1;
+		segs[1].x2 = width - s2;
+		segs[1].y2 = height - s2;
 		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, dark, segs, 2);
+			wDrawScaledSegments(d, dark, segs, 2);
 		} else {
-			XDrawSegments(dpy, d, dim, segs, 2);
+			wDrawScaledSegments(d, dim, segs, 2);
 		}
 		segs[0].x1 = 0;
-		segs[0].x2 = width - 1;
-		segs[0].y2 = segs[0].y1 = height - 1;
-		segs[1].x1 = segs[1].x2 = width - 1;
+		segs[0].x2 = width - s1;
+		segs[0].y2 = segs[0].y1 = height - s1;
+		segs[1].x1 = segs[1].x2 = width - s1;
 		segs[1].y1 = 0;
-		segs[1].y2 = height - 1;
+		segs[1].y2 = height - s1;
 		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, light, segs, 2);
+			wDrawScaledSegments(d, light, segs, 2);
 		} else {
-			XDrawSegments(dpy, d, dark, segs, 2);
+			wDrawScaledSegments(d, dark, segs, 2);
 		}
 		segs[0].x1 = segs[0].y1 = segs[0].y2 = 0;
-		segs[0].x2 = width - 2;
+		segs[0].x2 = width - s2;
 		segs[1].x1 = segs[1].y1 = 0;
 		segs[1].x2 = 0;
-		segs[1].y2 = height - 2;
+		segs[1].y2 = height - s2;
 		if (wPreferences.new_style == TS_NEXT) {
-			XDrawSegments(dpy, d, dark, segs, 2);
+			wDrawScaledSegments(d, dark, segs, 2);
 		} else {
-			XDrawSegments(dpy, d, light, segs, 2);
+			wDrawScaledSegments(d, light, segs, 2);
 		}
 		if (relief == WREL_ICON) {
-			segs[0].x1 = segs[0].y1 = segs[0].y2 = 1;
-			segs[0].x2 = width - 2;
-			segs[1].x1 = segs[1].y1 = 1;
-			segs[1].x2 = 1;
-			segs[1].y2 = height - 2;
-			XDrawSegments(dpy, d, light, segs, 2);
+			segs[0].x1 = segs[0].y1 = segs[0].y2 = s1;
+			segs[0].x2 = width - s2;
+			segs[1].x1 = segs[1].y1 = s1;
+			segs[1].x2 = s1;
+			segs[1].y2 = height - s2;
+			wDrawScaledSegments(d, light, segs, 2);
 		}
 		break;
 	}

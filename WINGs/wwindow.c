@@ -61,8 +61,8 @@ struct W_ViewDelegate _WindowViewDelegate = {
 	willResizeWindow
 };
 
-#define DEFAULT_WIDTH	400
-#define DEFAULT_HEIGHT	180
+#define DEFAULT_WIDTH	WMScaled(400)
+#define DEFAULT_HEIGHT	WMScaled(180)
 
 static void destroyWindow(_Window * win);
 

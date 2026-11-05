@@ -29,7 +29,7 @@
 #define TILE_DRAWER	2
 
 /* This is the border, in pixel, drawn around a Mini-Preview */
-#define MINIPREVIEW_BORDER 1
+#define MINIPREVIEW_BORDER WMScaled(1)
 
 typedef struct WIcon {
 	WCoreWindow 	*core;

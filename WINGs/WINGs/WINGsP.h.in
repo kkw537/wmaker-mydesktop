@@ -507,6 +507,10 @@ void W_DrawReliefWithGC(W_Screen *scr, Drawable d, int x, int y,
                         WMReliefType relief,
                         GC black, GC dark, GC light, GC white);
 
+/* draws a line with the GUI scale factor applied to its thickness, as if
+ * it was drawn with bigger pixels (coordinates are in device pixels) */
+void W_DrawScaledLine(W_Screen *scr, Drawable d, GC gc, int x1, int y1, int x2, int y2);
+
 void W_PaintTextAndImage(W_View *view, int wrap, WMColor *textColor,
                          W_Font *font, WMReliefType relief, const char *text,
                          WMAlignment alignment, W_Pixmap *image,

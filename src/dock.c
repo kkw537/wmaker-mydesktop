@@ -301,6 +301,75 @@ static WMArray *getSelected(WDock *dock)
 	return ret;
 }
 
+/*
+ * Helpers to draw the clip and drawer decorations with the GUI scale factor
+ * (GSScaleFactor) applied. Coordinates are those of the top-left device
+ * pixel of the (scaled) logical pixels, the lines are drawn WMScaled(1)
+ * pixels thick.
+ */
+static void scaledImageLine(RImage *image, RPixelOperation operation, Bool draw, int x0, int y0, int x1, int y1,
+			    const RColor *color)
+{
+	int t = WMScaled(1);
+	int i;
+
+	for (i = 0; i < t; i++) {
+		int ax, ay, bx, by;
+
+		if (y0 == y1) {
+			/* horizontal */
+			ax = WMIN(x0, x1);
+			bx = WMAX(x0, x1) + t - 1;
+			ay = by = y0 + i;
+		} else if (x0 == x1) {
+			/* vertical */
+			ax = bx = x0 + i;
+			ay = WMIN(y0, y1);
+			by = WMAX(y0, y1) + t - 1;
+		} else {
+			/* diagonal */
+			ax = x0 + i;
+			bx = x1 + i;
+			ay = y0;
+			by = y1;
+		}
+
+		if (draw)
+			RDrawLine(image, ax, ay, bx, by, color);
+		else
+			ROperateLine(image, operation, ax, ay, bx, by, color);
+	}
+}
+
+static void scaledOperateLine(RImage *image, RPixelOperation operation, int x0, int y0, int x1, int y1, const RColor *color)
+{
+	scaledImageLine(image, operation, False, x0, y0, x1, y1, color);
+}
+
+static void scaledDrawLine(RImage *image, int x0, int y0, int x1, int y1, const RColor *color)
+{
+	scaledImageLine(image, RNormalOperation, True, x0, y0, x1, y1, color);
+}
+
+/* fill the triangle p[0..2] including its outline (p[3] == p[0]) */
+static void scaledFillArrow(Window win, GC gc, const XPoint *p)
+{
+	int t = WMScaled(1);
+	XPoint q[4];
+	int i, j, k;
+
+	for (i = 0; i < t; i++) {
+		for (j = 0; j < t; j++) {
+			for (k = 0; k < 4; k++) {
+				q[k].x = p[k].x + i;
+				q[k].y = p[k].y + j;
+			}
+			XFillPolygon(dpy, win, gc, q, 3, Convex, CoordModeOrigin);
+			XDrawLines(dpy, win, gc, q, 4, CoordModeOrigin);
+		}
+	}
+}
+
 static void paintClipButtons(WAppIcon *clipIcon, Bool lpushed, Bool rpushed)
 {
 	Window win = clipIcon->icon->core->window;
@@ -308,7 +377,7 @@ static void paintClipButtons(WAppIcon *clipIcon, Bool lpushed, Bool rpushed)
 	XPoint p[4];
 	int pt = CLIP_BUTTON_SIZE * ICON_SIZE / 64;
 	int tp = ICON_SIZE - pt;
-	int as = pt - 15;	/* 15 = 5+5+5 */
+	int as = pt - WMScaled(15);	/* 15 = 5+5+5 */
 	GC gc = scr->draw_gc;	/* maybe use WMColorGC() instead here? */
 	WMColor *color;
 
@@ -317,19 +386,19 @@ static void paintClipButtons(WAppIcon *clipIcon, Bool lpushed, Bool rpushed)
 	XSetForeground(dpy, gc, WMColorPixel(color));
 
 	if (rpushed) {
-		p[0].x = tp + 1;
-		p[0].y = 1;
-		p[1].x = ICON_SIZE - 2;
-		p[1].y = 1;
-		p[2].x = ICON_SIZE - 2;
-		p[2].y = pt - 1;
+		p[0].x = tp + WMScaled(1);
+		p[0].y = WMScaled(1);
+		p[1].x = ICON_SIZE - WMScaled(2);
+		p[1].y = WMScaled(1);
+		p[2].x = ICON_SIZE - WMScaled(2);
+		p[2].y = pt - WMScaled(1);
 	} else if (lpushed) {
-		p[0].x = 1;
+		p[0].x = WMScaled(1);
 		p[0].y = tp;
 		p[1].x = pt;
-		p[1].y = ICON_SIZE - 2;
-		p[2].x = 1;
-		p[2].y = ICON_SIZE - 2;
+		p[1].y = ICON_SIZE - WMScaled(2);
+		p[2].x = WMScaled(1);
+		p[2].y = ICON_SIZE - WMScaled(2);
 	}
 	if (lpushed || rpushed) {
 		XSetForeground(dpy, scr->draw_gc, scr->white_pixel);
@@ -338,34 +407,28 @@ static void paintClipButtons(WAppIcon *clipIcon, Bool lpushed, Bool rpushed)
 	}
 
 	/* top right arrow */
-	p[0].x = p[3].x = ICON_SIZE - 5 - as;
-	p[0].y = p[3].y = 5;
-	p[1].x = ICON_SIZE - 6;
-	p[1].y = 5;
-	p[2].x = ICON_SIZE - 6;
-	p[2].y = 4 + as;
-	if (rpushed) {
-		XFillPolygon(dpy, win, scr->draw_gc, p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, win, scr->draw_gc, p, 4, CoordModeOrigin);
-	} else {
-		XFillPolygon(dpy, win, gc, p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, win, gc, p, 4, CoordModeOrigin);
-	}
+	p[0].x = p[3].x = ICON_SIZE - WMScaled(5) - as;
+	p[0].y = p[3].y = WMScaled(5);
+	p[1].x = ICON_SIZE - WMScaled(6);
+	p[1].y = WMScaled(5);
+	p[2].x = ICON_SIZE - WMScaled(6);
+	p[2].y = WMScaled(4) + as;
+	if (rpushed)
+		scaledFillArrow(win, scr->draw_gc, p);
+	else
+		scaledFillArrow(win, gc, p);
 
 	/* bottom left arrow */
-	p[0].x = p[3].x = 5;
-	p[0].y = p[3].y = ICON_SIZE - 5 - as;
-	p[1].x = 5;
-	p[1].y = ICON_SIZE - 6;
-	p[2].x = 4 + as;
-	p[2].y = ICON_SIZE - 6;
-	if (lpushed) {
-		XFillPolygon(dpy, win, scr->draw_gc, p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, win, scr->draw_gc, p, 4, CoordModeOrigin);
-	} else {
-		XFillPolygon(dpy, win, gc, p, 3, Convex, CoordModeOrigin);
-		XDrawLines(dpy, win, gc, p, 4, CoordModeOrigin);
-	}
+	p[0].x = p[3].x = WMScaled(5);
+	p[0].y = p[3].y = ICON_SIZE - WMScaled(5) - as;
+	p[1].x = WMScaled(5);
+	p[1].y = ICON_SIZE - WMScaled(6);
+	p[2].x = WMScaled(4) + as;
+	p[2].y = ICON_SIZE - WMScaled(6);
+	if (lpushed)
+		scaledFillArrow(win, scr->draw_gc, p);
+	else
+		scaledFillArrow(win, gc, p);
 }
 
 RImage *wClipMakeTile(RImage *normalTile)
@@ -376,10 +439,11 @@ RImage *wClipMakeTile(RImage *normalTile)
 	RColor light;
 	int pt, tp;
 	int as;
+	int t = WMScaled(1);
 
 	pt = CLIP_BUTTON_SIZE * wPreferences.icon_size / 64;
-	tp = wPreferences.icon_size - 1 - pt;
-	as = pt - 15;
+	tp = wPreferences.icon_size - t - pt;
+	as = pt - WMScaled(15);
 
 	black.alpha = 255;
 	black.red = black.green = black.blue = 0;
@@ -391,24 +455,30 @@ RImage *wClipMakeTile(RImage *normalTile)
 	light.red = light.green = light.blue = 80;
 
 	/* top right */
-	ROperateLine(tile, RSubtractOperation, tp, 0, wPreferences.icon_size - 2, pt - 1, &dark);
-	RDrawLine(tile, tp - 1, 0, wPreferences.icon_size - 1, pt + 1, &black);
-	ROperateLine(tile, RAddOperation, tp, 2, wPreferences.icon_size - 3, pt, &light);
+	scaledOperateLine(tile, RSubtractOperation, tp, 0, wPreferences.icon_size - 2 * t, pt - t, &dark);
+	scaledDrawLine(tile, tp - t, 0, wPreferences.icon_size - t, pt + t, &black);
+	scaledOperateLine(tile, RAddOperation, tp, 2 * t, wPreferences.icon_size - 3 * t, pt, &light);
 
 	/* arrow bevel */
-	ROperateLine(tile, RSubtractOperation, ICON_SIZE - 7 - as, 4, ICON_SIZE - 5, 4, &dark);
-	ROperateLine(tile, RSubtractOperation, ICON_SIZE - 6 - as, 5, ICON_SIZE - 5, 6 + as, &dark);
-	ROperateLine(tile, RAddOperation, ICON_SIZE - 5, 4, ICON_SIZE - 5, 6 + as, &light);
+	scaledOperateLine(tile, RSubtractOperation, ICON_SIZE - WMScaled(7) - as, WMScaled(4),
+			  ICON_SIZE - WMScaled(5), WMScaled(4), &dark);
+	scaledOperateLine(tile, RSubtractOperation, ICON_SIZE - WMScaled(6) - as, WMScaled(5),
+			  ICON_SIZE - WMScaled(5), WMScaled(6) + as, &dark);
+	scaledOperateLine(tile, RAddOperation, ICON_SIZE - WMScaled(5), WMScaled(4),
+			  ICON_SIZE - WMScaled(5), WMScaled(6) + as, &light);
 
 	/* bottom left */
-	ROperateLine(tile, RAddOperation, 2, tp + 2, pt - 2, wPreferences.icon_size - 3, &dark);
-	RDrawLine(tile, 0, tp - 1, pt + 1, wPreferences.icon_size - 1, &black);
-	ROperateLine(tile, RSubtractOperation, 0, tp - 2, pt + 1, wPreferences.icon_size - 2, &light);
+	scaledOperateLine(tile, RAddOperation, 2 * t, tp + 2 * t, pt - 2 * t, wPreferences.icon_size - 3 * t, &dark);
+	scaledDrawLine(tile, 0, tp - t, pt + t, wPreferences.icon_size - t, &black);
+	scaledOperateLine(tile, RSubtractOperation, 0, tp - 2 * t, pt + t, wPreferences.icon_size - 2 * t, &light);
 
 	/* arrow bevel */
-	ROperateLine(tile, RSubtractOperation, 4, ICON_SIZE - 7 - as, 4, ICON_SIZE - 5, &dark);
-	ROperateLine(tile, RSubtractOperation, 5, ICON_SIZE - 6 - as, 6 + as, ICON_SIZE - 5, &dark);
-	ROperateLine(tile, RAddOperation, 4, ICON_SIZE - 5, 6 + as, ICON_SIZE - 5, &light);
+	scaledOperateLine(tile, RSubtractOperation, WMScaled(4), ICON_SIZE - WMScaled(7) - as,
+			  WMScaled(4), ICON_SIZE - WMScaled(5), &dark);
+	scaledOperateLine(tile, RSubtractOperation, WMScaled(5), ICON_SIZE - WMScaled(6) - as,
+			  WMScaled(6) + as, ICON_SIZE - WMScaled(5), &dark);
+	scaledOperateLine(tile, RAddOperation, WMScaled(4), ICON_SIZE - WMScaled(5),
+			  WMScaled(6) + as, ICON_SIZE - WMScaled(5), &light);
 
 	return tile;
 }
@@ -1431,7 +1501,7 @@ void wClipIconPaint(WAppIcon *aicon)
 	else
 		color = scr->clip_title_color[CLIP_COLLAPSED];
 
-	ty = ICON_SIZE - WMFontHeight(scr->clip_title_font) - 3;
+	ty = ICON_SIZE - WMFontHeight(scr->clip_title_font) - WMScaled(3);
 
 	tx = CLIP_BUTTON_SIZE * ICON_SIZE / 64;
 
@@ -1440,7 +1510,7 @@ void wClipIconPaint(WAppIcon *aicon)
 
 	tx = (ICON_SIZE / 2 - WMWidthOfString(scr->clip_title_font, ws_number, nlength)) / 2;
 
-	WMDrawString(scr->wmscreen, win, color, scr->clip_title_font, tx, 2, ws_number, nlength);
+	WMDrawString(scr->wmscreen, win, color, scr->clip_title_font, tx, WMScaled(2), ws_number, nlength);
 
 	wfree(ws_name);
 
@@ -3651,20 +3721,20 @@ static void openDockMenu(WDock *dock, WAppIcon *aicon, XEvent *event)
 
 	if (dock->type == WM_CLIP || dock->type == WM_DRAWER) {
 		/*x_pos = event->xbutton.x_root+2; */
-		x_pos = event->xbutton.x_root - dock->menu->frame->core->width / 2 - 1;
+		x_pos = event->xbutton.x_root - dock->menu->frame->core->width / 2 - WMScaled(1);
 		if (x_pos < 0) {
 			x_pos = 0;
-		} else if (x_pos + dock->menu->frame->core->width > scr->scr_width - 2) {
-			x_pos = scr->scr_width - dock->menu->frame->core->width - 4;
+		} else if (x_pos + dock->menu->frame->core->width > scr->scr_width - WMScaled(2)) {
+			x_pos = scr->scr_width - dock->menu->frame->core->width - WMScaled(4);
 		}
 	} else {
 		x_pos = dock->x_pos;
 		if (dock->on_right_side)
 			x_pos += ICON_SIZE + DOCK_EXTRA_SPACE
-				- dock->menu->frame->core->width - 3;
+				- dock->menu->frame->core->width - WMScaled(3);
 	}
 
-	wMenuMapAt(dock->menu, x_pos, event->xbutton.y_root + 2, False);
+	wMenuMapAt(dock->menu, x_pos, event->xbutton.y_root + WMScaled(2), False);
 
 	/* allow drag select */
 	event->xany.send_event = True;
@@ -4077,13 +4147,13 @@ static void iconMouseDown(WObjDescriptor *desc, XEvent *event)
 
 			wWorkspaceMenuUpdate(scr, wsMenu);
 
-			xpos = event->xbutton.x_root - wsMenu->frame->core->width / 2 - 1;
+			xpos = event->xbutton.x_root - wsMenu->frame->core->width / 2 - WMScaled(1);
 			if (xpos < 0) {
 				xpos = 0;
-			} else if (xpos + wsMenu->frame->core->width > scr->scr_width - 2) {
-				xpos = scr->scr_width - wsMenu->frame->core->width - 4;
+			} else if (xpos + wsMenu->frame->core->width > scr->scr_width - WMScaled(2)) {
+				xpos = scr->scr_width - wsMenu->frame->core->width - WMScaled(4);
 			}
-			wMenuMapAt(wsMenu, xpos, event->xbutton.y_root + 2, False);
+			wMenuMapAt(wsMenu, xpos, event->xbutton.y_root + WMScaled(2), False);
 
 			desc = &wsMenu->menu->descriptor;
 			event->xany.send_event = True;
@@ -4589,23 +4659,22 @@ void wDrawerIconPaint(WAppIcon *dicon)
 	XSetForeground(dpy, gc, WMColorPixel(color));
 
 	if (dicon->dock->on_right_side) {
-		p[0].x = p[3].x = 10;
-		p[0].y = p[3].y = ICON_SIZE / 2 - 5;
-		p[1].x = 10;
-		p[1].y = ICON_SIZE / 2 + 5;
-		p[2].x = 5;
+		p[0].x = p[3].x = WMScaled(10);
+		p[0].y = p[3].y = ICON_SIZE / 2 - WMScaled(5);
+		p[1].x = WMScaled(10);
+		p[1].y = ICON_SIZE / 2 + WMScaled(5);
+		p[2].x = WMScaled(5);
 		p[2].y = ICON_SIZE / 2;
 	}
 	else {
-		p[0].x = p[3].x = ICON_SIZE-1 - 10;
-		p[0].y = p[3].y = ICON_SIZE / 2 - 5;
-		p[1].x = ICON_SIZE-1 - 10;
-		p[1].y = ICON_SIZE / 2 + 5;
-		p[2].x = ICON_SIZE-1 - 5;
+		p[0].x = p[3].x = ICON_SIZE - WMScaled(1) - WMScaled(10);
+		p[0].y = p[3].y = ICON_SIZE / 2 - WMScaled(5);
+		p[1].x = ICON_SIZE - WMScaled(1) - WMScaled(10);
+		p[1].y = ICON_SIZE / 2 + WMScaled(5);
+		p[2].x = ICON_SIZE - WMScaled(1) - WMScaled(5);
 		p[2].y = ICON_SIZE / 2;
 	}
-	XFillPolygon(dpy, win, gc, p,3,Convex,CoordModeOrigin);
-	XDrawLines(dpy, win, gc, p,4,CoordModeOrigin);
+	scaledFillArrow(win, gc, p);
 }
 
 
@@ -4623,20 +4692,22 @@ RImage* wDrawerMakeTile(WScreen *scr, RImage *normalTile)
 
 	/* arrow bevel */
 	if (!scr->dock || scr->dock->on_right_side) {
-		ROperateLine(tile, RSubtractOperation, 11, ICON_SIZE / 2 - 7,
-			4, ICON_SIZE / 2, &dark);       /* / */
-		ROperateLine(tile, RSubtractOperation, 11, ICON_SIZE / 2 + 7,
-			4, ICON_SIZE / 2, &dark);       /* \ */
-		ROperateLine(tile, RAddOperation,      11, ICON_SIZE / 2 - 7,
-			11, ICON_SIZE / 2 + 7, &light); /* | */
+		scaledOperateLine(tile, RSubtractOperation, WMScaled(11), ICON_SIZE / 2 - WMScaled(7),
+			WMScaled(4), ICON_SIZE / 2, &dark);       /* / */
+		scaledOperateLine(tile, RSubtractOperation, WMScaled(11), ICON_SIZE / 2 + WMScaled(7),
+			WMScaled(4), ICON_SIZE / 2, &dark);       /* \ */
+		scaledOperateLine(tile, RAddOperation,      WMScaled(11), ICON_SIZE / 2 - WMScaled(7),
+			WMScaled(11), ICON_SIZE / 2 + WMScaled(7), &light); /* | */
 	}
 	else {
-		ROperateLine(tile, RSubtractOperation, ICON_SIZE-1 - 11, ICON_SIZE / 2 - 7,
-			ICON_SIZE-1 - 4, ICON_SIZE / 2, &dark);      /* \ */
-		ROperateLine(tile, RAddOperation,      ICON_SIZE-1 - 11, ICON_SIZE / 2 + 7,
-			ICON_SIZE-1 - 4, ICON_SIZE / 2, &light);     /* / */
-		ROperateLine(tile, RSubtractOperation, ICON_SIZE-1 - 11, ICON_SIZE / 2 - 7,
-			ICON_SIZE-1 - 11, ICON_SIZE / 2 + 7, &dark); /* | */
+		int r = ICON_SIZE - WMScaled(1);	/* right edge */
+
+		scaledOperateLine(tile, RSubtractOperation, r - WMScaled(11), ICON_SIZE / 2 - WMScaled(7),
+			r - WMScaled(4), ICON_SIZE / 2, &dark);      /* \ */
+		scaledOperateLine(tile, RAddOperation,      r - WMScaled(11), ICON_SIZE / 2 + WMScaled(7),
+			r - WMScaled(4), ICON_SIZE / 2, &light);     /* / */
+		scaledOperateLine(tile, RSubtractOperation, r - WMScaled(11), ICON_SIZE / 2 - WMScaled(7),
+			r - WMScaled(11), ICON_SIZE / 2 + WMScaled(7), &dark); /* | */
 	}
 	return tile;
 }

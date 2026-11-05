@@ -50,8 +50,8 @@ typedef struct W_List {
 	} flags;
 } List;
 
-#define DEFAULT_WIDTH	150
-#define DEFAULT_HEIGHT	150
+#define DEFAULT_WIDTH	WMScaled(150)
+#define DEFAULT_HEIGHT	WMScaled(150)
 
 #define SCROLL_DELAY    100
 #define TYPEAHEAD_CLEAR_DELAY 700
@@ -144,14 +144,14 @@ WMList *WMCreateList(WMWidget * parent)
 			     | EnterWindowMask | LeaveWindowMask | ButtonMotionMask
 			     | KeyPressMask, handleActionEvents, lPtr);
 
-	lPtr->itemHeight = WMFontHeight(scrPtr->normalFont) + 1;
+	lPtr->itemHeight = WMFontHeight(scrPtr->normalFont) + WMScaled(1);
 
 	lPtr->items = WMCreateArrayWithDestructor(4, releaseItem);
 	lPtr->selectedItems = WMCreateArray(4);
 
 	/* create the vertical scroller */
 	lPtr->vScroller = WMCreateScroller(lPtr);
-	WMMoveWidget(lPtr->vScroller, 1, 1);
+	WMMoveWidget(lPtr->vScroller, WMScaled(1), WMScaled(1));
 	WMSetScrollerArrowsPosition(lPtr->vScroller, WSAMaxEnd);
 
 	WMSetScrollerAction(lPtr->vScroller, vScrollCallBack, lPtr);
@@ -471,10 +471,10 @@ static void paintItem(List * lPtr, int index)
 
 	itemPtr = WMGetFromArray(lPtr->items, index);
 
-	width = lPtr->view->size.width - 2 - 19;
+	width = lPtr->view->size.width - WMScaled(2) - WMScaled(19);
 	height = lPtr->itemHeight;
-	x = 19;
-	y = 2 + (index - lPtr->topItem) * lPtr->itemHeight + 1;
+	x = WMScaled(19);
+	y = WMScaled(2) + (index - lPtr->topItem) * lPtr->itemHeight + WMScaled(1);
 	tlen = strlen(itemPtr->text);
 
 	if (lPtr->flags.userDrawn) {
@@ -503,11 +503,11 @@ static void paintItem(List * lPtr, int index)
 
 		XFillRectangle(display, d, WMColorGC(back), 0, 0, width, height);
 
-		W_PaintText(view, d, scr->normalFont, 4, 0, width, WALeft, scr->black, False, itemPtr->text, tlen);
+		W_PaintText(view, d, scr->normalFont, WMScaled(4), 0, width, WALeft, scr->black, False, itemPtr->text, tlen);
 		XCopyArea(display, d, view->window, scr->copyGC, 0, 0, width, height, x, y);
 	}
 
-	if ((index - lPtr->topItem + lPtr->fullFitLines) * lPtr->itemHeight > lPtr->view->size.height - 2) {
+	if ((index - lPtr->topItem + lPtr->fullFitLines) * lPtr->itemHeight > lPtr->view->size.height - WMScaled(2)) {
 		W_DrawRelief(lPtr->view->screen, lPtr->view->window, 0, 0,
 			     lPtr->view->size.width, lPtr->view->size.height, WRSunken);
 	}
@@ -526,9 +526,9 @@ static void paintList(List * lPtr)
 		if (lPtr->topItem + lPtr->fullFitLines + lPtr->flags.dontFitAll > itemCount) {
 
 			lim = itemCount - lPtr->topItem;
-			XClearArea(scrPtr->display, lPtr->view->window, 19,
-				   2 + lim * lPtr->itemHeight, lPtr->view->size.width - 21,
-				   lPtr->view->size.height - lim * lPtr->itemHeight - 3, False);
+			XClearArea(scrPtr->display, lPtr->view->window, WMScaled(19),
+				   WMScaled(2) + lim * lPtr->itemHeight, lPtr->view->size.width - WMScaled(21),
+				   lPtr->view->size.height - lim * lPtr->itemHeight - WMScaled(3), False);
 		} else {
 			lim = lPtr->fullFitLines + lPtr->flags.dontFitAll;
 		}
@@ -925,7 +925,7 @@ static int getItemIndexAt(List * lPtr, int clickY)
 {
 	int index;
 
-	index = (clickY - 2) / lPtr->itemHeight + lPtr->topItem;
+	index = (clickY - WMScaled(2)) / lPtr->itemHeight + lPtr->topItem;
 
 	if (index < 0 || index >= WMGetArrayItemCount(lPtr->items))
 		return -1;
@@ -1565,8 +1565,8 @@ static void handleActionEvents(XEvent * event, void *data)
 
 static void updateGeometry(WMList * lPtr)
 {
-	lPtr->fullFitLines = (lPtr->view->size.height - 4) / lPtr->itemHeight;
-	if (lPtr->fullFitLines * lPtr->itemHeight < lPtr->view->size.height - 4) {
+	lPtr->fullFitLines = (lPtr->view->size.height - WMScaled(4)) / lPtr->itemHeight;
+	if (lPtr->fullFitLines * lPtr->itemHeight < lPtr->view->size.height - WMScaled(4)) {
 		lPtr->flags.dontFitAll = 1;
 	} else {
 		lPtr->flags.dontFitAll = 0;
@@ -1588,7 +1588,7 @@ static void didResizeList(W_ViewDelegate * self, WMView * view)
 	/* Parameter not used, but tell the compiler that it is ok */
 	(void) self;
 
-	WMResizeWidget(lPtr->vScroller, 1, view->size.height - 2);
+	WMResizeWidget(lPtr->vScroller, WMScaled(1), view->size.height - WMScaled(2));
 
 	updateDoubleBufferPixmap(lPtr);
 
