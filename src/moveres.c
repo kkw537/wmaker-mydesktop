@@ -2264,13 +2264,15 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 
 				XGrabServer(dpy);
 
-				/* Draw the resize frame for the first time. */
+				/* Draw the resize frame for the first time. The geometry
+				 * display is painted before the XOR frame is drawn, so the
+				 * frame can be erased later where it crosses the display */
 				mapGeometryDisplay(wwin, fx, fy, fw, fh);
+
+				showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
 
 				if (!opaqueResize)
 					drawTransparentFrame(wwin, fx, fy, fw, fh);
-
-				showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
 
 				started = 1;
 			}
@@ -2281,9 +2283,7 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 				if (wPreferences.size_display == WDIS_FRAME_CENTER)
 					moveGeometryDisplayCentered(scr, fx + fw / 2, fy + fh / 2);
 
-				if (!opaqueResize)
-					drawTransparentFrame(wwin, fx, fy, fw, fh);
-
+				/* update the geometry display while no frame is drawn */
 				if (fh != orig_fh || fw != orig_fw) {
 					if (wPreferences.size_display == WDIS_NEW)
 						showGeometry(wwin, orig_fx, orig_fy, orig_fx + orig_fw,
@@ -2291,6 +2291,9 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 
 					showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
 				}
+
+				if (!opaqueResize)
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
 
 				if (opaqueResize) {
 					/* Fist clean the geometry line */
