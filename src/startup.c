@@ -483,6 +483,7 @@ void StartUp(Bool defaultScreenOnly)
 #endif
 
 	/* cursors */
+	wAppScaleCursorsBegin();
 	wPreferences.cursor[WCUR_NORMAL] = None;	/* inherit from root */
 	wPreferences.cursor[WCUR_ROOT] = XCreateFontCursor(dpy, XC_left_ptr);
 	wPreferences.cursor[WCUR_ARROW] = XCreateFontCursor(dpy, XC_top_left_arrow);
@@ -499,6 +500,7 @@ void StartUp(Bool defaultScreenOnly)
 	wPreferences.cursor[WCUR_TEXT] = XCreateFontCursor(dpy, XC_xterm);	/* odd name??? */
 	wPreferences.cursor[WCUR_SELECT] = XCreateFontCursor(dpy, XC_cross);
 	wPreferences.cursor[WCUR_CAPTURE] = XCreateFontCursor(dpy, XC_crosshair);
+	wAppScaleCursorsEnd();
 
 	Pixmap cur = XCreatePixmap(dpy, DefaultRootWindow(dpy), 16, 16, 1);
 	GC gc = XCreateGC(dpy, cur, 0, NULL);

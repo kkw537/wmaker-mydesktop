@@ -369,6 +369,40 @@ static void setEnvironment(float factor)
 
 /* ------------------------------------------------------------------------- */
 
+/* nominal size of the cursors, used by most desktops */
+#define BASE_CURSOR_SIZE 24
+
+static Bool cursorSizeSet = False;
+
+void wAppScaleCursorsBegin(void)
+{
+	float factor = WMGetScaleFactor();
+	char size[16];
+
+	/* The cursor themes are loaded by libXcursor (on behalf of
+	 * XCreateFontCursor) at the size it finds in XCURSOR_SIZE, in the
+	 * Xcursor.size resource or from Xft.dpi: keep a size the user chose */
+	if (factor == 1.0F || getenv("XCURSOR_SIZE") || XGetDefault(dpy, "Xcursor", "size"))
+		return;
+
+	snprintf(size, sizeof(size), "%d", (int)(BASE_CURSOR_SIZE * factor + 0.5));
+	setenv("XCURSOR_SIZE", size, 1);
+	cursorSizeSet = True;
+}
+
+void wAppScaleCursorsEnd(void)
+{
+	/* libXcursor keeps the size it found for the display, the cursors
+	 * created later (the Cursor options) get it too: the applications
+	 * started from Window Maker take their size from Xft.dpi instead */
+	if (cursorSizeSet) {
+		unsetenv("XCURSOR_SIZE");
+		cursorSizeSet = False;
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+
 void wAppScaleInit(WScreen *scr)
 {
 	float factor = WMGetScaleFactor();

@@ -21,6 +21,11 @@
 
 #include "screen.h"
 
+/* Bracket the creation of the cursors of Window Maker, to have them follow
+ * the GUI scale factor */
+void wAppScaleCursorsBegin(void);
+void wAppScaleCursorsEnd(void);
+
 /* publish the GUI scale factor for the toolkits of the other applications
  * (XSETTINGS, Xft.dpi resource, environment), if ScaleApplications is set */
 void wAppScaleInit(WScreen *scr);

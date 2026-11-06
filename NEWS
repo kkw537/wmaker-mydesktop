@@ -91,6 +91,11 @@ the way GNOME does it:
 The new "ScaleApplications" option (in the Expert panel of WPrefs) can
 be set to NO to leave the other applications alone.
 
+The cursors of Window Maker itself (from the cursor theme) now also
+follow the scale factor, at 24 pixels times the factor, unless a size is
+given with XCURSOR_SIZE or the Xcursor.size resource. They match the ones
+of the GTK and Electron applications getting the factor as above.
+
 Directional window focus
 ------------------------
 
