@@ -51,6 +51,19 @@ switched off by DPMS, and an animation synchronised with the vertical
 blank stops as soon as the vertical blanks stop coming (the monitor was
 switched off while it was running).
 
+
+Outline resize does not freeze the other windows
+------------------------------------------------
+
+With OpaqueResize = NO, the outline of the window being resized used to
+be XORed on the root window, and the X server was grabbed for as long as
+it was shown: all the other windows were frozen during the resize. The
+outline is now made of small windows (a white line edged with black, so
+it is visible on any background), and the other applications go on
+drawing under it. The server is only grabbed while the "line" size
+display (SizeDisplay = line), which is still XORed, is shown.
+
+
 Directional window focus
 ------------------------
 
