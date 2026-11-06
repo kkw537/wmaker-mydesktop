@@ -450,16 +450,17 @@ static void doWindowMove(WWindow * wwin, WMArray * array, int dx, int dy)
 	}
 }
 
-/* border width, height of the titlebar and of the resizebar of the frame */
-static void getFrameParts(WWindow * wwin, int *fb, int *title, int *bottom)
+static void drawTransparentFrame(WWindow * wwin, int x, int y, int width, int height)
 {
+	Window root = wwin->screen_ptr->root_win;
+	GC gc = wwin->screen_ptr->frame_gc;
 	int h = 0;
-
-	*fb = 0;
-	*bottom = 0;
+	int bottom = 0;
+	int fb = 0;
+	int t, o;
 
 	if (HAS_BORDER_WITH_SELECT(wwin))
-		*fb = wwin->screen_ptr->frame_border_width;
+		fb = wwin->screen_ptr->frame_border_width;
 
 	if (HAS_TITLEBAR(wwin) && !wwin->flags.shaded) {
 		h = WMFontHeight(wwin->screen_ptr->title_font) + (wPreferences.window_title_clearance +
@@ -471,24 +472,11 @@ static void getFrameParts(WWindow * wwin, int *fb, int *title, int *bottom)
 		if (h < wPreferences.window_title_min_height)
 			h = wPreferences.window_title_min_height;
 	}
-	*title = h;
-
 	if (HAS_RESIZEBAR(wwin) && !wwin->flags.shaded) {
 		/* Can't use wwin-frame->bottom_width because, in some cases
 		   (e.g. interactive placement), frame does not point to anything. */
-		*bottom = RESIZEBAR_HEIGHT;
+		bottom = RESIZEBAR_HEIGHT;
 	}
-}
-
-static void drawTransparentFrame(WWindow * wwin, int x, int y, int width, int height)
-{
-	Window root = wwin->screen_ptr->root_win;
-	GC gc = wwin->screen_ptr->frame_gc;
-	int h, bottom, fb;
-	int t, o;
-
-	getFrameParts(wwin, &fb, &h, &bottom);
-
 	/* The lines are DEF_FRAME_THICKNESS wide, and X centers wide lines on
 	 * their path: shift them to draw them inside the frame */
 	t = DEF_FRAME_THICKNESS;
@@ -503,138 +491,6 @@ static void drawTransparentFrame(WWindow * wwin, int x, int y, int width, int he
 		XDrawLine(dpy, root, gc, x, y + fb + height - bottom + o, x + 2 * fb + width,
 			  y + fb + height - bottom + o);
 	}
-}
-
-/*
- * Outline of a window being resized, made of small windows instead of
- * being XORed on the root window.
- *
- * An XORed outline is erased by drawing it again, which only works if
- * nothing was drawn under it meanwhile: the server must be grabbed for
- * as long as it is shown, and all the other windows are frozen. The
- * windows of this outline are kept above the others by the server, which
- * repaints what they uncover, so the other clients can go on drawing.
- *
- * It has the shape of the XORed outline: the frame, and the lines under
- * the titlebar and above the resizebar. Each line is white edged with
- * black, to be visible on any background, which XOR used to do: the black
- * bars are below the white ones, which are thinner.
- */
-#define OUTLINE_LINES	4	/* top, bottom, left, right */
-#define OUTLINE_BARS	(OUTLINE_LINES + 2)	/* and titlebar, resizebar */
-
-typedef struct {
-	Window edge[OUTLINE_BARS];	/* black */
-	Window core[OUTLINE_BARS];	/* white */
-	int nbars;
-	int x, y, width, height;
-} ResizeOutline;
-
-static Window createOutlineBar(WScreen * scr, unsigned long pixel)
-{
-	XSetWindowAttributes attr;
-
-	attr.override_redirect = True;
-	attr.background_pixel = pixel;
-	attr.border_pixel = pixel;
-	attr.colormap = scr->w_colormap;
-	attr.save_under = False;
-
-	return XCreateWindow(dpy, scr->root_win, 0, 0, 1, 1, 0, scr->w_depth, InputOutput,
-			     scr->w_visual, CWOverrideRedirect | CWBackPixel | CWBorderPixel
-			     | CWColormap | CWSaveUnder, &attr);
-}
-
-static void showResizeOutline(WWindow * wwin, ResizeOutline * outline, int x, int y, int width, int height)
-{
-	WScreen *scr = wwin->screen_ptr;
-	XRectangle bar[OUTLINE_BARS];
-	int h, bottom, fb;
-	int t, e;
-	int i, n;
-
-	if (outline->nbars > 0 && x == outline->x && y == outline->y
-	    && width == outline->width && height == outline->height)
-		return;
-
-	getFrameParts(wwin, &fb, &h, &bottom);
-
-	t = DEF_FRAME_THICKNESS;
-	e = WMScaled(1);
-	width += 2 * fb;
-	height += 2 * fb;
-
-	/* the white lines, where the XORed lines are drawn */
-	n = 0;
-	bar[n].x = x;
-	bar[n].y = y;
-	bar[n].width = width;
-	bar[n++].height = t;
-	bar[n].x = x;
-	bar[n].y = y + height - t;
-	bar[n].width = width;
-	bar[n++].height = t;
-	bar[n].x = x;
-	bar[n].y = y;
-	bar[n].width = t;
-	bar[n++].height = height;
-	bar[n].x = x + width - t;
-	bar[n].y = y;
-	bar[n].width = t;
-	bar[n++].height = height;
-	if (h > 0) {
-		bar[n].x = x;
-		bar[n].y = y + fb + h - t;
-		bar[n].width = width;
-		bar[n++].height = t;
-	}
-	if (bottom > 0) {
-		bar[n].x = x;
-		bar[n].y = y + height - fb - bottom;
-		bar[n].width = width;
-		bar[n++].height = t;
-	}
-
-	if (outline->nbars == 0) {
-		/* the white bars are created last, so they are above the black ones */
-		for (i = 0; i < n; i++)
-			outline->edge[i] = createOutlineBar(scr, scr->black_pixel);
-		for (i = 0; i < n; i++)
-			outline->core[i] = createOutlineBar(scr, scr->white_pixel);
-	}
-
-	for (i = 0; i < n; i++) {
-		XMoveResizeWindow(dpy, outline->edge[i], bar[i].x - e, bar[i].y - e,
-				  bar[i].width + 2 * e, bar[i].height + 2 * e);
-		XMoveResizeWindow(dpy, outline->core[i], bar[i].x, bar[i].y, bar[i].width, bar[i].height);
-	}
-
-	if (outline->nbars == 0) {
-		outline->nbars = n;
-		for (i = 0; i < n; i++)
-			XMapWindow(dpy, outline->edge[i]);
-		for (i = 0; i < n; i++)
-			XMapWindow(dpy, outline->core[i]);
-		/* keep the size display readable */
-		if (scr->gview)
-			XRaiseWindow(dpy, WMWidgetXID(scr->gview));
-	}
-
-	outline->x = x;
-	outline->y = y;
-	outline->width = width - 2 * fb;
-	outline->height = height - 2 * fb;
-}
-
-static void hideResizeOutline(ResizeOutline * outline)
-{
-	int i;
-
-	for (i = 0; i < outline->nbars; i++) {
-		XDestroyWindow(dpy, outline->core[i]);
-		XDestroyWindow(dpy, outline->edge[i]);
-	}
-	outline->nbars = 0;
 }
 
 static void drawFrames(WWindow * wwin, WMArray * array, int dx, int dy)
@@ -2220,21 +2076,6 @@ static int getResizeDirection(WWindow * wwin, int x, int y, int dy, int flags)
 	return dir;
 }
 
-/*
- * The "line" size display is XORed on the root window: the server must be
- * grabbed while it is shown, and only then
- */
-static void grabForLineDisplay(Bool * grabbed)
-{
-	Bool needed = (wPreferences.size_display == WDIS_NEW);
-
-	if (needed && !*grabbed)
-		XGrabServer(dpy);
-	else if (!needed && *grabbed)
-		XUngrabServer(dpy);
-	*grabbed = needed;
-}
-
 void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 {
 	XEvent event;
@@ -2263,8 +2104,6 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 		    ? wGetHeadForWindow(wwin)
 		    : scr->xine_info.primary_head);
 	int opaqueResize = wPreferences.opaque_resize;
-	ResizeOutline outline;
-	Bool grabbed = False;
 
 	if (!IS_RESIZABLE(wwin))
 		return;
@@ -2282,7 +2121,6 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 	}
 
 	started = 0;
-	outline.nbars = 0;
 	wUnselectWindows(scr);
 	rx1 = fx;
 	rx2 = fx + fw - 1;
@@ -2326,8 +2164,9 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 			if (!opaqueResize) {
 				if ((event.xkey.keycode == shiftl || event.xkey.keycode == shiftr)
 					&& started) {
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
 					cycleGeometryDisplay(wwin, fx, fy, fw, fh, res);
-					grabForLineDisplay(&grabbed);
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
 				}
 			};
 			showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
@@ -2423,38 +2262,38 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 
 				XGrabKeyboard(dpy, root, False, GrabModeAsync, GrabModeAsync, CurrentTime);
 
-				/* The outline is not XORed on the root window, the
-				 * other clients can go on drawing under it. Only the
-				 * lines of the "line" size display are still XORed */
-				if (opaqueResize)
-					XGrabServer(dpy);
-				else
-					grabForLineDisplay(&grabbed);
+				XGrabServer(dpy);
 
-				if (!opaqueResize)
-					showResizeOutline(wwin, &outline, fx, fy, fw, fh);
-
+				/* Draw the resize frame for the first time. The geometry
+				 * display is painted before the XOR frame is drawn, so the
+				 * frame can be erased later where it crosses the display */
 				mapGeometryDisplay(wwin, fx, fy, fw, fh);
 
 				showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
 
+				if (!opaqueResize)
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
+
 				started = 1;
 			}
 			if (started) {
+				if (!opaqueResize)
+					drawTransparentFrame(wwin, orig_fx, orig_fy, orig_fw, orig_fh);
+
 				if (wPreferences.size_display == WDIS_FRAME_CENTER)
 					moveGeometryDisplayCentered(scr, fx + fw / 2, fy + fh / 2);
 
-				/* erase the XORed lines of the size display before
-				 * the outline moves, they would be left behind */
-				if ((fh != orig_fh || fw != orig_fw) && wPreferences.size_display == WDIS_NEW)
-					showGeometry(wwin, orig_fx, orig_fy, orig_fx + orig_fw,
-						     orig_fy + orig_fh, res);
+				/* update the geometry display while no frame is drawn */
+				if (fh != orig_fh || fw != orig_fw) {
+					if (wPreferences.size_display == WDIS_NEW)
+						showGeometry(wwin, orig_fx, orig_fy, orig_fx + orig_fw,
+							     orig_fy + orig_fh, res);
+
+					showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
+				}
 
 				if (!opaqueResize)
-					showResizeOutline(wwin, &outline, fx, fy, fw, fh);
-
-				if (fh != orig_fh || fw != orig_fw)
-					showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
 
 				if (opaqueResize) {
 					/* Fist clean the geometry line */
@@ -2479,7 +2318,7 @@ void wMouseResizeWindow(WWindow * wwin, XEvent * ev)
 				showGeometry(wwin, fx, fy, fx + fw, fy + fh, res);
 
 				if (!opaqueResize)
-					hideResizeOutline(&outline);
+					drawTransparentFrame(wwin, fx, fy, fw, fh);
 
 				XUngrabKeyboard(dpy, CurrentTime);
 				WMUnmapWidget(scr->gview);

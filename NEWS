@@ -52,18 +52,6 @@ blank stops as soon as the vertical blanks stop coming (the monitor was
 switched off while it was running).
 
 
-Outline resize does not freeze the other windows
-------------------------------------------------
-
-With OpaqueResize = NO, the outline of the window being resized used to
-be XORed on the root window, and the X server was grabbed for as long as
-it was shown: all the other windows were frozen during the resize. The
-outline is now made of small windows (a white line edged with black, so
-it is visible on any background), and the other applications go on
-drawing under it. The server is only grabbed while the "line" size
-display (SizeDisplay = line), which is still XORed, is shown.
-
-
 Border around undecorated windows
 ---------------------------------
 
@@ -72,10 +60,10 @@ Chromium based ones, ask the window manager for no decorations at all
 through the Motif hints, and their windows were shown without even a
 border. They now keep the window border (FrameBorderWidth,
 FrameBorderColor and FrameFocusedBorderColor, black by default), still
-without titlebar and resizebar. The new "BorderUndecoratedWindows" option (in the Expert
-panel of WPrefs) can be set to NO to get the previous behaviour, and the
-NoBorder window attribute still removes the border of a given
-application.
+without titlebar and resizebar. The new "BorderUndecoratedWindows"
+option (in the Expert panel of WPrefs) can be set to NO to get the
+previous behaviour, and the NoBorder window attribute still removes the
+border of a given application.
 
 Directional window focus
 ------------------------
