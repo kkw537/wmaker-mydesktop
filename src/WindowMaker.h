@@ -406,6 +406,7 @@ extern struct WPreferences {
 	char disable_miniwindows;
 	char enable_workspace_pager;
 	char ignore_gtk_decoration_hints;
+	char border_undecorated_windows;   /* keep the border of windows asking for no decorations */
 
 	char dont_blink;                   /* do not blink icon selection */
 	char keep_dock_on_primary_head;    /* keep dock on primary head */

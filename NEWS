@@ -64,6 +64,19 @@ drawing under it. The server is only grabbed while the "line" size
 display (SizeDisplay = line), which is still XORed, is shown.
 
 
+Border around undecorated windows
+---------------------------------
+
+Applications which draw their own titlebar, like many Electron and
+Chromium based ones, ask the window manager for no decorations at all
+through the Motif hints, and their windows were shown without even a
+border. They now keep the window border (FrameBorderWidth,
+FrameBorderColor and FrameFocusedBorderColor, black by default), still
+without titlebar and resizebar. The new "BorderUndecoratedWindows" option (in the Expert
+panel of WPrefs) can be set to NO to get the previous behaviour, and the
+NoBorder window attribute still removes the border of a given
+application.
+
 Directional window focus
 ------------------------
 

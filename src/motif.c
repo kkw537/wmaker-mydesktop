@@ -91,7 +91,11 @@ static void setupMWMHints(WWindow *wwin, MWMHints *mwm_hints)
 			wwin->client_flags.no_border = 0;
 		}
 
-		if (mwm_hints->decorations & MWM_DECOR_BORDER) {
+		/* Applications drawing their own titlebar (Electron and
+		 * Chromium based ones, for example) ask for no decorations at
+		 * all: keep at least the border, so the window can be told
+		 * apart from the ones around it */
+		if ((mwm_hints->decorations & MWM_DECOR_BORDER) || wPreferences.border_undecorated_windows) {
 			wwin->client_flags.no_border = 0;
 		}
 
