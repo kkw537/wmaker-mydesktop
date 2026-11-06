@@ -70,7 +70,6 @@
 #endif
 
 #include "xutil.h"
-#include "appscale.h"
 
 /* for SunOS */
 #ifndef SA_RESTART
@@ -409,12 +408,37 @@ static char *atomNames[] = {
  * global data declared in main.c is initialized
  *----------------------------------------------------------
  */
+/* nominal size of the cursors, used by most desktops */
+#define BASE_CURSOR_SIZE 24
+
+/*
+ * The cursor themes are loaded by libXcursor (on behalf of XCreateFontCursor)
+ * at the size it finds in XCURSOR_SIZE, in the Xcursor.size resource or from
+ * Xft.dpi, and it keeps that size for the display, for the cursors created
+ * later too. Have it follow the GUI scale factor, unless the user chose a
+ * size. Returns whether XCURSOR_SIZE is to be removed once the cursors are
+ * created, the applications started from Window Maker are left as they were.
+ */
+static Bool scaleCursorSize(void)
+{
+	float factor = WMGetScaleFactor();
+	char size[16];
+
+	if (factor == 1.0F || getenv("XCURSOR_SIZE") || XGetDefault(dpy, "Xcursor", "size"))
+		return False;
+
+	snprintf(size, sizeof(size), "%d", (int)(BASE_CURSOR_SIZE * factor + 0.5F));
+	setenv("XCURSOR_SIZE", size, 1);
+	return True;
+}
+
 void StartUp(Bool defaultScreenOnly)
 {
 	struct sigaction sig_action;
 	int i, j, max;
 	char **formats;
 	Atom atom[wlengthof(atomNames)];
+	Bool cursor_size_set;
 
 	/*
 	 * Ignore CapsLock in modifiers
@@ -483,7 +507,7 @@ void StartUp(Bool defaultScreenOnly)
 #endif
 
 	/* cursors */
-	wAppScaleCursorsBegin();
+	cursor_size_set = scaleCursorSize();
 	wPreferences.cursor[WCUR_NORMAL] = None;	/* inherit from root */
 	wPreferences.cursor[WCUR_ROOT] = XCreateFontCursor(dpy, XC_left_ptr);
 	wPreferences.cursor[WCUR_ARROW] = XCreateFontCursor(dpy, XC_top_left_arrow);
@@ -500,7 +524,8 @@ void StartUp(Bool defaultScreenOnly)
 	wPreferences.cursor[WCUR_TEXT] = XCreateFontCursor(dpy, XC_xterm);	/* odd name??? */
 	wPreferences.cursor[WCUR_SELECT] = XCreateFontCursor(dpy, XC_cross);
 	wPreferences.cursor[WCUR_CAPTURE] = XCreateFontCursor(dpy, XC_crosshair);
-	wAppScaleCursorsEnd();
+	if (cursor_size_set)
+		unsetenv("XCURSOR_SIZE");
 
 	Pixmap cur = XCreatePixmap(dpy, DefaultRootWindow(dpy), 16, 16, 1);
 	GC gc = XCreateGC(dpy, cur, 0, NULL);
@@ -673,10 +698,6 @@ void StartUp(Bool defaultScreenOnly)
 		}
 		w_global.screen_count++;
 	}
-
-	/* pass the GUI scale factor on to the applications, before any is started */
-	for (j = 0; j < w_global.screen_count; j++)
-		wAppScaleInit(wScreen[j]);
 
 	InitializeSwitchMenu();
 

@@ -37,7 +37,6 @@
 #include "colormap.h"
 #include "screen.h"
 #include "shutdown.h"
-#include "appscale.h"
 
 
 static void wipeDesktop(WScreen * scr);
@@ -77,7 +76,6 @@ void Shutdown(WShutdownMode mode)
 					kill(scr->helper_pid, SIGKILL);
 
 				wScreenSaveState(scr);
-				wAppScaleRestore(scr);
 
 				if (mode == WSKillMode)
 					wipeDesktop(scr);

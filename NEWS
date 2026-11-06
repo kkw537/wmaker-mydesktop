@@ -65,36 +65,19 @@ option (in the Expert panel of WPrefs) can be set to NO to get the
 previous behaviour, and the NoBorder window attribute still removes the
 border of a given application.
 
-Scaling of the other applications
----------------------------------
+Scaled cursors and fonts with the other toolkits
+------------------------------------------------
 
-The scale factor given with GSScaleFactor (or GS_SCALE_FACTOR) is now
-passed on to the applications using other toolkits, which ignore it,
-the way GNOME does it:
+The cursors of Window Maker (from the cursor theme) now follow the scale
+factor given with GSScaleFactor (or GS_SCALE_FACTOR), at 24 pixels times
+the factor, unless a size is given with XCURSOR_SIZE or the Xcursor.size
+resource.
 
-- the XSETTINGS manager of the screen announces it to the GTK 3 and
-  GTK 4, Chromium and Electron applications: Gdk/WindowScalingFactor is
-  the whole part of the factor, and the fonts are given the rest of it,
-  as Gdk/UnscaledDPI and Xft/DPI. This is only done when no other
-  XSETTINGS manager (xsettingsd, a desktop environment daemon) is
-  running;
-- the Xft.dpi resource is set to 96 times the factor, for the Qt
-  applications (QT_ENABLE_HIGHDPI_SCALING is set for Qt 5) and the ones
-  using Xft directly. The previous value is put back when Window Maker
-  exits;
-- GDK_SCALE, GDK_DPI_SCALE, QT_SCALE_FACTOR and QT_SCREEN_SCALE_FACTORS
-  are removed from the environment of the applications started from
-  Window Maker, as they would be applied on top of the factor: some
-  Electron applications were 4 times as big with both GDK_SCALE=2 and
-  an Xft.dpi of 192.
-
-The new "ScaleApplications" option (in the Expert panel of WPrefs) can
-be set to NO to leave the other applications alone.
-
-The cursors of Window Maker itself (from the cursor theme) now also
-follow the scale factor, at 24 pixels times the factor, unless a size is
-given with XCURSOR_SIZE or the Xcursor.size resource. They match the ones
-of the GTK and Electron applications getting the factor as above.
+The other toolkits are given the scale factor through the Xft.dpi
+resource (96 times the factor) and an XSETTINGS manager, like GNOME
+does. The WINGs fonts now ignore the resolution of Xft.dpi when a scale
+factor is set, as the factor is already applied to them: they are not
+scaled twice when Xft.dpi has it too.
 
 Directional window focus
 ------------------------

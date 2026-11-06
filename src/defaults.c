@@ -523,8 +523,6 @@ WDefaultEntry optionList[] = {
 	    &wPreferences.minipreview_size, getPixels, NULL, NULL, NULL},
 	{"IgnoreGtkHints", "NO", NULL,
 	    &wPreferences.ignore_gtk_decoration_hints, getBool, NULL, NULL, NULL},
-	{"ScaleApplications", "YES", NULL,
-	    &wPreferences.scale_applications, getBool, NULL, NULL, NULL},
 	{"BorderUndecoratedWindows", "YES", NULL,
 	    &wPreferences.border_undecorated_windows, getBool, NULL, NULL, NULL},
 	{"KeepDockOnPrimaryHead", "NO", NULL,

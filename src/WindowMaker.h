@@ -406,7 +406,6 @@ extern struct WPreferences {
 	char disable_miniwindows;
 	char enable_workspace_pager;
 	char ignore_gtk_decoration_hints;
-	char scale_applications;           /* pass GSScaleFactor on to the other toolkits */
 	char border_undecorated_windows;   /* keep the border of windows asking for no decorations */
 
 	char dont_blink;                   /* do not blink icon selection */
