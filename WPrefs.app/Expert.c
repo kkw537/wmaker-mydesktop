@@ -47,6 +47,9 @@ static struct expert_option {
 	{ N_("Ignore decoration hints for GTK applications."),
 	  /* default: */ False, OPTION_WMAKER, "IgnoreGtkHints" },
 
+	{ N_("Apply the GUI scale factor (GSScaleFactor) to the other applications."),
+	  /* default: */ True, OPTION_WMAKER, "ScaleApplications" },
+
 	{ N_("Keep the border of windows asking for no decorations."),
 	  /* default: */ True, OPTION_WMAKER, "BorderUndecoratedWindows" },
 

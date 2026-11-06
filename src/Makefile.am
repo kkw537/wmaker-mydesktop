@@ -13,6 +13,8 @@ wmaker_SOURCES = 	\
 	actions.h \
 	animation.c \
 	animation.h \
+	appscale.c \
+	appscale.h \
 	appicon.c \
 	appicon.h \
 	application.c \

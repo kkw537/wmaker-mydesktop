@@ -126,6 +126,14 @@ static char *makeScaledFontName(const char *fontName)
 	if (!pattern)
 		return wstrdup(fontName);
 
+	/* Sizes in points are turned into pixels with the resolution, and
+	 * the resolution of the Xft.dpi resource may already have the scale
+	 * factor applied (Window Maker sets it so for the other toolkits, see
+	 * ScaleApplications): use the base resolution, the factor is applied
+	 * below */
+	FcPatternDel(pattern, FC_DPI);
+	FcPatternAddDouble(pattern, FC_DPI, 96.0);
+
 	if (FcPatternGetDouble(pattern, FC_PIXEL_SIZE, 0, &size) == FcResultMatch) {
 		FcPatternDel(pattern, FC_PIXEL_SIZE);
 		FcPatternAddDouble(pattern, FC_PIXEL_SIZE, size * factor);

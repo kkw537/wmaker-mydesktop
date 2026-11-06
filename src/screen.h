@@ -72,6 +72,7 @@ typedef enum {
 typedef struct _WScreen {
     int	screen;			       /* screen number */
     Window info_window;		       /* for our window manager info stuff */
+    Window xsettings_win;	       /* owner of the XSETTINGS selection, if we are the manager */
 #ifdef USE_ICCCM_WMREPLACE
     Atom sn_atom;		       /* window manager selection */
 #endif

@@ -70,6 +70,7 @@
 #endif
 
 #include "xutil.h"
+#include "appscale.h"
 
 /* for SunOS */
 #ifndef SA_RESTART
@@ -670,6 +671,10 @@ void StartUp(Bool defaultScreenOnly)
 		}
 		w_global.screen_count++;
 	}
+
+	/* pass the GUI scale factor on to the applications, before any is started */
+	for (j = 0; j < w_global.screen_count; j++)
+		wAppScaleInit(wScreen[j]);
 
 	InitializeSwitchMenu();
 
