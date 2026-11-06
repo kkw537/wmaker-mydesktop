@@ -47,6 +47,10 @@ static struct expert_option {
 	{ N_("Ignore decoration hints for GTK applications."),
 	  /* default: */ False, OPTION_WMAKER, "IgnoreGtkHints" },
 
+
+	{ N_("Keep the border of windows asking for no decorations."),
+	  /* default: */ True, OPTION_WMAKER, "BorderUndecoratedWindows" },
+
 	{ N_("Enable workspace pager."),
 	  /* default: */ False, OPTION_WMAKER, "EnableWorkspacePager" },
 

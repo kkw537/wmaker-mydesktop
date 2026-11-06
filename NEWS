@@ -51,6 +51,34 @@ switched off by DPMS, and an animation synchronised with the vertical
 blank stops as soon as the vertical blanks stop coming (the monitor was
 switched off while it was running).
 
+
+Border around undecorated windows
+---------------------------------
+
+Applications which draw their own titlebar, like many Electron and
+Chromium based ones, ask the window manager for no decorations at all
+through the Motif hints, and their windows were shown without even a
+border. They now keep the window border (FrameBorderWidth,
+FrameBorderColor and FrameFocusedBorderColor, black by default), still
+without titlebar and resizebar. The new "BorderUndecoratedWindows"
+option (in the Expert panel of WPrefs) can be set to NO to get the
+previous behaviour, and the NoBorder window attribute still removes the
+border of a given application.
+
+Scaled cursors and fonts with the other toolkits
+------------------------------------------------
+
+The cursors of Window Maker (from the cursor theme) now follow the scale
+factor given with GSScaleFactor (or GS_SCALE_FACTOR), at 24 pixels times
+the factor, unless a size is given with XCURSOR_SIZE or the Xcursor.size
+resource.
+
+The other toolkits are given the scale factor through the Xft.dpi
+resource (96 times the factor) and an XSETTINGS manager, like GNOME
+does. The WINGs fonts now ignore the resolution of Xft.dpi when a scale
+factor is set, as the factor is already applied to them: they are not
+scaled twice when Xft.dpi has it too.
+
 Directional window focus
 ------------------------
 
