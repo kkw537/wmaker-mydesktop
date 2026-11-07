@@ -19,7 +19,6 @@
 #ifndef WMANIMATION_H_
 #define WMANIMATION_H_
 
-#include <stdint.h>
 #include <time.h>
 
 #include "screen.h"
@@ -27,30 +26,16 @@
 /*
  * Animations are defined by their total duration, not by a number of
  * frames: every frame is drawn at the position matching the time elapsed
- * since the start, and frames are paced at the refresh rate of the
- * fastest active monitor. A 120Hz monitor therefore gets twice as many
- * frames as a 60Hz one, and both finish in the same time.
- *
- * When the X server supports the Present extension, a synchronised
- * animation (wAnimationStartSynced) waits for the vertical blank of the
- * monitor instead of sleeping, and its frames are timed with the time of
- * that vertical blank: each frame is drawn right after a vertical blank,
- * so it is shown exactly once and at a regular interval.
+ * since the start, and frames are paced with a timer at the refresh rate
+ * of the fastest active monitor, up to 120 frames per second. A 120Hz
+ * monitor therefore gets twice as many frames as a 60Hz one, and both
+ * finish in the same time.
  */
 typedef struct WAnimation {
 	struct timespec start;
 	unsigned long frame;		/* index of the frame on screen */
 	unsigned int interval;		/* time between frames, in microseconds */
 	unsigned long time;		/* time of the frame being drawn, in microseconds */
-
-	/* synchronisation with the vertical blank, through Present */
-	Bool synced;
-	Window window;
-	unsigned long eid;
-	uint32_t serial;
-	uint64_t msc;			/* vertical blank counter of the last frame */
-	uint64_t ust;			/* time of the vertical blank of the last frame */
-	uint64_t start_ust;		/* time of the first vertical blank */
 } WAnimation;
 
 /* time between two frames, in microseconds, for the screen's monitors */
@@ -59,14 +44,8 @@ unsigned int wAnimationFrameInterval(WScreen *scr);
 /* forget the cached refresh rate (the monitor configuration changed) */
 void wAnimationResetFrameRate(void);
 
-/* start an animation paced by a timer */
+/* start an animation */
 void wAnimationStart(WAnimation *anim, WScreen *scr);
-
-/* start an animation synchronised with the vertical blank when possible,
- * it must be ended with wAnimationEnd() */
-void wAnimationStartSynced(WAnimation *anim, WScreen *scr);
-
-void wAnimationEnd(WAnimation *anim);
 
 /* microseconds elapsed since the start, read from the clock */
 unsigned long wAnimationElapsed(const WAnimation *anim);
@@ -75,12 +54,8 @@ unsigned long wAnimationElapsed(const WAnimation *anim);
  * microseconds), from 0 to 1 */
 float wAnimationProgress(const WAnimation *anim, unsigned long duration);
 
-/* wait until the next frame is due: the next vertical blank for a
- * synchronised animation, else sleep for one frame interval. Returns False
- * when the animation should stop, because the vertical blanks stopped
- * coming (the monitor was switched off): the frame on screen must then
- * still be erased */
-Bool wAnimationWaitFrame(WAnimation *anim);
+/* sleep until the next frame is due */
+void wAnimationWaitFrame(WAnimation *anim);
 
 /* True when the monitors are switched off by DPMS, animations are then
  * not worth drawing */

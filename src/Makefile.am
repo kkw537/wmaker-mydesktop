@@ -168,7 +168,6 @@ wmaker_LDADD = \
 	$(top_builddir)/wrlib/libwraster.la\
 	@XLFLAGS@ \
 	@LIBXRANDR@ \
-	@LIBXPRESENT@ \
 	@LIBXINERAMA@ \
 	@LIBXKBFILE@ \
 	@XLIBS@ \

@@ -33,29 +33,15 @@ Animations follow the monitor refresh rate
 The miniaturize animations (zoom, twist and flip) and the fade out of the
 workspace name are now time based: they last as long as before, but their
 frames are drawn at the refresh rate of the fastest active monitor, read
-with RandR (60Hz when it is not available). On a 120Hz monitor they are
-twice as smooth as on a 60Hz one, without being any faster. The twist and
-flip animations now also end exactly on the icon.
-
-When Window Maker is built with libXpresent (configure option
---enable-xpresent, detected automatically) and the X server supports the
-Present extension, the miniaturize animations also wait for the vertical
-blank of the monitor instead of sleeping, and are timed with it: every
-frame is drawn right after a vertical blank, so it is shown exactly once,
-at a regular interval. Together with a tear free X server (for example
-the modesetting driver with Option "TearFree") they are then both free
-of tearing and of uneven frames.
+with RandR (60Hz when it is not available), up to 120 frames per second.
+On a 120Hz monitor they are twice as smooth as on a 60Hz one, without
+being any faster. The twist and flip animations now also end exactly on
+the icon. The frames are paced with a timer; together with a tear free X
+server (for example the modesetting driver with Option "TearFree") they
+are shown without tearing.
 
 The miniaturize animations are not drawn at all while the monitors are
-switched off by DPMS, and an animation synchronised with the vertical
-blank stops as soon as the vertical blanks stop coming (the monitor was
-switched off while it was running).
-
-When the X server cannot schedule the vertical blank (when a TearFree
-flip failed, for instance) and answers at once with the counter and time
-of the last one, the animation goes on with the timer instead. In any
-case an animation ends at most 200ms after its normal duration, as the
-server is kept grabbed while it runs.
+switched off by DPMS.
 
 
 Border around undecorated windows

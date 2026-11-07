@@ -666,19 +666,6 @@ m4_divert_pop([INIT_PREPARE])dnl
 WM_XEXT_CHECK_XRANDR
 
 
-dnl Present support
-dnl ===============
-m4_divert_push([INIT_PREPARE])dnl
-AC_ARG_ENABLE([xpresent],
-    [AS_HELP_STRING([--enable-xpresent], [enable Present extension support to synchronise animations with the monitor refresh])],
-    [AS_CASE(["$enableval"],
-        [yes|no], [],
-        [AC_MSG_ERROR([bad value $enableval for --enable-xpresent]) ]) ],
-    [enable_xpresent=auto])
-m4_divert_pop([INIT_PREPARE])dnl
-WM_XEXT_CHECK_XPRESENT
-
-
 dnl Math library
 dnl ============
 dnl libWINGS uses math functions, check whether usage requires linking
