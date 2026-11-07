@@ -43,6 +43,10 @@
  * microseconds (the monitor may have been switched off meanwhile) */
 #define VBLANK_TIMEOUT		100000
 
+/* how much longer than its duration an animation may run, whatever the
+ * time of its frames says, in microseconds */
+#define ANIMATION_OVERRUN	200000
+
 static unsigned int cached_interval = 0;
 
 #ifdef USE_RANDR
@@ -161,6 +165,7 @@ void wAnimationStart(WAnimation *anim, WScreen *scr)
 	anim->eid = 0;
 	anim->serial = 0;
 	anim->msc = 0;
+	anim->ust = 0;
 	anim->start_ust = 0;
 }
 
@@ -185,6 +190,11 @@ unsigned long wAnimationElapsed(const WAnimation *anim)
 float wAnimationProgress(const WAnimation *anim, unsigned long duration)
 {
 	if (duration == 0 || anim->time >= duration)
+		return 1.0F;
+
+	/* the callers keep the server grabbed while they animate: whatever
+	 * went wrong with the time of the frames, end in bounded time */
+	if (wAnimationElapsed(anim) >= duration + ANIMATION_OVERRUN)
 		return 1.0F;
 
 	return (float)anim->time / (float)duration;
@@ -293,6 +303,7 @@ void wAnimationStartSynced(WAnimation *anim, WScreen *scr)
 		/* read the counter and time of the current vertical blank */
 		if (waitVBlank(anim, 0, &ust, &msc)) {
 			anim->start_ust = ust;
+			anim->ust = ust;
 			anim->msc = msc;
 		} else {
 			stopSync(anim);
@@ -322,16 +333,29 @@ Bool wAnimationWaitFrame(WAnimation *anim)
 		/* if drawing took longer than a frame, the vertical blank asked
 		 * for is already past and the notification comes at once, for
 		 * the current one: the missed frames are skipped */
-		if (waitVBlank(anim, anim->msc + 1, &ust, &msc)) {
-			anim->frame += (msc > anim->msc) ? msc - anim->msc : 1;
+		if (!waitVBlank(anim, anim->msc + 1, &ust, &msc)) {
+			/* no vertical blank: the monitor was most likely switched
+			 * off, there is no point in drawing the rest of the
+			 * animation */
+			stopSync(anim);
+			return False;
+		}
+
+		if (msc > anim->msc && ust > anim->ust) {
+			anim->frame += msc - anim->msc;
 			anim->msc = msc;
-			anim->time = (ust > anim->start_ust) ? ust - anim->start_ust : 0;
+			anim->ust = ust;
+			anim->time = ust - anim->start_ust;
 			return True;
 		}
-		/* no vertical blank: the monitor was most likely switched off,
-		 * there is no point in drawing the rest of the animation */
+
+		/* the server could not schedule the vertical blank (a failed
+		 * TearFree flip, for example) and answered at once with the
+		 * counter and time of the last one: time would not move on and
+		 * the animation would never end. Pace the remaining frames with
+		 * the timer, which follows the clock */
 		stopSync(anim);
-		return False;
+		anim->frame = wAnimationElapsed(anim) / anim->interval;
 	}
 #endif
 

@@ -49,6 +49,7 @@ typedef struct WAnimation {
 	unsigned long eid;
 	uint32_t serial;
 	uint64_t msc;			/* vertical blank counter of the last frame */
+	uint64_t ust;			/* time of the vertical blank of the last frame */
 	uint64_t start_ust;		/* time of the first vertical blank */
 } WAnimation;
 
