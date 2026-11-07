@@ -65,19 +65,10 @@ static void save_old_geometry(WWindow *wwin, int directions);
 
 /******* Local Variables *******/
 #ifdef USE_ANIMATIONS
-static struct {
-	int steps;
-	int delay;
-} shadePars[5] = {
-	{ SHADE_STEPS_UF, SHADE_DELAY_UF },
-	{ SHADE_STEPS_F, SHADE_DELAY_F },
-	{ SHADE_STEPS_M, SHADE_DELAY_M },
-	{ SHADE_STEPS_S, SHADE_DELAY_S },
-	{ SHADE_STEPS_US, SHADE_DELAY_US }
+/* duration of the shade animation for each speed, in ms */
+static const unsigned int shadeTime[5] = {
+	SHADE_TIME_UF, SHADE_TIME_F, SHADE_TIME_M, SHADE_TIME_S, SHADE_TIME_US
 };
-
-#define SHADE_STEPS	shadePars[(int)wPreferences.shade_speed].steps
-#define SHADE_DELAY	shadePars[(int)wPreferences.shade_speed].delay
 #endif
 
 #define UNSHADE         0
@@ -2341,67 +2332,43 @@ void movePointerToWindowCenter(WWindow *wwin)
 #ifdef USE_ANIMATIONS
 static void shade_animate(WWindow *wwin, Bool what)
 {
-	int y, s, w, h;
-	time_t time0 = time(NULL);
+	const unsigned long duration = shadeTime[(int)wPreferences.shade_speed] * 1000UL;
+	WFrameWindow *frame = wwin->frame;
+	WAnimation anim;
+	int w, from, to, h;
+	float p;
 
 	if (wwin->flags.skip_next_animation || wPreferences.no_animations)
 		return;
 
-	switch (what) {
-	case SHADE:
-		if (!wwin->screen_ptr->flags.startup) {
-			/* do the shading animation */
-			h = wwin->frame->core->height;
-			s = h / SHADE_STEPS;
-			if (s < 1)
-				s = 1;
-			w = wwin->frame->core->width;
-			y = wwin->frame->top_width;
-			while (h > wwin->frame->top_width + WMScaled(1)) {
-				XMoveWindow(dpy, wwin->client_win, 0, y);
-				XResizeWindow(dpy, wwin->frame->core->window, w, h);
-				XFlush(dpy);
+	if (what == SHADE && wwin->screen_ptr->flags.startup)
+		return;
 
-				if (time(NULL) - time0 > MAX_ANIMATION_TIME)
-					break;
-
-				if (SHADE_DELAY > 0)
-					wusleep(SHADE_DELAY * 1000L);
-				else
-					wusleep(10);
-				h -= s;
-			y -= s;
-			}
-			XMoveWindow(dpy, wwin->client_win, 0, wwin->frame->top_width);
-		}
-		break;
-
-	case UNSHADE:
-		h = wwin->frame->top_width + wwin->frame->bottom_width;
-		y = wwin->frame->top_width - wwin->client.height;
-		s = abs(y) / SHADE_STEPS;
-		if (s < 1)
-			s = 1;
-		w = wwin->frame->core->width;
-		XMoveWindow(dpy, wwin->client_win, 0, y);
-		if (s > 0) {
-			while (h < wwin->client.height + wwin->frame->top_width + wwin->frame->bottom_width) {
-				XResizeWindow(dpy, wwin->frame->core->window, w, h);
-				XMoveWindow(dpy, wwin->client_win, 0, y);
-				XFlush(dpy);
-				if (SHADE_DELAY > 0)
-					wusleep(SHADE_DELAY * 2000L / 3);
-				else
-					wusleep(10);
-				h += s;
-				y += s;
-
-				if (time(NULL) - time0 > MAX_ANIMATION_TIME)
-					break;
-			}
-		}
-		XMoveWindow(dpy, wwin->client_win, 0, wwin->frame->top_width);
-		break;
+	/* the frame is resized from height "from" to height "to", with the
+	 * bottom of the client window stuck to its bottom */
+	w = frame->core->width;
+	if (what == SHADE) {
+		from = frame->core->height;
+		to = frame->top_width;
+	} else {
+		from = frame->top_width + frame->bottom_width;
+		to = frame->top_width + wwin->client.height + frame->bottom_width;
 	}
+
+	wAnimationStart(&anim, wwin->screen_ptr);
+	for (;;) {
+		p = wAnimationProgress(&anim, duration);
+		if (p >= 1.0F)
+			break;
+
+		h = from + (int)((to - from) * p);
+		XResizeWindow(dpy, frame->core->window, w, h);
+		XMoveWindow(dpy, wwin->client_win, 0,
+			    h - frame->bottom_width - (int)wwin->client.height);
+		XFlush(dpy);
+
+		wAnimationWaitFrame(&anim);
+	}
+	XMoveWindow(dpy, wwin->client_win, 0, frame->top_width);
 }
 #endif

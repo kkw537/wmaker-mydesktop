@@ -43,28 +43,30 @@
 #include "dialog.h"
 #include "rootmenu.h"
 #include "switchmenu.h"
+#include "animation.h"
 
 
 #define MOD_MASK wPreferences.modifier_mask
-
-#define MENU_SCROLL_STEP  WMScaled(menuScrollParameters[(int)wPreferences.menu_scroll_speed].steps)
-#define MENU_SCROLL_DELAY menuScrollParameters[(int)wPreferences.menu_scroll_speed].delay
 
 #define MENUW(m)	((m)->frame->core->width+2*(m)->frame->screen_ptr->frame_border_width)
 #define MENUH(m)	((m)->frame->core->height+2*(m)->frame->screen_ptr->frame_border_width)
 
 /***** Local Stuff ******/
 
+/* menu scrolling speed for each speed setting, in pixels per second */
+static const unsigned int menuScrollSpeed[5] = {
+	MENU_SCROLL_SPEED_UF, MENU_SCROLL_SPEED_F, MENU_SCROLL_SPEED_M,
+	MENU_SCROLL_SPEED_S, MENU_SCROLL_SPEED_US
+};
+
+/* the menu being scrolled: the distance it moves at each step follows the
+ * time elapsed, so its speed does not depend on how often it is moved */
 static struct {
-	int steps;
-	int delay;
-} menuScrollParameters[5] = {
-	{
-	MENU_SCROLL_STEPS_UF, MENU_SCROLL_DELAY_UF}, {
-	MENU_SCROLL_STEPS_F, MENU_SCROLL_DELAY_F}, {
-	MENU_SCROLL_STEPS_M, MENU_SCROLL_DELAY_M}, {
-	MENU_SCROLL_STEPS_S, MENU_SCROLL_DELAY_S}, {
-MENU_SCROLL_STEPS_US, MENU_SCROLL_DELAY_US}};
+	WMenu *menu;
+	WAnimation anim;
+	unsigned long last;		/* time of the last step */
+	unsigned long done;		/* distance scrolled so far, in pixels */
+} scrolling;
 
 static void menuMouseDown(WObjDescriptor * desc, XEvent * event);
 static void menuExpose(WObjDescriptor * desc, XEvent * event);
@@ -1488,6 +1490,50 @@ static void getPointerPosition(WScreen * scr, int *x, int *y)
 	XQueryPointer(dpy, scr->root_win, &root_ret, &win, x, y, &wx, &wy, &mask);
 }
 
+/* distance, in pixels, to scroll the menu by now */
+static int scrollStep(WMenu *menu)
+{
+	WScreen *scr = menu->menu->screen_ptr;
+	unsigned long speed = WMScaled(menuScrollSpeed[(int)wPreferences.menu_scroll_speed]);
+	unsigned long now = 0, total;
+	int step;
+
+	if (scrolling.menu == menu)
+		now = wAnimationElapsed(&scrolling.anim);
+
+	/* a new scroll, or one that was paused: start over */
+	if (scrolling.menu != menu || now > scrolling.last + 4 * scrolling.anim.interval) {
+		scrolling.menu = menu;
+		wAnimationStart(&scrolling.anim, scr);
+		scrolling.done = 0;
+		now = 0;
+	}
+	scrolling.last = now;
+
+	/* the first step already moves by one frame */
+	total = (unsigned long)((double)speed * (now + scrolling.anim.interval) / 1000000.0);
+	step = (int)(total - scrolling.done);
+	if (step < 1)
+		step = 1;
+	scrolling.done += step;
+
+	return step;
+}
+
+/* time until the next scroll step, in ms */
+static int scrollDelay(void)
+{
+	unsigned long speed = WMScaled(menuScrollSpeed[(int)wPreferences.menu_scroll_speed]);
+	unsigned long delay = scrolling.anim.interval;
+
+	/* no faster than one pixel per step */
+	if (speed > 0 && 1000000UL / speed > delay)
+		delay = 1000000UL / speed;
+
+	delay = (delay + 500) / 1000;
+	return delay < 1 ? 1 : (int)delay;
+}
+
 static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 {
 	WScreen *scr = menu->menu->screen_ptr;
@@ -1496,6 +1542,7 @@ static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 	int menuX2 = menu->frame_x + MENUW(menu);
 	int menuY2 = menu->frame_y + MENUH(menu);
 	int xroot, yroot;
+	int left, right, up, down, step;
 	WMRect rect = wGetRectForHead(scr, wGetHeadForPointerLocation(scr));
 
 	*hamount = 0;
@@ -1503,14 +1550,25 @@ static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 
 	getPointerPosition(scr, &xroot, &yroot);
 
-	if (xroot <= (rect.pos.x + WMScaled(1)) && menuX1 < rect.pos.x) {
-		/* scroll to the right */
-		*hamount = WMIN(MENU_SCROLL_STEP, abs(menuX1));
+	right = xroot <= (rect.pos.x + WMScaled(1)) && menuX1 < rect.pos.x;
+	left = !right && xroot >= (rect.pos.x + rect.size.width - WMScaled(2)) &&
+		menuX2 > (rect.pos.x + rect.size.width - WMScaled(1));
+	down = yroot <= (rect.pos.y + WMScaled(1)) && menuY1 < rect.pos.y;
+	up = !down && yroot >= (rect.pos.y + rect.size.height - WMScaled(2)) &&
+		menuY2 > (rect.pos.y + rect.size.height - WMScaled(1));
 
-	} else if (xroot >= (rect.pos.x + rect.size.width - WMScaled(2)) &&
-		   menuX2 > (rect.pos.x + rect.size.width - WMScaled(1))) {
+	if (!left && !right && !up && !down)
+		return;
+
+	step = scrollStep(menu);
+
+	if (right) {
+		/* scroll to the right */
+		*hamount = WMIN(step, abs(menuX1));
+
+	} else if (left) {
 		/* scroll to the left */
-		*hamount = WMIN(MENU_SCROLL_STEP, abs(menuX2 - rect.pos.x - (int)rect.size.width - WMScaled(1)));
+		*hamount = WMIN(step, abs(menuX2 - rect.pos.x - (int)rect.size.width - WMScaled(1)));
 
 		if (*hamount == 0)
 			*hamount = 1;
@@ -1518,14 +1576,13 @@ static void getScrollAmount(WMenu * menu, int *hamount, int *vamount)
 		*hamount = -*hamount;
 	}
 
-	if (yroot <= (rect.pos.y + WMScaled(1)) && menuY1 < rect.pos.y) {
+	if (down) {
 		/* scroll down */
-		*vamount = WMIN(MENU_SCROLL_STEP, abs(menuY1));
+		*vamount = WMIN(step, abs(menuY1));
 
-	} else if (yroot >= (rect.pos.y + rect.size.height - WMScaled(2)) &&
-		   menuY2 > (rect.pos.y + rect.size.height - WMScaled(1))) {
+	} else if (up) {
 		/* scroll up */
-		*vamount = WMIN(MENU_SCROLL_STEP, abs(menuY2 - rect.pos.y - (int)rect.size.height - WMScaled(2)));
+		*vamount = WMIN(step, abs(menuY2 - rect.pos.y - (int)rect.size.height - WMScaled(2)));
 
 		*vamount = -*vamount;
 	}
@@ -1558,7 +1615,7 @@ static void dragScrollMenuCallback(void *data)
 		/* paranoid check */
 		if (newSelectedEntry >= 0) {
 			/* keep scrolling */
-			menu->timer = WMAddTimerHandler(MENU_SCROLL_DELAY, dragScrollMenuCallback, menu);
+			menu->timer = WMAddTimerHandler(scrollDelay(), dragScrollMenuCallback, menu);
 		} else {
 			menu->timer = NULL;
 		}
@@ -1585,7 +1642,7 @@ static void scrollMenuCallback(void *data)
 		wMenuMove(parent, parent->frame_x + hamount, parent->frame_y + vamount, True);
 
 		/* keep scrolling */
-		menu->timer = WMAddTimerHandler(MENU_SCROLL_DELAY, scrollMenuCallback, menu);
+		menu->timer = WMAddTimerHandler(scrollDelay(), scrollMenuCallback, menu);
 	} else {
 		/* don't need to scroll anymore */
 		menu->timer = NULL;

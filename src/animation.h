@@ -38,13 +38,14 @@ typedef struct WAnimation {
 	unsigned long time;		/* time of the frame being drawn, in microseconds */
 } WAnimation;
 
-/* time between two frames, in microseconds, for the screen's monitors */
+/* time between two frames, in microseconds, for the screen's monitors
+ * (scr may be NULL for the default screen) */
 unsigned int wAnimationFrameInterval(WScreen *scr);
 
 /* forget the cached refresh rate (the monitor configuration changed) */
 void wAnimationResetFrameRate(void);
 
-/* start an animation */
+/* start an animation (scr may be NULL for the default screen) */
 void wAnimationStart(WAnimation *anim, WScreen *scr);
 
 /* microseconds elapsed since the start, read from the clock */

@@ -42,6 +42,7 @@
 
 #include "window.h"
 #include "misc.h"
+#include "animation.h"
 #include "WindowMaker.h"
 #include "GNUstep.h"
 #include "screen.h"
@@ -199,94 +200,38 @@ void move_window(Window win, int from_x, int from_y, int to_x, int to_y)
  * following windows are going to be offset by (ICON_SIZE*i,0) */
 void slide_windows(Window wins[], int n, int from_x, int from_y, int to_x, int to_y)
 {
-	time_t time0 = time(NULL);
-	float dx, dy, x = from_x, y = from_y, px, py;
-	Bool is_dx_nul, is_dy_nul;
-	int dx_is_bigger = 0, dx_int, dy_int;
-	int slide_delay, slide_steps, slide_slowdown;
-	int i;
-
-	/* animation parameters */
-	static const struct {
-		int delay;
-		int steps;
-		int slowdown;
-	} apars[5] = {
-		{ICON_SLIDE_DELAY_UF, ICON_SLIDE_STEPS_UF, ICON_SLIDE_SLOWDOWN_UF},
-		{ICON_SLIDE_DELAY_F,  ICON_SLIDE_STEPS_F,  ICON_SLIDE_SLOWDOWN_F},
-		{ICON_SLIDE_DELAY_M,  ICON_SLIDE_STEPS_M,  ICON_SLIDE_SLOWDOWN_M},
-		{ICON_SLIDE_DELAY_S,  ICON_SLIDE_STEPS_S,  ICON_SLIDE_SLOWDOWN_S},
-		{ICON_SLIDE_DELAY_US, ICON_SLIDE_STEPS_US, ICON_SLIDE_SLOWDOWN_US}
+	/* duration of the slide for each speed, in ms */
+	static const unsigned int slideTime[5] = {
+		ICON_SLIDE_TIME_UF, ICON_SLIDE_TIME_F, ICON_SLIDE_TIME_M,
+		ICON_SLIDE_TIME_S, ICON_SLIDE_TIME_US
 	};
+	/* distance from which a slide takes its full duration, shorter ones
+	 * are quicker */
+	const float full_distance = (float)WMScaled(400);
+	unsigned long duration = slideTime[(int)wPreferences.icon_slide_speed] * 1000UL;
+	float distance = hypotf((float)(to_x - from_x), (float)(to_y - from_y));
+	WAnimation anim;
+	float p, q;
+	int i, x, y;
 
-	slide_slowdown = apars[(int)wPreferences.icon_slide_speed].slowdown;
-	/* minimum step, in pixels */
-	slide_steps = WMScaled(apars[(int)wPreferences.icon_slide_speed].steps);
-	slide_delay = apars[(int)wPreferences.icon_slide_speed].delay;
+	if (distance < full_distance)
+		duration = (unsigned long)(duration * sqrtf(distance / full_distance));
 
-	dx_int = to_x - from_x;
-	dy_int = to_y - from_y;
-	is_dx_nul = (dx_int == 0);
-	is_dy_nul = (dy_int == 0);
-	dx = (float) dx_int;
-	dy = (float) dy_int;
-
-	if (abs(dx_int) > abs(dy_int)) {
-		dx_is_bigger = 1;
-	}
-
-	if (dx_is_bigger) {
-		px = dx / slide_slowdown;
-		if (px < slide_steps && px > 0)
-			px = slide_steps;
-		else if (px > -slide_steps && px < 0)
-			px = -slide_steps;
-		py = (is_dx_nul ? 0.0F : px * dy / dx);
-	} else {
-		py = dy / slide_slowdown;
-		if (py < slide_steps && py > 0)
-			py = slide_steps;
-		else if (py > -slide_steps && py < 0)
-			py = -slide_steps;
-		px = (is_dy_nul ? 0.0F : py * dx / dy);
-	}
-
-	while (((int)x) != to_x ||
-			 ((int)y) != to_y) {
-		x += px;
-		y += py;
-		if ((px < 0 && (int)x < to_x) || (px > 0 && (int)x > to_x))
-			x = (float)to_x;
-		if ((py < 0 && (int)y < to_y) || (py > 0 && (int)y > to_y))
-			y = (float)to_y;
-
-		if (dx_is_bigger) {
-			px = px * (1.0F - 1 / (float)slide_slowdown);
-			if (px < slide_steps && px > 0)
-				px = slide_steps;
-			else if (px > -slide_steps && px < 0)
-				px = -slide_steps;
-			py = (is_dx_nul ? 0.0F : px * dy / dx);
-		} else {
-			py = py * (1.0F - 1 / (float)slide_slowdown);
-			if (py < slide_steps && py > 0)
-				py = slide_steps;
-			else if (py > -slide_steps && py < 0)
-				py = -slide_steps;
-			px = (is_dy_nul ? 0.0F : py * dx / dy);
-		}
-
-		for (i = 0; i < n; i++) {
-			XMoveWindow(dpy, wins[i], (int)x + i * ICON_SIZE, (int)y);
-		}
-		XFlush(dpy);
-		if (slide_delay > 0) {
-			wusleep(slide_delay * 1000L);
-		} else {
-			wusleep(1000L);
-		}
-		if (time(NULL) - time0 > MAX_ANIMATION_TIME)
+	wAnimationStart(&anim, NULL);
+	for (;;) {
+		p = wAnimationProgress(&anim, duration);
+		if (p >= 1.0F)
 			break;
+
+		/* fast at first, slowing down when reaching the end */
+		q = 1.0F - (1.0F - p) * (1.0F - p) * (1.0F - p);
+		x = from_x + (int)((to_x - from_x) * q);
+		y = from_y + (int)((to_y - from_y) * q);
+		for (i = 0; i < n; i++)
+			XMoveWindow(dpy, wins[i], x + i * ICON_SIZE, y);
+		XFlush(dpy);
+
+		wAnimationWaitFrame(&anim);
 	}
 	for (i = 0; i < n; i++) {
 		XMoveWindow(dpy, wins[i], to_x + i * ICON_SIZE, to_y);
