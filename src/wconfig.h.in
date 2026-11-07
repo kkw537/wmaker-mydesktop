@@ -209,11 +209,10 @@
  * opposed to OpenStep */
 #define SINGLE_MENULEVEL
 
-/* max. time to spend doing animations in seconds. If the animation
- * time exceeds this value, it is immediately finished. Useful for
- * moments of high-load. DO NOT set *_DELAY_{Z,T,F} to zero!
+/* the miniaturize animations are time based: they last as long as their
+ * frames would with these delays (in microseconds), whatever the number
+ * of frames actually drawn. DO NOT set *_DELAY_{Z,T,F} to zero!
  */
-#define MAX_ANIMATION_TIME	         1
 /* Zoom animation */
 #define MINIATURIZE_ANIMATION_FRAMES_Z   7
 #define MINIATURIZE_ANIMATION_STEPS_Z    16
@@ -234,58 +233,32 @@
 #define MENU_SELECT_DELAY       200  /* ...for menu item selection hysteresis */
 #define MENU_JUMP_BACK_DELAY    400  /* ...for jumpback of scrolled menus */
 
-/* animation speed constants */
-#define ICON_SLIDE_SLOWDOWN_UF	1
-#define ICON_SLIDE_DELAY_UF	0
-#define ICON_SLIDE_STEPS_UF	50
+/* animation speed constants, for the speeds UltraFast (_UF), Fast (_F),
+ * Medium (_M), Slow (_S) and UltraSlow (_US). The animations are time
+ * based: their frames are drawn at the refresh rate of the monitor (up
+ * to 120 frames per second), whatever their speed */
 
-#define ICON_SLIDE_SLOWDOWN_F	3
-#define ICON_SLIDE_DELAY_F	0
-#define ICON_SLIDE_STEPS_F	50
+/* duration of the icon slide, in ms (0 moves the icons at once), for
+ * 400 pixels or more: shorter slides are quicker */
+#define ICON_SLIDE_TIME_UF	0
+#define ICON_SLIDE_TIME_F	150
+#define ICON_SLIDE_TIME_M	250
+#define ICON_SLIDE_TIME_S	350
+#define ICON_SLIDE_TIME_US	500
 
-#define ICON_SLIDE_SLOWDOWN_M	5
-#define ICON_SLIDE_DELAY_M	0
-#define ICON_SLIDE_STEPS_M	30
+/* menu scrolling speed, in pixels per second */
+#define MENU_SCROLL_SPEED_UF	14000
+#define MENU_SCROLL_SPEED_F	2000
+#define MENU_SCROLL_SPEED_M	1200
+#define MENU_SCROLL_SPEED_S	667
+#define MENU_SCROLL_SPEED_US	125
 
-#define ICON_SLIDE_SLOWDOWN_S	10
-#define ICON_SLIDE_DELAY_S	0
-#define ICON_SLIDE_STEPS_S	20
-
-#define ICON_SLIDE_SLOWDOWN_US	20
-#define ICON_SLIDE_DELAY_US	1
-#define ICON_SLIDE_STEPS_US	10
-
-/* menu scrolling */
-#define MENU_SCROLL_STEPS_UF	14
-#define MENU_SCROLL_DELAY_UF	1
-
-#define MENU_SCROLL_STEPS_F	10
-#define MENU_SCROLL_DELAY_F	5
-
-#define MENU_SCROLL_STEPS_M	6
-#define MENU_SCROLL_DELAY_M	5
-
-#define MENU_SCROLL_STEPS_S	4
-#define MENU_SCROLL_DELAY_S	6
-
-#define MENU_SCROLL_STEPS_US	1
-#define MENU_SCROLL_DELAY_US	8
-
-/* shade animation */
-#define SHADE_STEPS_UF		5
-#define SHADE_DELAY_UF		0
-
-#define SHADE_STEPS_F		10
-#define SHADE_DELAY_F		0
-
-#define SHADE_STEPS_M		15
-#define SHADE_DELAY_M		0
-
-#define SHADE_STEPS_S		30
-#define SHADE_DELAY_S		0
-
-#define SHADE_STEPS_US		40
-#define SHADE_DELAY_US		10
+/* duration of the shade animation, in ms */
+#define SHADE_TIME_UF		50
+#define SHADE_TIME_F		100
+#define SHADE_TIME_M		150
+#define SHADE_TIME_S		250
+#define SHADE_TIME_US		400
 
 /* workspace name on switch display */
 #define WORKSPACE_NAME_FADE_DELAY 30

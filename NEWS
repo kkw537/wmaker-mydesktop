@@ -43,6 +43,26 @@ are shown without tearing.
 The miniaturize animations are not drawn at all while the monitors are
 switched off by DPMS.
 
+The shade animation, the icon slide and the menu scrolling are time based
+too, so the speed settings (ShadeSpeed, IconSlideSpeed and
+MenuScrollSpeed) no longer change how many frames are drawn, only how
+long the animation lasts or how fast the menu moves; the frames always
+follow the monitor refresh rate. Before, they were drawn as fast as the X
+server would take them: shading ended in a few milliseconds with the
+speeds other than UltraSlow, and the icon slide in less than a tenth of a
+second at every speed, whatever the monitor. The durations, for each
+speed, are in src/wconfig.h.in:
+
+  speed       shade    icon slide (400 pixels or more)   menu scrolling
+  UltraFast   50ms     at once                           14000 pixels/s
+  Fast        100ms    150ms                             2000 pixels/s
+  Medium      150ms    250ms                             1200 pixels/s
+  Slow        250ms    350ms                             667 pixels/s
+  UltraSlow   400ms    500ms                             125 pixels/s
+
+Shorter icon slides are quicker, and the menu scrolls at the speed it had
+before.
+
 
 Border around undecorated windows
 ---------------------------------

@@ -48,7 +48,7 @@ static double queryRefreshRate(WScreen *scr)
 	if (!w_global.xext.randr.supported)
 		return 0;
 
-	sr = XRRGetScreenResourcesCurrent(dpy, scr->root_win);
+	sr = XRRGetScreenResourcesCurrent(dpy, scr ? scr->root_win : DefaultRootWindow(dpy));
 	if (!sr)
 		return 0;
 
