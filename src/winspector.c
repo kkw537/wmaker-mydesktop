@@ -726,6 +726,12 @@ static void applySettings(WMWidget *button, void *client_data)
 
 	WSETUFLAG(wwin, always_user_icon, WMGetButtonSelected(panel->alwChk));
 
+	/* the appicon follows the setting too, or the next window of the
+	 * application would bring the client icon back on it (its group
+	 * leader is often a hidden window with a class of its own) */
+	if (wapp)
+		WSETUFLAG(wapp->main_window_desc, always_user_icon, WFLAGP(wwin, always_user_icon));
+
 	if (WFLAGP(wwin, no_titlebar) && wwin->flags.shaded)
 		wUnshadeWindow(wwin);
 
@@ -804,6 +810,7 @@ static void applySettings(WMWidget *button, void *client_data)
 
 			/* Change the flags */
 			WSETUFLAG(wwin, always_user_icon, 0);
+			WSETUFLAG(wapp->main_window_desc, always_user_icon, 0);
 			WMSetButtonSelected(panel->alwChk, 0);
 		}
 

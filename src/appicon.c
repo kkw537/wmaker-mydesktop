@@ -156,6 +156,17 @@ void create_appicon_for_application(WApplication *wapp, WWindow *wwin)
 	if (!wapp->app_icon) {
 		/* Create the icon */
 		wapp->app_icon = wAppIconCreate(wapp->main_window_desc);
+
+		/* The appicon ignores the client icons because the window
+		 * starting the application does (see wApplicationCreate): when
+		 * the group leader has no icon of its own, show the icon set
+		 * for that window rather than the default one */
+		if (WFLAGP(wwin, always_user_icon) &&
+		    !wDefaultGetIconFile(wapp->main_window_desc->wm_instance,
+					 wapp->main_window_desc->wm_class, False))
+			wIconChangeImageFile(wapp->app_icon->icon,
+					     wDefaultGetIconFile(wwin->wm_instance, wwin->wm_class, False));
+
 		wIconUpdate(wapp->app_icon->icon);
 
 		/* Now, paint the icon */

@@ -120,6 +120,18 @@ WApplication *wApplicationCreate(WWindow * wwin)
 	wapp->main_window_desc->fake_group = wwin->fake_group;
 	wapp->main_window_desc->net_icon_image = RRetainImage(wwin->net_icon_image);
 
+	/*
+	 * The group leader is often a hidden window with a class of its own
+	 * (GTK names it after the program, and Firefox based browsers call
+	 * their windows "Navigator"), so the user never sets its attributes.
+	 * When the window starting the application ignores the client icons,
+	 * the appicon ignores them too: otherwise any new window of the
+	 * application (a Picture-in-Picture one, for example) would bring the
+	 * client icon back on the appicon.
+	 */
+	if (WFLAGP(wwin, always_user_icon))
+		WSETUFLAG(wapp->main_window_desc, always_user_icon, 1);
+
 	leader = wWindowFor(main_window);
 	if (leader)
 		leader->main_window = main_window;

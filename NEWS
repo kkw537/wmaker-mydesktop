@@ -64,6 +64,21 @@ Shorter icon slides are quicker, and the menu scrolls at the speed it had
 before.
 
 
+"Ignore client supplied icon" and the appicon
+---------------------------------------------
+
+Many programs (GTK ones, Firefox based browsers) group their windows under
+a hidden window with a class of its own, for example "librewolf.librewolf"
+for windows of class "Navigator.librewolf". The appicon follows that
+hidden window, so "Ignore client supplied icon" (AlwaysUserIcon) set on
+the windows did not reach it: the appicon showed the client icon, or, if
+it was docked or the setting had just been applied, it kept the user icon
+until another window of the program (a Picture-in-Picture window, for
+example) brought the client icon back. The appicon now ignores the client
+icons when the window starting the program does, and shows the icon set
+for that window when the hidden window has none of its own.
+
+
 Border around undecorated windows
 ---------------------------------
 
