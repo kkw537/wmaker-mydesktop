@@ -51,6 +51,12 @@ switched off by DPMS, and an animation synchronised with the vertical
 blank stops as soon as the vertical blanks stop coming (the monitor was
 switched off while it was running).
 
+When the X server cannot schedule the vertical blank (when a TearFree
+flip failed, for instance) and answers at once with the counter and time
+of the last one, the animation goes on with the timer instead. In any
+case an animation ends at most 200ms after its normal duration, as the
+server is kept grabbed while it runs.
+
 
 Border around undecorated windows
 ---------------------------------
